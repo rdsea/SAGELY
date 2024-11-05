@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  consul:
+    image: hashicorp/consul:latest
+    container_name: consul-server
+    ports:
+      - "8500:8500" # Exposes the Consul UI
+      - "8600:8600/udp" # DNS interface
+    environment:
+      CONSUL_BIND_INTERFACE: eth0 # Ensures Consul binds to the correct network interface
+    command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
+    volumes:
+      - consul-data:/consul/data
+      - consul-config:/consul/config
+
+  preprocessing:
+    image: rdsea/preprocessing:v1
+    container_name: preprocessing
+    environment:
+      CONSUL_HTTP_ADDR: "http://consul-server:8500"
+    depends_on:
+      - consul
+
+volumes:
+  consul-data:
+  consul-config:
+
+networks:
+  consul-network:
+    driver: host

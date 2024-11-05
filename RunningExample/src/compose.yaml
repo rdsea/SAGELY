@@ -1,0 +1,46 @@
+name: object_classification
+services:
+  preprocessing:
+    build:
+      context: .
+      dockerfile: ./preprocessing/Dockerfile
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    image: rdsea/preprocessing:v1
+    container_name: preprocessing
+    network_mode: host
+
+  ensemble:
+    build:
+      context: .
+      dockerfile: ./ensemble/Dockerfile
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    image: rdsea/object_classification_ensemble:v1
+    container_name: ensemble
+    network_mode: host
+
+  inference_cpu_mobilenet:
+    build:
+      context: .
+      dockerfile: ./inference/Dockerfile.cpu
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    image: rdsea/onnx_inference:cpu
+    container_name: inference_cpu_mobilenet
+    network_mode: host
+
+  inference_cpu_efficientnet:
+    build:
+      context: .
+      dockerfile: ./inference/Dockerfile.cpu
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    image: rdsea/onnx_inference:cpu
+    container_name: inference_cpu_efficientnet
+    command: ["--model", "EfficientNetB0"]
+    network_mode: host

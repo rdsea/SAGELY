@@ -1,0 +1,59 @@
+processing:
+  image_processing:
+    target_dim: (32,32,3)
+    func_name: resize_and_pad
+
+qoa_config:
+  client:
+    username: aaltosea2
+    instance_name: preprocessing_service
+    stage_id: processing
+    functionality: REST
+    application_name: nii
+    role: ml
+  connector:
+    - name: amqp_connector
+      connector_class: AMQP
+      config:
+        end_point: localhost
+        exchange_name: nii_inference
+        exchange_type: topic
+        out_routing_key: nii.processing
+  probes:
+    - probe_type: "process"
+      frequency: 1
+      require_register: false
+      log_latency_flag: false
+      environment: Edge
+  registration_url: http://0.0.0.0:5010/registration
+
+external_services:
+  minio_storage:
+    endpoint_url: http://195.148.22.62:9000
+    access_key: admin_user
+    secret_key: admin_pass
+    bucket_name: nii-application-unprocessed-image
+
+  service_registry:
+    consul_config:
+      url: http://localhost:8500
+  inference_service:
+    # 'type' determines the method for server selection. It can be:
+    # - all: Selects and returns all available servers.
+    # - one: Randomly picks and returns one server from the available pool.
+    # - quorum: Selects and returns more than half of the available servers, ensuring a majority.
+    # Tags (optional) can be used as a filter with any type
+    type: one # Options: all, one, quorum
+    ensemble_name: ensemble
+
+    # 'tags' (optional): A list of tags used to filter servers regardless of the 'type' selected.
+    # If 'tags' is empty or not specified, all servers matching the 'type' criteria are considered.
+    # Examples:
+    # - To use all servers with specific tags: type: all, tags: [tag1, tag2]
+    # - To select one random server with specific tags: type: one, tags: [tag1]
+    # - To use a majority of servers with specific tags: type: quorum, tags: [tag2]
+    tags: ["nii_case"] # List of tags to filter servers, can be empty.
+
+  image_info:
+    type: one
+    tags: ["nii_case"]
