@@ -1,2 +1,5 @@
-ROS-simulation
+ROS-simulation/server_testing
+
 RunningExample/**/__pycache__/
+*.pyc
+ROS_sim/src/py_srvcli2/LICENSE ROS_sim/src/py_srvcli2/package.xml ROS_sim/src/py_srvcli2/py_srvcli2 ROS_sim/src/py_srvcli2/resource ROS_sim/src/py_srvcli2/setup.cfg ROS_sim/src/py_srvcli2/setup.py ROS_sim/src/py_srvcli2/test
