@@ -1,5 +1,9 @@
 [project]
-dependencies = ["requests", "numpy", "Pillow==10.4.0"]
+dependencies = [
+    "requests",
+    "numpy",
+    "pillow>=11.0.0",
+]
 name = "client"
 version = "0.1.0"
 requires-python = "== 3.9.19"
