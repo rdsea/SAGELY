@@ -1,4 +1,9 @@
-source /opt/ros/iron/setup.zsh # or sh / bash
+## Docker build for ros2
+```bash
 
-export ROS_DOMAIN_ID=<your_domain_id> # I am using 2
+cd src/client_drone
 
+docker build -t client_drone . 
+
+docker run --network host -v <image_data_for_sending>:/root/client_drone/src/data/val_images --rm -it client_drone bash --
+```

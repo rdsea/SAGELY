@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools', 'requests'],
+    install_requires=['setuptools', 'requests', 'yaml', 'os', 'random', 'Timer'],
     zip_safe=True,
     maintainer='nguyent141',
     maintainer_email='tringuyennht@gmail.com',

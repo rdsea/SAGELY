@@ -1,2 +1,0 @@
-/u/42/nguyent141/unix/.local/lib/python3.10/site-packages/setuptools/_distutils/dist.py:261: UserWarning: Unknown distribution option: 'tests_require'
-  warnings.warn(msg)
