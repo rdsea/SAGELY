@@ -1,5 +1,11 @@
 ROS_sim/server_testing
 
-RunningExample/**/__pycache__/
 *.pyc
+
 ROS_sim/src/py_srvcli2/*
+ROS_sim/build/*
+ROS_sim/install/*
+ROS_sim/log/*
+object_classification/src/artifact/dataset/*
+*.csv
+*.onnx
