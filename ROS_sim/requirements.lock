@@ -10,6 +10,12 @@
 #   universal: false
 
 -e file:.
+aiohappyeyeballs==2.4.3
+    # via aiohttp
+aiohttp==3.11.2
+    # via ros-simulation
+aiosignal==1.3.1
+    # via aiohttp
 annotated-types==0.7.0
     # via pydantic
 anyio==4.6.2.post1
@@ -18,6 +24,8 @@ anyio==4.6.2.post1
     # via watchfiles
 argcomplete==3.5.1
     # via colcon-argcomplete
+attrs==24.2.0
+    # via aiohttp
 catkin-pkg==1.0.0
     # via colcon-ros
 certifi==2024.8.30
@@ -116,6 +124,9 @@ fastapi==0.115.4
     # via ros-simulation
 fastapi-cli==0.0.5
     # via fastapi
+frozenlist==1.5.0
+    # via aiohttp
+    # via aiosignal
 h11==0.14.0
     # via httpcore
     # via uvicorn
@@ -130,6 +141,7 @@ idna==3.10
     # via email-validator
     # via httpx
     # via requests
+    # via yarl
 iniconfig==2.0.0
     # via pytest
 jinja2==3.1.4
@@ -142,6 +154,9 @@ markupsafe==3.0.2
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
+multidict==6.1.0
+    # via aiohttp
+    # via yarl
 notify2==0.3.1
     # via colcon-notification
 packaging==24.1
@@ -153,6 +168,9 @@ packaging==24.1
     # via pytest-rerunfailures
 pluggy==1.5.0
     # via pytest
+propcache==0.2.0
+    # via aiohttp
+    # via yarl
 pydantic==2.9.2
     # via fastapi
 pydantic-core==2.23.4
@@ -218,3 +236,5 @@ watchfiles==0.24.0
     # via uvicorn
 websockets==13.1
     # via uvicorn
+yarl==1.17.1
+    # via aiohttp

@@ -1,8 +1,8 @@
 device_id: "drone-Tri" 
-server_url: "http://localhost:5010/preprocessing"
+server_url: "http://130.233.96.246:5010/preprocessing"
 ds_path: "../../data/val_images"
 #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
-rate: 1
+rate: 0.1
 gps_data:
   latitude: 37.7749
   longitude: -122.4194

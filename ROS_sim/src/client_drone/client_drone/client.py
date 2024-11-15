@@ -18,7 +18,7 @@ class ClientNode(Node):
         self.declare_parameter('yaml_file', 'client_drone.yaml')  # Default YAML file
         self.yaml_file = self.get_parameter('yaml_file').get_parameter_value().string_value
 
-        self.gps_data = None
+        #self.gps_data = None
         self.image_paths = []
 
         self.load_yaml_data()
@@ -66,9 +66,11 @@ class ClientNode(Node):
 
         start_time = time.time()
         file = {"file": ("random_image", img_data, "image/jpeg")}
+
         response = requests.post(url, files=file)
         print(response.json(), synset_id, (time.time() - start_time) * 1000)
 
+        response = requests.post(url, files=file)
 
     def main_send_request(self):
 
