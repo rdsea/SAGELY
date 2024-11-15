@@ -5,3 +5,8 @@
 # Decision
 
 - On coral.ai, MobileNetV3 doesn't have CPU model -> decided to not use it
+
+
+# Architecture 
+
+[Architecture](object_classification.png)
