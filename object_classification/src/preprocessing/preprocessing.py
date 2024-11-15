@@ -191,7 +191,9 @@ async def processing_image(file: UploadFile):
     #     "work.counter", unit="1", description="Counts the amount of work done"
     # )
     async with aiohttp.ClientSession() as session:
+
         logging.info(ensemble_service_url)
+
         async with session.post(
             ensemble_service_url,
             data=image_bytes,

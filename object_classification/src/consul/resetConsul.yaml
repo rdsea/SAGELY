@@ -5,7 +5,7 @@ service:
   - image_info
   - inference
   - ingestion
-  - processing
+  - preprocessing
   - ensemble
   - DenseNet121
   - DenseNet201

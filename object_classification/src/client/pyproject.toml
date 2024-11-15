@@ -3,6 +3,7 @@ dependencies = [
     "requests",
     "numpy",
     "pillow>=11.0.0",
+    "PyYAML"
 ]
 name = "client"
 version = "0.1.0"

@@ -1,8 +1,14 @@
 import argparse
 
-from rohe.common import rohe_utils
-from rohe.service_registry.consul import ConsulClient
+import os
+import sys
+import yaml
 
+current_directory = os.path.dirname(os.path.abspath(__file__))
+util_directory = os.path.join(current_directory, "..", "util")
+
+sys.path.append(util_directory)
+from consul import ConsulClient
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Argument for Ingestion Service")
     parser.add_argument(
@@ -15,7 +21,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     config_file = args.conf
-    config = rohe_utils.load_config(file_path=config_file)
+    with open("./resetConsul.yaml") as file:
+        config = yaml.safe_load(file)
     assert config is not None
     consul_client = ConsulClient(config=config["service_registry"]["consul_config"])
     for service in config["service"]:

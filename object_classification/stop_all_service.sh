@@ -10,6 +10,13 @@ fi
 tmux select-window -t my_window
 
 # Run commands in each pane
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+tmux send-keys -t my_window.2 C-c
+tmux send-keys -t my_window.2 "cd $SCRIPT_DIR/src/consul" C-m
+tmux send-keys -t my_window.2 "source $SCRIPT_DIR/src/client/.venv/bin/activate" C-m
+tmux send-keys -t my_window.2 "python3 reset_consul.py" C-m
+sleep 1
+
 tmux send-keys -t my_window.2 C-c
 tmux send-keys -t my_window.3 C-c
 tmux send-keys -t my_window.4 C-c
