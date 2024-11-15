@@ -9,4 +9,4 @@
 
 # Architecture 
 
-[Architecture](object_classification.png)
+![Architecture](object_classification.png)
