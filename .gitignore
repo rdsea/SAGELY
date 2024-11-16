@@ -9,3 +9,5 @@ ROS_sim/log/*
 object_classification/src/artifact/dataset/*
 *.csv
 *.onnx
+
+policy_update/rego_git/*
