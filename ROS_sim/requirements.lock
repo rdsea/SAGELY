@@ -117,7 +117,7 @@ docutils==0.21.2
     # via catkin-pkg
 email-validator==2.2.0
     # via fastapi
-empty==3.3.4
+empy==3.3.4
     # via colcon-core
     # via ros-simulation
 fastapi==0.115.4
