@@ -1,4 +1,4 @@
-device_id: "drone-Tri" 
+device_id: "drone-Tri"
 server_url: "http://130.233.96.246:5010/preprocessing"
 ds_path: "../../data/val_images"
 #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
@@ -9,4 +9,3 @@ gps_data:
 image_paths:
   - /path/to/image1.jpg
   - /path/to/image2.jpg
-

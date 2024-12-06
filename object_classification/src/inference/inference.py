@@ -1,13 +1,10 @@
 import logging
 import os
-import signal
 import sys
 
 import numpy as np
 import yaml
-from datamodel import ImageClassificationModelEnum, InferenceServiceConfig
 from fastapi import FastAPI, Request
-from image_classification_agent import ImageClassificationAgent
 from opentelemetry import trace
 
 # from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
@@ -19,20 +16,15 @@ from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-current_directory = os.path.dirname(os.path.abspath(__file__))
-util_directory = os.path.join(current_directory, "..", "util")
-sys.path.append(util_directory)
-
-# TODO: find better way please!!!
-import utils  # noqa: E402
-from consul import ConsulClient  # noqa: E402
+from datamodel import ImageClassificationModelEnum, InferenceServiceConfig
+from image_classification_agent import ImageClassificationAgent
 
 chosen_model = os.environ["CHOSEN_MODEL"]
 resource = Resource(attributes={SERVICE_NAME: f"inference_{chosen_model}"})
 
 traceProvider = TracerProvider(resource=resource)
 processor = BatchSpanProcessor(
-    OTLPSpanExporter(endpoint="http://localhost:4318/v1/traces")
+    OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
 )
 traceProvider.add_span_processor(processor)
 trace.set_tracer_provider(traceProvider)
@@ -43,7 +35,6 @@ tracer = trace.get_tracer(__name__)
 # )
 # meterProvider = MeterProvider(resource=resource, metric_readers=[reader])
 # metrics.set_meter_provider(meterProvider)
-PORT = int(os.environ["PORT"])
 
 # NOTE: model config in the inference service config
 #
@@ -75,18 +66,8 @@ except Exception as e:
     sys.exit(1)
 logging.info(f"Inference configuration: {config}")
 
-local_ip = utils.get_local_ip()
-consul_client = ConsulClient(
-    config=config.external_services["service_registry"]["consul_config"]
-)
 
 chosen_model = ImageClassificationModelEnum[chosen_model]
-service_id = consul_client.service_register(
-    name=chosen_model.name,
-    address=local_ip,
-    tag=["nii_case", "inference", chosen_model.name],
-    port=PORT,
-)
 
 model_config = config.model_config_dict[chosen_model]
 ml_agent = ImageClassificationAgent(chosen_model, model_config)
@@ -114,13 +95,6 @@ async def inference(request: Request):
         return ml_agent.predict(reconstructed_image)
 
 
-def signal_handler(sig, frame):
-    print("You pressed Ctrl+C! Gracefully shutting down.")
-    consul_client.service_deregister(id=service_id)
-    sys.exit(0)
-
-
-signal.signal(signal.SIGINT, signal_handler)
 FastAPIInstrumentor.instrument_app(
     app,
 )

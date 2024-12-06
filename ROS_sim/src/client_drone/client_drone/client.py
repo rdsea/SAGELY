@@ -7,39 +7,51 @@ from threading import Timer
 import random
 import time
 
+
 class ClientNode(Node):
     def __init__(self):
-        super().__init__('client_node')
-        self.declare_parameter('server_url', 'http://localhost:5010/preprocessing')  # Default value
-        self.declare_parameter('ds_path','../../../../object_classification/src/artifact/dataset/imagenet/data/val_images')
-        self.declare_parameter('rate',10)
+        super().__init__("client_node")
+        self.declare_parameter(
+            "server_url", "http://localhost:5010/preprocessing"
+        )  # Default value
+        self.declare_parameter(
+            "ds_path",
+            "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images",
+        )
+        self.declare_parameter("rate", 10)
 
-        #self.server_url = self.get_parameter('server_url').get_parameter_value().string_value
-        self.declare_parameter('yaml_file', 'client_drone.yaml')  # Default YAML file
-        self.yaml_file = self.get_parameter('yaml_file').get_parameter_value().string_value
+        # self.server_url = self.get_parameter('server_url').get_parameter_value().string_value
+        self.declare_parameter("yaml_file", "client_drone.yaml")  # Default YAML file
+        self.yaml_file = (
+            self.get_parameter("yaml_file").get_parameter_value().string_value
+        )
 
-        #self.gps_data = None
+        # self.gps_data = None
         self.image_paths = []
 
         self.load_yaml_data()
 
     def load_yaml_data(self):
-        self.get_logger().info(f'Current working directory: {os.getcwd()}')
+        self.get_logger().info(f"Current working directory: {os.getcwd()}")
         if os.path.exists(self.yaml_file):
-            with open(self.yaml_file, 'r') as file:
+            with open(self.yaml_file) as file:
                 data = yaml.safe_load(file)
 
-                self.device_id = data.get('device_id', '')
-                self.server_url = data.get('server_url', 'http://localhost:5010/preprocessing')
-                #self.gps_data = data.get('gps_data', {} )
-                self.ds_path = data.get('ds_path', '../../../../object_classification/src/artifact/dataset/imagenet/data/val_images')
-                #self.image_paths = data.get('image_paths', [])
-                self.rate = data.get('rate', 1)
-                self.get_logger().info(f'Loaded ds_path data: {self.ds_path}')
-                self.get_logger().info(f'Loaded rate: {self.rate}')
+                self.device_id = data.get("device_id", "")
+                self.server_url = data.get(
+                    "server_url", "http://localhost:5010/preprocessing"
+                )
+                # self.gps_data = data.get('gps_data', {} )
+                self.ds_path = data.get(
+                    "ds_path",
+                    "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images",
+                )
+                # self.image_paths = data.get('image_paths', [])
+                self.rate = data.get("rate", 1)
+                self.get_logger().info(f"Loaded ds_path data: {self.ds_path}")
+                self.get_logger().info(f"Loaded rate: {self.rate}")
         else:
-            self.get_logger().error(f'YAML file {self.yaml_file} does not exist')
-
+            self.get_logger().error(f"YAML file {self.yaml_file} does not exist")
 
     def send_request(self, url, requesting_interval, jpeg_images_list):
         timer = Timer(
@@ -73,7 +85,6 @@ class ClientNode(Node):
         response = requests.post(url, files=file)
 
     def main_send_request(self):
-
         device_id = self.device_id
         ds_path = self.ds_path
         req_rate = self.rate
@@ -94,6 +105,7 @@ class ClientNode(Node):
         )
         timer.start()
 
+
 def main(args=None):
     rclpy.init(args=args)
 
@@ -103,5 +115,6 @@ def main(args=None):
     client_node.destroy_node()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -9,6 +9,7 @@ util_directory = os.path.join(current_directory, "..", "util")
 
 sys.path.append(util_directory)
 from consul import ConsulClient
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Argument for Ingestion Service")
     parser.add_argument(

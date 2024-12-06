@@ -37,9 +37,5 @@ external_services:
       url: http://localhost:8500
 
 ensemble:
-  MobileNet:
-    type: one
-    tags: ["nii_case"]
-  EfficientNetB0:
-    type: one
-    tags: ["nii_case"]
+  - MobileNetV2
+  - EfficientNetB0

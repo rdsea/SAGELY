@@ -49,7 +49,7 @@ if __name__ == "__main__":
         "--ds_path",
         type=str,
         help="test dataset path",
-        default="../artifact/dataset/imagenet/data/val_images/",
+        default="./image/",
     )
     parser.add_argument(
         "--rate", type=int, help="number of requests per second", default=1

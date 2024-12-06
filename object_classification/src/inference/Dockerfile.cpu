@@ -12,9 +12,6 @@ COPY --from=ghcr.io/astral-sh/uv:0.4.3 /uv /bin/uv
 
 COPY ./inference/*.toml ./
 
-
-COPY ./inference/run_server.sh ./inference/run_server.sh
-
 RUN uv sync --compile-bytecode --no-cache --extra cpu
 
 COPY ./inference/*.py ./inference/
@@ -23,7 +20,9 @@ COPY ./inference/*.yaml ./inference/
 
 COPY ./util/ ./util
 
-EXPOSE 8050-8065
+COPY ./inference/run_server.sh ./inference/run_server.sh
+
+EXPOSE 5012
 
 WORKDIR /object_classification/inference
 
