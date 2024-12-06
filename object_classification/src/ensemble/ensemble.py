@@ -1,11 +1,11 @@
 from __future__ import annotations
-from functools import cache
 
 import asyncio
 import logging
 import os
 import sys
 from typing import Annotated
+import ensemble_function
 
 import aiohttp
 from fastapi import BackgroundTasks, FastAPI, Form, Request
@@ -66,10 +66,10 @@ def get_inference_service_url(ensemble_chosen: list[str]):
 async def process_image_task(image_data: bytes, request_id: str):
     # current_span = trace.get_current_span()
     ensemble = app.state.config["ensemble"]
-    # chosen_ensemble_function = getattr(
-    #     ensemble_function,
-    #     app.state.config["aggregating"]["aggregating_func"]["func_name"],
-    # )
+    chosen_ensemble_function = getattr(
+        ensemble_function,
+        app.state.config["aggregating"]["aggregating_func"]["func_name"],
+    )
     list_service_url = get_inference_service_url(ensemble)
     logging.info(f"List service url: {list_service_url}")
 
@@ -84,8 +84,9 @@ async def process_image_task(image_data: bytes, request_id: str):
             results = []
             for task in done:
                 results.append(await task)
-            print(results)
-            # print(chosen_ensemble_function(results, request_id))
+            # print(results)
+            # NOTE: this doesn't return yet
+            print(chosen_ensemble_function(results, request_id))
 
     else:
         raise RuntimeError("No inference service url")
