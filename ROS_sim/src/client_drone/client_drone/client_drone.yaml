@@ -1,5 +1,5 @@
-device_id: "drone-Tri"
-server_url: "http://130.233.96.246:5010/preprocessing"
+device_id: "drone-Tri2"
+server_url: "http://0.0.0.0:5010/preprocessing"
 ds_path: "../../data/val_images"
 #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
 rate: 0.1

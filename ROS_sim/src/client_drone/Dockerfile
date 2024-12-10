@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y \
     ros-iron-desktop \
     python3-pip\
     python3-colcon-common-extensions \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 RUN 
@@ -48,6 +49,7 @@ RUN mkdir -p /root/client_drone/src/data
 
 # Copy the package into the workspace
 COPY . /root/client_drone/src/client_drone
+
 
 # Set the working directory
 WORKDIR /root/client_drone/src/client_drone
@@ -61,6 +63,8 @@ RUN /bin/bash -c "source /opt/ros/iron/setup.bash && colcon build"
 RUN echo "source /root/client_drone/src/client_drone/install/setup.bash" >> /root/.bashrc
 
 WORKDIR /root/client_drone/src/client_drone/client_drone
+
+RUN chmod +x entrypoint.sh
 
 # Define entry point
 ENTRYPOINT ["/bin/bash", "-c"]
