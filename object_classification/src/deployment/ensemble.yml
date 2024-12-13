@@ -5,15 +5,20 @@ metadata:
   name: ensemble
   labels:
     app: ensemble
+    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: ensemble
+      version: v1
   template:
     metadata:
       labels:
         app: ensemble
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: ensemble
@@ -28,7 +33,7 @@ metadata:
   name: ensemble-service
 spec:
   ports:
-    - port: 5011
-      targetPort: 5011
+    - port: 5001
+      targetPort: 5001
   selector:
     app: ensemble
