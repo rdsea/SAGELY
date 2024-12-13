@@ -11,43 +11,31 @@ import time
 class ClientNode(Node):
     def __init__(self):
         super().__init__("client_node")
-        self.declare_parameter(
-            "server_url", "http://localhost:5010/preprocessing"
-        )  # Default value
-        self.declare_parameter(
-            "ds_path",
-            "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images",
-        )
-        self.declare_parameter("rate", 10)
+        self.declare_parameter("yaml_file", "client_config.yaml")  # Default YAML file
+        self.declare_parameter("drone_id", "")  
 
-        # self.server_url = self.get_parameter('server_url').get_parameter_value().string_value
-        self.declare_parameter("yaml_file", "client_drone.yaml")  # Default YAML file
-        self.yaml_file = (
-            self.get_parameter("yaml_file").get_parameter_value().string_value
-        )
-
-        # self.gps_data = None
+        self.yaml_file = self.get_parameter("yaml_file").get_parameter_value().string_value
+        self.drone_id = self.get_parameter("drone_id").get_parameter_value().string_value
         self.image_paths = []
-
+        #print('yaml file ', self.yaml_file)
         self.load_yaml_data()
 
     def load_yaml_data(self):
+
         self.get_logger().info(f"Current working directory: {os.getcwd()}")
+
         if os.path.exists(self.yaml_file):
             with open(self.yaml_file) as file:
                 data = yaml.safe_load(file)
+                drone_data = data.get(self.drone_id, {})
 
-                self.device_id = data.get("device_id", "")
-                self.server_url = data.get(
-                    "server_url", "http://localhost:5010/preprocessing"
-                )
-                # self.gps_data = data.get('gps_data', {} )
-                self.ds_path = data.get(
-                    "ds_path",
-                    "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images",
-                )
-                # self.image_paths = data.get('image_paths', [])
-                self.rate = data.get("rate", 1)
+                self.device_id = drone_data.get("device_id")
+                self.server_url = drone_data.get("server_url")
+                self.ds_path = drone_data.get("ds_path")
+                self.rate = drone_data.get("rate")
+                self.gps_data = drone_data.get("gps_data")
+                self.image_paths = drone_data.get("image_paths")
+
                 self.get_logger().info(f"Loaded ds_path data: {self.ds_path}")
                 self.get_logger().info(f"Loaded rate: {self.rate}")
         else:

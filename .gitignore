@@ -9,9 +9,9 @@ ROS_sim/log/*
 ROS_sim/src/client_drone/client_drone/etcd
 ROS_sim/src/client_drone/client_drone/etcdctl
 ROS_sim/src/client_drone/client_drone/testing_env.sh
-ROS_sim/src/client_drone/client_drone/
 ROS_sim/src/client_drone/resouce/*
 ROS_sim/src/client_drone/test/*
+
 object_classification/src/artifact/dataset/*
 *.csv
 *.onnx
