@@ -1,0 +1,28 @@
+version: "3.7"
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    restart: always
+    hostname: "localhost"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost'
+        gitlab_rails['lfs_enabled'] = true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "22:22"
+    volumes:
+      - ./config:/etc/gitlab
+      - ./logs:/var/log/gitlab
+      - ./data:/var/opt/gitlab
+    network_mode: host
+# gitlab-rake "gitlab:password:reset[root]" # to change root password
+# git clone http://localhost/root/rego_git.git
+# cd rego_git
+# # Add your policy files
+# git add .
+# git commit -m "Initial policy commit"
+# git push origin master
+
