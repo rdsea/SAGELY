@@ -5,15 +5,20 @@ metadata:
   name: preprocessing
   labels:
     app: preprocessing
+    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: preprocessing
+      version: v1
   template:
     metadata:
       labels:
         app: preprocessing
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: preprocessing

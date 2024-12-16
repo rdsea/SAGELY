@@ -5,15 +5,20 @@ metadata:
   name: mobilenetv2
   labels:
     app: mobilenetv2
+    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: mobilenetv2
+      version: v1
   template:
     metadata:
       labels:
         app: mobilenetv2
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: mobilenetv2

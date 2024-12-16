@@ -5,15 +5,20 @@ metadata:
   name: efficientnetb0
   labels:
     app: efficientnetb0
+    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: efficientnetb0
+      version: v1
   template:
     metadata:
       labels:
         app: efficientnetb0
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: efficientnetb0
@@ -21,7 +26,6 @@ spec:
           image: rdsea/inference:cpu
           ports:
             - containerPort: 5012
-          env:
           args: ["--model", "EfficientNetB0"]
 ---
 apiVersion: v1
