@@ -24,4 +24,3 @@ k8s_yaml('src/deployment/istio/destination-rules.yml')
 
 k8s_resource('preprocessing', port_forwards=5010)
 k8s_resource('jaeger', port_forwards=16686)
-k8s_resource('istio-ingressgateway', port_forwards=["80:80"])
