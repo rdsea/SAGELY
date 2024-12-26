@@ -1,0 +1,11 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  profile: object-classification
+  components:
+    ingressGateways:
+      - name: istio-ingressgateway
+        enabled: true
+    egressGateways:
+      - name: istio-egressgateway
+        enabled: false
