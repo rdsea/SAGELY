@@ -70,8 +70,8 @@ if __name__ == "__main__":
         type=str,
         help="request url",
         #default="http://localhost:5010/preprocessing",
-        #default="http://192.168.49.2:32052/preprocess",# with istio working
-        default="http://localhost:32052/preprocess",# with istio working
+        default="http://192.168.49.2:32052/preprocess",# with istio working
+        #default="http://localhost:32052/preprocess",# with istio working
     )
 
     # Parse the parameters
