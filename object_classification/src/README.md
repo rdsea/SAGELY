@@ -59,3 +59,18 @@ python3 client_inference.py --rate 10
 ```
 
 - The default rate is 15
+
+# Istio installation
+
+- Create a cluster
+- Install Istio depending on the configuration [profile](https://istio.io/latest/docs/setup/additional-setup/config-profiles/)
+
+```bash
+istioctl install --set profile=demo -y
+```
+
+- Auto inject Envoy sidecar proxies to default namespace or can be added to deployment file
+
+```bash
+kubectl label namespace default istio-injection=enabled
+```

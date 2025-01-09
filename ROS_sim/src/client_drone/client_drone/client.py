@@ -12,16 +12,19 @@ class ClientNode(Node):
     def __init__(self):
         super().__init__("client_node")
         self.declare_parameter("yaml_file", "client_config.yaml")  # Default YAML file
-        self.declare_parameter("drone_id", "")  
+        self.declare_parameter("drone_id", "")
 
-        self.yaml_file = self.get_parameter("yaml_file").get_parameter_value().string_value
-        self.drone_id = self.get_parameter("drone_id").get_parameter_value().string_value
+        self.yaml_file = (
+            self.get_parameter("yaml_file").get_parameter_value().string_value
+        )
+        self.drone_id = (
+            self.get_parameter("drone_id").get_parameter_value().string_value
+        )
         self.image_paths = []
-        #print('yaml file ', self.yaml_file)
+        # print('yaml file ', self.yaml_file)
         self.load_yaml_data()
 
     def load_yaml_data(self):
-
         self.get_logger().info(f"Current working directory: {os.getcwd()}")
 
         if os.path.exists(self.yaml_file):

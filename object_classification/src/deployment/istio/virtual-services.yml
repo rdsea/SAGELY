@@ -1,67 +1,68 @@
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: preprocessing-vs
 spec:
   hosts:
-  - preprocessing-service
+    - preprocessing-service
   http:
-  - route:
-    - destination:
-        host: preprocessing-service
-        subset: v1
-    retries:
-      attempts: 3
-      perTryTimeout: 2s
-    timeout: 10s
+    - route:
+        - destination:
+            host: preprocessing-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: mobilenetv2-vs
 spec:
   hosts:
-  - mobilenetv2-service
+    - mobilenetv2-service
   http:
-  - route:
-    - destination:
-        host: mobilenetv2-service
-        subset: v1
-    retries:
-      attempts: 3
-      perTryTimeout: 2s
-    timeout: 5s
+    - route:
+        - destination:
+            host: mobilenetv2-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 5s
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: efficientnetb0-vs
 spec:
   hosts:
-  - efficientnetb0-service
+    - efficientnetb0-service
   http:
-  - route:
-    - destination:
-        host: efficientnetb0-service
-        subset: v1
-    retries:
-      attempts: 3
-      perTryTimeout: 2s
-    timeout: 5s
+    - route:
+        - destination:
+            host: efficientnetb0-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 5s
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: ensemble-vs
 spec:
   hosts:
-  - ensemble-service
+    - ensemble-service
   http:
-  - route:
-    - destination:
-        host: ensemble-service
-        subset: v1
-    retries:
-      attempts: 3
-      perTryTimeout: 2s
-    timeout: 10s
+    - route:
+        - destination:
+            host: ensemble-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+
