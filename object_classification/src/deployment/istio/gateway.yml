@@ -11,7 +11,7 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - "*"
+        - "object-classification.test.com"
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -25,19 +25,19 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /preprocess
+            prefix: /preprocessing
       route:
         - destination:
             host: preprocessing-service
             port:
               number: 5010
             subset: v1
-    - match:
-        - uri:
-            prefix: /predict
-      route:
-        - destination:
-            host: ensemble-service
-            port:
-              number: 5011
-            subset: v1
+    # - match:
+    #     - uri:
+    #         prefix: /predict
+    #   route:
+    #     - destination:
+    #         host: ensemble-service
+    #         port:
+    #           number: 5011
+    #         subset: v1

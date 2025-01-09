@@ -62,7 +62,14 @@ python3 client_inference.py --rate 10
 
 # Istio installation
 
-- Create a cluster
+- Create a cluster, for example using minikube as following, must has metallb enabled and configured or otherwise you will need to use NodePort instead of LoadBalancer. I follow this [example](https://kubebyexample.com/learning-paths/metallb/install)
+
+```bash
+minikube start --cpus max --memory max --addons=ingress,metallb
+minikube profile list # get your ip here to configure metallb
+minikube addons configure metallb # input your ip range here, maybe 10 20 is enough
+```
+
 - Install Istio depending on the configuration [profile](https://istio.io/latest/docs/setup/additional-setup/config-profiles/)
 
 ```bash

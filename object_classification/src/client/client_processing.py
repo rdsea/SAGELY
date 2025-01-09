@@ -1,7 +1,7 @@
 import argparse
 import os
-import random
 import time
+import random
 import asyncio
 import aiohttp
 from aiohttp.client_exceptions import ClientError
@@ -15,17 +15,39 @@ async def send_request(url, jpeg_images_list, requesting_interval):
 
             # Extract the synset_id from the file name
             root, _ = os.path.splitext(image_path)
-
             _, synset_id = os.path.basename(root).rsplit("_", 1)
 
             # Open the image file as binary
             with open(image_path, "rb") as img_file:
                 img_data = img_file.read()
 
-    start_time = time.time()
-    file = {"file": ("random_image", img_data, "image/jpeg")}
-    response = requests.post(url, files=file)
-    print(response.json(), synset_id, (time.time() - start_time) * 1000)
+            start_time = time.time()
+            async with aiohttp.ClientSession() as session:
+                form_data = aiohttp.FormData()
+                form_data.add_field(
+                    "file",
+                    img_data,
+                    filename="random_image.jpeg",
+                    content_type="image/jpeg",
+                )
+                headers = {"Host": "object-classification.test.com"}
+                async with session.post(
+                    url, data=form_data, headers=headers
+                ) as response:
+                    if response.status == 200:
+                        json_response = await response.json()
+                        print(
+                            json_response, synset_id, (time.time() - start_time) * 1000
+                        )
+                    else:
+                        print(f"Request failed with status {response.status}")
+
+        except ClientError as e:
+            print(f"HTTP Request failed: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+        await asyncio.sleep(requesting_interval)
 
 
 async def main():
@@ -47,10 +69,9 @@ async def main():
     parser.add_argument(
         "--url",
         type=str,
-        help="request url",
-        #default="http://localhost:5010/preprocessing",
-        default="http://192.168.49.2:32052/preprocess",# with istio working
-        #default="http://localhost:32052/preprocess",# with istio working
+        help="Request URL",
+        # default="http://localhost:5010/preprocessing",
+        default="http://192.168.49.2:80/preprocessing",  # with istio working
     )
 
     args = parser.parse_args()

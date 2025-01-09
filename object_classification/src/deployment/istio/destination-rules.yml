@@ -1,4 +1,4 @@
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: preprocessing-dr
@@ -22,7 +22,7 @@ spec:
       interval: 30s
       baseEjectionTime: 30s
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: mobilenetv2-dr
@@ -46,7 +46,7 @@ spec:
       interval: 30s
       baseEjectionTime: 30s
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: efficientnetb0-dr
@@ -70,7 +70,7 @@ spec:
       interval: 30s
       baseEjectionTime: 30s
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: ensemble-dr

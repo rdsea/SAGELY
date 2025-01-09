@@ -26,7 +26,5 @@ k8s_yaml('src/deployment/jaeger.yml')
 k8s_yaml('src/deployment/istio/gateway.yml')
 k8s_yaml('src/deployment/istio/virtual-services.yml')
 k8s_yaml('src/deployment/istio/destination-rules.yml')
-k8s_yaml('src/deployment/istio/istio-ingressgateway-service.yml')
 
-k8s_resource('preprocessing', port_forwards=5010)
 k8s_resource('jaeger', port_forwards=16686)
