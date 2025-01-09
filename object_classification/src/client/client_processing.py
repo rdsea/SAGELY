@@ -1,69 +1,48 @@
 import argparse
 import os
 import random
-import sys
 import time
-from threading import Timer
-
-import requests
-
-current_directory = os.path.dirname(os.path.abspath(__file__))
-util_directory = os.path.join(current_directory, "..", "util")
-sys.path.append(util_directory)
+import asyncio
+import aiohttp
+from aiohttp.client_exceptions import ClientError
 
 
-def send_request(url, requesting_interval, jpeg_images_list):
-    timer = Timer(
-        requesting_interval,
-        send_request,
-        args=(
-            url,
-            requesting_interval,
-            jpeg_images_list,
-        ),
-    )
-    timer.start()
+async def send_request(url, jpeg_images_list, requesting_interval):
+    while True:
+        try:
+            random_image = random.choice(jpeg_images_list)
+            image_path = os.path.join(ds_path, random_image)
 
-    random_image = random.choice(jpeg_images_list)
-    image_path = os.path.join(ds_path, random_image)
+            # Extract the synset_id from the file name
+            root, _ = os.path.splitext(image_path)
 
-    # Extract the synset_id from the file name
-    root, _ = os.path.splitext(image_path)
-    _, synset_id = os.path.basename(root).rsplit("_", 1)
+            _, synset_id = os.path.basename(root).rsplit("_", 1)
 
-    # Open the image file as binary
-    with open(image_path, "rb") as img_file:
-        img_data = img_file.read()
+            # Open the image file as binary
+            with open(image_path, "rb") as img_file:
+                img_data = img_file.read()
 
     start_time = time.time()
     file = {"file": ("random_image", img_data, "image/jpeg")}
     response = requests.post(url, files=file)
-
-    try:
-        response_json = response.json()
-    except requests.exceptions.JSONDecodeError:
-        response_json = None
-
-    #print(response.json(), synset_id, (time.time() - start_time) * 1000)
-
-    print(response_json, synset_id, (time.time() - start_time) * 1000)
+    print(response.json(), synset_id, (time.time() - start_time) * 1000)
 
 
-if __name__ == "__main__":
+async def main():
     parser = argparse.ArgumentParser(
-        description="Argument for choosingg model to request"
+        description="Argument for choosing model to request"
     )
     parser.add_argument(
         "--ds_path",
         type=str,
-        help="test dataset path",
+        help="Test dataset path",
         default="./image/",
     )
     parser.add_argument(
-        "--rate", type=int, help="number of requests per second", default=1
+        "--rate", type=int, help="Number of requests per second", default=1
     )
     parser.add_argument(
-        "--device_id", type=str, help="specify device id", default="aaltosea_cam_01"
+        "--device_id", type=str, help="Specify device ID", default="aaltosea_cam_01"
     )
     parser.add_argument(
         "--url",
@@ -74,9 +53,8 @@ if __name__ == "__main__":
         #default="http://localhost:32052/preprocess",# with istio working
     )
 
-    # Parse the parameters
     args = parser.parse_args()
-    device_id = args.device_id
+    global ds_path
     ds_path = args.ds_path
     req_rate = args.rate
     url = args.url
@@ -84,13 +62,9 @@ if __name__ == "__main__":
     files = os.listdir(ds_path)
     jpeg_images_list = [file for file in files if file.lower().endswith(".jpeg")]
     requesting_interval = 1.0 / req_rate
-    timer = Timer(
-        requesting_interval,
-        send_request,
-        args=(
-            url,
-            requesting_interval,
-            jpeg_images_list,
-        ),
-    )
-    timer.start()
+
+    await send_request(url, jpeg_images_list, requesting_interval)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
