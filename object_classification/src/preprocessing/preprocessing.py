@@ -25,6 +25,8 @@ from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
+import asyncio
+import subprocess
 
 AioHttpClientInstrumentor().instrument()
 # Service name is required for most backends
@@ -114,6 +116,9 @@ async def processing_image(file: UploadFile):
 
     start_time = time.time()
     ensemble_service_url = "http://ensemble-service:5011/ensemble_service/"
+
+    #ensemble_service_url = "http://192.168.49.2:8080/predict"  # istio
+
     logging.info(f"{(time.time() - start_time)*1000}")
     image_bytes = processed_image.tobytes()
     request_id = str(uuid4())
@@ -127,20 +132,55 @@ async def processing_image(file: UploadFile):
     # response_time = meter.create_counter(
     #     "work.counter", unit="1", description="Counts the amount of work done"
     # )
-    async with aiohttp.ClientSession() as session:
-        logging.info(ensemble_service_url)
+    # async with aiohttp.ClientSession() as session:
+    #     logging.info(ensemble_service_url)
+    #
+    #     async with session.post(
+    #         ensemble_service_url,
+    #         data=image_bytes,
+    #         params={"request_id": request_id},
+    #     ) as response:
+    #         if response.status != 200:
+    #             raise HTTPException(
+    #                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #                 detail=f"Failed to send image to ensemble service. Status code: {response.status}",
+    #             )
+    #         _ = await response.json()
 
-        async with session.post(
-            ensemble_service_url,
-            data=image_bytes,
-            params={"request_id": request_id},
-        ) as response:
-            if response.status != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Failed to send image to ensemble service. Status code: {response.status}",
-                )
-            _ = await response.json()
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
+            logging.info(ensemble_service_url)
+
+            async with session.post(
+                ensemble_service_url,
+                data=image_bytes,
+                params={"request_id": request_id},
+            ) as response:
+                if response.status != 200:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Failed to send image to ensemble service. Status code: {response.status}",
+                    )
+                _ = await response.json()
+        return "File accepted"
+    except aiohttp.ClientError as e:
+        logging.error(f"Client error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to connect to ensemble service.",
+        )
+    except asyncio.TimeoutError:
+        logging.error("Request to ensemble service timed out.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Request to ensemble service timed out.",
+        )
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred.",
+        )
     return "File accepted"
 
 

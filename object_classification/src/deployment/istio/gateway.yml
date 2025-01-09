@@ -30,7 +30,7 @@ spec:
         - destination:
             host: preprocessing-service
             port:
-              number: 80
+              number: 5010
             subset: v1
     - match:
         - uri:
@@ -39,6 +39,5 @@ spec:
         - destination:
             host: ensemble-service
             port:
-              number: 80
+              number: 5011
             subset: v1
-

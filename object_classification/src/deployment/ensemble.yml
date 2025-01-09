@@ -25,7 +25,7 @@ spec:
           imagePullPolicy: "Never"
           image: rdsea/ensemble
           ports:
-            - containerPort: 5001
+            - containerPort: 5011
 ---
 apiVersion: v1
 kind: Service
@@ -33,7 +33,7 @@ metadata:
   name: ensemble-service
 spec:
   ports:
-    - port: 5001
-      targetPort: 5001
+    - port: 5011
+      targetPort: 5011
   selector:
     app: ensemble

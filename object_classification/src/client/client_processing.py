@@ -38,7 +38,15 @@ def send_request(url, requesting_interval, jpeg_images_list):
     start_time = time.time()
     file = {"file": ("random_image", img_data, "image/jpeg")}
     response = requests.post(url, files=file)
-    print(response.json(), synset_id, (time.time() - start_time) * 1000)
+
+    try:
+        response_json = response.json()
+    except requests.exceptions.JSONDecodeError:
+        response_json = None
+
+    #print(response.json(), synset_id, (time.time() - start_time) * 1000)
+
+    print(response_json, synset_id, (time.time() - start_time) * 1000)
 
 
 if __name__ == "__main__":
@@ -61,7 +69,9 @@ if __name__ == "__main__":
         "--url",
         type=str,
         help="request url",
-        default="http://localhost:5010/preprocessing",
+        #default="http://localhost:5010/preprocessing",
+        #default="http://192.168.49.2:32052/preprocess",# with istio working
+        default="http://localhost:32052/preprocess",# with istio working
     )
 
     # Parse the parameters
