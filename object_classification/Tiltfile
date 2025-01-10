@@ -14,8 +14,10 @@ docker_build('rdsea/inference:cpu', 'src',
     )
 
 
-local('istioctl install --set profile=demo -y')
-local('kubectl label namespace default istio-injection=enabled')
+
+local("istioctl install --set profile=demo -y")
+local("kubectl label namespace default istio-injection=enabled")
+
 
 k8s_yaml('src/deployment/preprocessing.yml')
 k8s_yaml('src/deployment/ensemble.yml')
