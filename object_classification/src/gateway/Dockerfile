@@ -11,11 +11,13 @@ COPY ./gateway/*.toml ./
 
 RUN uv sync --compile-bytecode --no-cache
 
-COPY ./preprocessing/run_server.sh ./preprocessing/run_server.sh
+COPY ./gateway/run_server.sh ./gateway/
+
+COPY ./gateway/gateway.py ./gateway/
 
 EXPOSE 1337
 
-COPY ./gateway.pyy ./gateway.py/
+ENV PATH="/gateway/.venv/bin:$PATH"
 
 ENTRYPOINT [ "./run_server.sh" ]
 

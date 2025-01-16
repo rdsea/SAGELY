@@ -21,7 +21,7 @@ COPY . /root/client_drone/src/client_drone
 # Set the working directory
 WORKDIR /root/client_drone/src/client_drone
 
-RUN pip install requests
+RUN pip install requests etcd3
 
 # Build the workspace
 RUN /bin/bash -c "source /opt/ros/iron/setup.bash && colcon build"
