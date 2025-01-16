@@ -1,3 +1,7 @@
+docker_build('gateway', 'src', 
+    dockerfile="src/gateway/Dockerfile",
+    only=["gateway", "util"]
+)
 docker_build('rdsea/preprocessing', 'src', 
     dockerfile="src/preprocessing/Dockerfile",
     only=["preprocessing", "util"]
@@ -57,6 +61,7 @@ k8s_yaml('src/deployment/preprocessing.yml')
 k8s_yaml('src/deployment/ensemble.yml')
 k8s_yaml('src/deployment/MobileNetV2.yml')
 k8s_yaml('src/deployment/EfficientNetB0.yml')
+k8s_yaml('src/deployment/gateway.yml')
 k8s_yaml('src/deployment/jaeger.yml')
 
 k8s_yaml('src/deployment/istio/gateway.yml')

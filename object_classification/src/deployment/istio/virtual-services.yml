@@ -1,6 +1,40 @@
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
+  name: gateway-vs
+spec:
+  hosts:
+    - gateway-service
+  http:
+    - route:
+        - destination:
+            host: gateway-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: preprocessing-vs
+spec:
+  hosts:
+    - preprocessing-service
+  http:
+    - route:
+        - destination:
+            host: preprocessing-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
   name: preprocessing-vs
 spec:
   hosts:
@@ -65,4 +99,3 @@ spec:
         attempts: 3
         perTryTimeout: 2s
       timeout: 10s
-

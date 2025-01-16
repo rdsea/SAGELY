@@ -117,7 +117,6 @@ async def processing_image(file: UploadFile):
     start_time = time.time()
     ensemble_service_url = "http://ensemble-service:5011/ensemble_service/"
 
-    #ensemble_service_url = "http://192.168.49.2:8080/predict"  # istio
 
     logging.info(f"{(time.time() - start_time)*1000}")
     image_bytes = processed_image.tobytes()
