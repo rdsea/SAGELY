@@ -25,22 +25,22 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /gateway
+            prefix: /preprocessing-gateway
       route:
         - destination:
             host: gateway-service
             port:
               number: 1337
             subset: v1
-    # - match:
-    #     - uri:
-    #         prefix: /preprocessing
-    #   route:
-    #     - destination:
-    #         host: preprocessing-service
-    #         port:
-    #           number: 5010
-    #         subset: v1
+    - match:
+        - uri:
+            prefix: /preprocessing
+      route:
+        - destination:
+            host: preprocessing-service
+            port:
+              number: 5010
+            subset: v1
     # - match:
     #     - uri:
     #         prefix: /predict

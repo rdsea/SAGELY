@@ -1,5 +1,5 @@
 #from fastapi import FastAPI, HTTPException
-from fastapi import FastAPI, HTTPException, UploadFile, status
+from fastapi import FastAPI, HTTPException, UploadFile, status, Request
 from pydantic import BaseModel
 from typing import Dict, Optional
 
@@ -132,27 +132,33 @@ async def startup_event():
     global commands
     commands = {}  # Initialize or clean up commands
 
-@app.post("/preprocessing/")
-async def processing_image(file: UploadFile):
+@app.post("/preprocessing-gateway")
+async def processing_image(request: Request):
+    logging.info("enter preprocessing from gateway")
     start_time = time.time()
-    preprocessing_url = "http://preprocessing:5010/preprocessing/"
-    logging.info(f"Request received in {(time.time() - start_time) * 1000} ms")
+    preprocessing_url = "http://preprocessing-service:5010/preprocessing/"
+
+    logging.info(f"Request received in {(time.time() - start_time) * 1000:.2f} ms")
 
     try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), raise_for_status=True) as session:
             logging.info(f"Forwarding request to {preprocessing_url}")
 
-            form = aiohttp.FormData()
-            form.add_field('file', await file.read(), filename=file.filename, content_type=file.content_type)
-
-            async with session.post(preprocessing_url, data=form) as response:
-                if response.status != 200:
+            async with session.request(
+                method=request.method,
+                url=preprocessing_url,
+                headers=request.headers,
+                data=await request.body(),
+                allow_redirects=False   # Do not allow redirects
+            ) as response:
+                if response.status == 307:
+                    logging.error(f"Got redirected to: {response.headers.get('Location')}")
                     raise HTTPException(
                         status_code=response.status,
-                        detail=f"Failed to send image to preprocessing service. Status code: {response.status}",
+                        detail="Unexpected redirect occurred."
                     )
                 response_data = await response.json()
-                logging.info(f"Response received in {(time.time() - start_time) * 1000} ms")
+                logging.info(f"Response received in {(time.time() - start_time) * 1000:.2f} ms")
                 return response_data
 
     except aiohttp.ClientError as e:

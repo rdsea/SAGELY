@@ -99,8 +99,10 @@ def validate_image_type(content_type: Union[str, None]):
         )
 
 
-@app.post("/preprocessing")
+@app.post("/preprocessing/")
 async def processing_image(file: UploadFile):
+
+    print("from preprocessing")
     validate_image_type(file.content_type)
 
     contents = await file.read()
@@ -149,7 +151,6 @@ async def processing_image(file: UploadFile):
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
             logging.info(ensemble_service_url)
-
             async with session.post(
                 ensemble_service_url,
                 data=image_bytes,

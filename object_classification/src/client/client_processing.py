@@ -71,7 +71,9 @@ async def main():
         type=str,
         help="Request URL",
         # default="http://localhost:5010/preprocessing",
-        default="http://192.168.49.2:80/preprocessing",  # with istio working
+        default="http://192.168.49.2/preprocessing-gateway",  # with istio working
+
+        #default="http://192.168.49.2:80/preprocessing",  # with istio working
     )
 
     args = parser.parse_args()
@@ -83,7 +85,6 @@ async def main():
     files = os.listdir(ds_path)
     jpeg_images_list = [file for file in files if file.lower().endswith(".jpeg")]
     requesting_interval = 1.0 / req_rate
-
     await send_request(url, jpeg_images_list, requesting_interval)
 
 
