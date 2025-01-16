@@ -11,9 +11,9 @@ COPY ./gateway/*.toml ./
 
 RUN uv sync --compile-bytecode --no-cache
 
-COPY ./gateway/run_server.sh ./gateway/
+COPY ./gateway/run_server.sh ./
 
-COPY ./gateway/gateway.py ./gateway/
+COPY ./gateway/gateway.py ./
 
 EXPOSE 1337
 
