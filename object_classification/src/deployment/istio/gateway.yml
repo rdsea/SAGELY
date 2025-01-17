@@ -11,7 +11,8 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - "object-classification.test.com"
+        - "*"
+        #- "object-classification.test.com"
 ---
 apiVersion: networking.istio.io/v1
 kind: VirtualService
@@ -31,7 +32,22 @@ spec:
             host: gateway-service
             port:
               number: 1337
-            subset: v1
+    - match:
+        - uri:
+            prefix: /notify-leader
+        - uri:
+            prefix: /heartbeat
+        - uri:
+            prefix: /update-counter
+        - uri:
+            prefix: /get-counter
+        - uri:
+            prefix: /get-command
+      route:
+        - destination:
+            host: gateway-service
+            port:
+              number: 1337
     # - match:
     #     - uri:
     #         prefix: /preprocessing

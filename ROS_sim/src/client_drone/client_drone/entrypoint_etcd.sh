@@ -43,9 +43,15 @@ case $INSTANCE_ID in
 esac
 
 # Run the etcd instance
+# ./etcd --data-dir=data.etcd --name ${THIS_NAME} \
+#   --initial-advertise-peer-urls http://${THIS_IP}:${PEER_PORT} --listen-peer-urls http://${THIS_IP}:${PEER_PORT} \
+#   --advertise-client-urls http://${THIS_IP}:${CLIENT_PORT} --listen-client-urls http://${THIS_IP}:${CLIENT_PORT} \
+#   --initial-cluster ${CLUSTER} \
+#   --initial-cluster-state ${CLUSTER_STATE} --initial-cluster-token ${TOKEN} &
+
 ./etcd --data-dir=data.etcd --name ${THIS_NAME} \
-  --initial-advertise-peer-urls http://${THIS_IP}:${PEER_PORT} --listen-peer-urls http://${THIS_IP}:${PEER_PORT} \
   --advertise-client-urls http://${THIS_IP}:${CLIENT_PORT} --listen-client-urls http://${THIS_IP}:${CLIENT_PORT} \
+  --initial-advertise-peer-urls http://${THIS_IP}:${PEER_PORT} --listen-peer-urls http://${THIS_IP}:${PEER_PORT} \
   --initial-cluster ${CLUSTER} \
   --initial-cluster-state ${CLUSTER_STATE} --initial-cluster-token ${TOKEN} &
 

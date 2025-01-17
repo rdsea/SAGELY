@@ -21,7 +21,7 @@ COPY . /root/client_drone/src/client_drone
 # Set the working directory
 WORKDIR /root/client_drone/src/client_drone
 
-RUN pip install requests etcd3
+RUN pip install requests etcd3 pydantic
 
 # Build the workspace
 RUN /bin/bash -c "source /opt/ros/iron/setup.bash && colcon build"
@@ -30,6 +30,8 @@ RUN /bin/bash -c "source /opt/ros/iron/setup.bash && colcon build"
 #RUN echo "source /root/client_drone/src/client_drone/install/setup.bash" >> /root/.bashrc
 
 WORKDIR /root/client_drone/src/client_drone/client_drone
+
+ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
 RUN chmod +x entrypoint_etcd.sh
 

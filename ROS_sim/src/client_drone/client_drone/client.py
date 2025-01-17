@@ -19,6 +19,10 @@ EDGE_SERVER_GET_COUNTER_URL = ""
 EDGE_SERVER_GET_COMMAND_URL = ""
 GROUP_ID = ""
 NODE_ID = ""
+EDGE_SERVER_SEND_IMG = ""
+DS_PATH = ""
+RATE = ""
+COUNTER_INCREMENT = 1  # Initial counter increment value
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,6 +32,8 @@ class ClientNode(Node):
         super().__init__("client_node")
         self.declare_parameter("yaml_file", "client_config.yaml")  # Default YAML file
         self.declare_parameter("drone_id", "")
+        self.declare_parameter("group_id", "")
+        self.declare_parameter("etcd_host", "")
 
         self.yaml_file = (
             self.get_parameter("yaml_file").get_parameter_value().string_value
@@ -53,7 +59,7 @@ class ClientNode(Node):
         return etcd_client
 
     def load_yaml_data(self):
-        global EDGE_SERVER_NOTIFY_URL, EDGE_SERVER_HEARTBEAT_URL, EDGE_SERVER_UPDATE_COUNTER_URL, EDGE_SERVER_GET_COUNTER_URL, EDGE_SERVER_GET_COMMAND_URL, etcd, GROUP_ID, NODE_ID
+        global EDGE_SERVER_NOTIFY_URL, EDGE_SERVER_HEARTBEAT_URL, EDGE_SERVER_UPDATE_COUNTER_URL, EDGE_SERVER_GET_COUNTER_URL, EDGE_SERVER_GET_COMMAND_URL, etcd, GROUP_ID, NODE_ID, EDGE_SERVER_SEND_IMG, DS_PATH, RATE
         self.get_logger().info(f"Current working directory: {os.getcwd()}")
 
         if os.path.exists(self.yaml_file):
@@ -65,21 +71,25 @@ class ClientNode(Node):
                 self.device_id = drone_data.get("device_id")
                 self.group_id = drone_data.get("group_id")
                 self.ds_path = drone_data.get("ds_path")
+                self.image_paths = drone_data.get("image_paths")
                 self.rate = drone_data.get("rate")
                 #self.gps_data = drone_data.get("gps_data")
-                self.image_paths = drone_data.get("image_paths")
                 self.etcd_host = drone_data.get("etcd_host")
                 host, port = self.etcd_host.split(":")
 
                 # Replace these with actual URLs
                 EDGE_SERVER_NOTIFY_URL = self.server_url +"/notify-leader"
                 EDGE_SERVER_HEARTBEAT_URL = self.server_url +"/heartbeat"
-                EDGE_SERVER_UPDATE_COUNTER_URL = self.server_url +"update-counter"
+                EDGE_SERVER_UPDATE_COUNTER_URL = self.server_url +"/update-counter"
                 EDGE_SERVER_GET_COUNTER_URL = self.server_url +"/get-counter"
                 EDGE_SERVER_GET_COMMAND_URL = self.server_url +"/get-command"
+                EDGE_SERVER_SEND_IMG = self.server_url + "/preprocessing-gateway"
+
+                NODE_ID = self.device_id
+                DS_PATH = self.ds_path
+                RATE = self.rate
                 # NODE_ID = "node-1"
                 # GROUP_ID = "group-1"
-                COUNTER_INCREMENT = 1  # Initial counter increment value
                 etcd = self.initialize_etcd_client(host = host, port = port)
 
         else:
@@ -126,6 +136,9 @@ def update_counter(node_id, group_id, stop_event):
             response = requests.post(EDGE_SERVER_UPDATE_COUNTER_URL, json={"leader_id": node_id, "group_id": group_id, "counter": current_counter})
             response.raise_for_status()
             logger.info(f"Counter updated to {current_counter} by leader {node_id} of group {group_id}")
+
+            main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
+
         except requests.RequestException as e:
             logger.error(f"Failed to update counter: {e}")
         stop_event.wait(5)  # Sleep for 5 seconds between counter updates
@@ -280,6 +293,7 @@ def send_request(url, requesting_interval, jpeg_images_list, ds_path):
             url,
             requesting_interval,
             jpeg_images_list,
+            ds_path,
         ),
     )
     timer.start()
@@ -320,6 +334,7 @@ def main_send_request(url, group_id, node_id, req_rate, ds_path):
             url,
             requesting_interval,
             jpeg_images_list,
+            ds_path,
         ),
     )
     timer.start()

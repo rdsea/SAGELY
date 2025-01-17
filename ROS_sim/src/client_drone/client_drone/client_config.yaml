@@ -9,7 +9,7 @@ drone_0:
   #   latitude: 37.7749
   #   longitude: -122.4194
   image_paths: "folder_0"
-  etcd_port: 2380
+  etcd_host: 0.0.0.0:2379
 
 drone_1:
   device_id: "1"
@@ -22,7 +22,7 @@ drone_1:
   #   latitude: 37.7749
   #   longitude: -122.4194
   image_paths: "folder_1"
-  etcd_port: 2381
+  etcd_host: 0.0.0.0:2378
 
 drone_2:
   device_id: "2"
@@ -35,4 +35,4 @@ drone_2:
   #   latitude: 37.7749
   #   longitude: -122.4194
   image_paths: "folder_2"
-  etcd_port: 2382
+  etcd_host: 0.0.0.0:2377
