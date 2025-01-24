@@ -53,7 +53,7 @@ local('echo "{content}" | kubectl apply -f -'.format(content=metallb_config))
 
 
 
-local("istioctl install --set profile=demo -y")
+local("istioctl install --set profile=default -y")
 local("kubectl label namespace default istio-injection=enabled")
 
 
@@ -67,5 +67,9 @@ k8s_yaml('src/deployment/jaeger.yml')
 k8s_yaml('src/deployment/istio/gateway.yml')
 k8s_yaml('src/deployment/istio/virtual-services.yml')
 k8s_yaml('src/deployment/istio/destination-rules.yml')
+
+k8s_yaml('src/deployment/opa-external/envoyfilter.yml')
+k8s_yaml('src/deployment/opa-external/service-entry.yml')
+k8s_yaml('src/deployment/opa-external/authorization-policy.yml')
 
 k8s_resource('jaeger', port_forwards=16686)

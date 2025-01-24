@@ -1,0 +1,97 @@
+# apiVersion: networking.istio.io/v1alpha3
+# kind: EnvoyFilter
+# metadata:
+#   name: ext-authz-http
+#   namespace: istio-system
+# spec:
+#   configPatches:
+#     - applyTo: HTTP_FILTER
+#       match:
+#         context: SIDECAR_INBOUND
+#         proxy:
+#           proxyVersion: ^1\..*
+#         listener:
+#           filterChain:
+#             filter:
+#               name: "envoy.http_connection_manager"
+#       patch:
+#         operation: INSERT_BEFORE
+#         value:
+#           name: envoy.ext_authz
+#           typed_config:
+#             "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+#             http_service:
+#               server_uri:
+#                 uri: "http://130.233.96.72:8181" # Use the host IP address here
+#                 cluster: "outbound|8181||opa-host"
+#                 timeout: 5s
+#               path_prefix: "/v1/data/istio/authz" # Adjust this path according to your OPA policy
+#               authorization_request:
+#                 allowed_headers:
+#                   patterns:
+#                     - exact: "authorization"
+#               authorization_response:
+#                 allowed_upstream_headers:
+#                   patterns:
+#                     - exact: "x-ext-authz"
+#
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ext-authz
+  namespace: default
+spec:
+  workloadSelector:
+    labels:
+      app: fastapi-gateway
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+              subFilter:
+                name: "envoy.filters.http.router"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.ext_authz
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+            http_service:
+              server_uri:
+                uri: "http://130.233.96.72:8181"
+                cluster: "ext-authz-cluster"
+                timeout: 1.5s
+              authorization_request:
+                allowed_headers:
+                  patterns:
+                    - exact: ":method"
+                    - exact: ":path"
+                    - exact: ":authority"
+                    - exact: "authorization"
+              authorization_response:
+                allowed_upstream_headers:
+                  patterns:
+                    - exact: "x-ext-authz-check-result"
+    - applyTo: CLUSTER
+      match:
+        context: SIDECAR_INBOUND
+      patch:
+        operation: ADD
+        value:
+          name: "ext-authz-cluster"
+          type: STRICT_DNS
+          connect_timeout: 1.5s
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: "ext-authz-cluster"
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: "130.233.96.72"
+                          port_value: 8181
