@@ -1,0 +1,25 @@
+############################################################
+# AuthorizationPolicy to tell Istio to use OPA as the Authz Server
+# Uses Istio's native AuthorizationPolicy with CUSTOM action to explicitly direct certain traffic to go through the OPA external authorizer,
+# essentially using organised filtering rules where only certain endpoints (and likely methods) need this extra layer of inspection.
+#Next, create an AuthorizationPolicy resource that tells Istio to use OPA as the external authorization server:
+############################################################
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: ext-authz
+spec:
+  selector:
+    matchLabels:
+      app: preprocessing
+  action: CUSTOM
+  provider:
+    # The provider name must match the extension provider defined in the mesh config.
+    # You can also replace this with sample-ext-authz-http to test the other external authorizer definition.
+    name: opa-ext-authz-grpc
+  rules:
+    - to:
+        - operation:
+            notPaths: ["/health"]
+---
+
