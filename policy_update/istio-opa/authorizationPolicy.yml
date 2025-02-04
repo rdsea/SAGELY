@@ -11,7 +11,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: gateway
+      app: preprocessing
   action: CUSTOM
   provider:
     # The provider name must match the extension provider defined in the mesh config.
