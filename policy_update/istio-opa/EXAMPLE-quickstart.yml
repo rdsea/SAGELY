@@ -21,7 +21,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: productpage
+      app: gateway
   action: CUSTOM
   provider:
     # The provider name must match the extension provider defined in the mesh config.
@@ -405,47 +405,229 @@ data:
 ############################################################
 # Example policy to enforce on OPA-Istio sidecars.
 ############################################################
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: opa-policy
+#   namespace: opa-istio
+# data:
+#   policy.rego: |
+#     import input.attributes.request.http as http_request
+#
+#     default allow := false
+#
+#     allow if {
+#       # input.parsed_path[0] == "health"
+#       http_request.method == "GET"
+#       http_request.method == "POST"
+#     }
+#
+#     allow if {
+#       debug.log("Username: " ++ _user_name) # Debug log the username
+#       debug.log("Roles: " ++ concat(", ", _user_roles[_user_name])) # Debug log the roles
+#       debug.log("Method: " ++ http_request.method) # Debug log the method
+#       debug.log("Path: " ++ http_request.path) # Debug log the path
+#
+#       some user_role in _user_roles[_user_name]
+#       debug.log("Checking role: " ++ user_role) # Debug log the current role being checked
+#       some permission in _role_permissions[user_role]
+#       debug.log("Checking permission: {method: " ++ permission.method ++ ", path: " ++ permission.path}) # Debug log the permission
+#
+#       permission.method == http_request.method
+#       permission.path == http_request.path
+#     }
+#
+#     _user_name := parsed if {
+#       [_, encoded] := split(http_request.headers.authorization, " ")
+#       [parsed, _] := split(base64url.decode(encoded), ":")
+#     }
+#
+#     _user_roles := {
+#       "alice": ["guest"],
+#       "bob": ["admin"],
+#       "charlie": ["user"],
+#     }
+#
+#     _role_permissions := {
+#       "guest": [
+#         {"method": "POST", "path": "/preprocessing-gateway"},
+#         {"method": "POST", "path": "/notify-leader"},
+#       ],
+#       "admin": [
+#         {"method": "POST", "path": "/preprocessing-gateway"},
+#         {"method": "POST", "path": "/notify-leader"},
+#         {"method": "GET", "path": "/heartbeat"},
+#         {"method": "POST", "path": "/update-counter"},
+#         {"method": "GET", "path": "/get-counter"},
+#         {"method": "GET", "path": "/get-command"},
+#       ],
+#       "user": [
+#         {"method": "POST", "path": "/preprocessing-gateway"},
+#         {"method": "POST", "path": "/notify-leader"},
+#         {"method": "POST", "path": "/heartbeat"},
+#         {"method": "POST", "path": "/update-counter"},
+#         {"method": "POST", "path": "/get-counter"},
+#         {"method": "POST", "path": "/get-command"},
+#       ],
+#     }
+
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: opa-policy
+# data:
+#   policy.rego: |
+#     package istio.authz
+#
+#     default allow := false
+#
+#     allow if {
+#       input.parsed_path[0] == "health"
+#       input.attributes.request.method == "GET"
+#     }
+#
+#     allow if {
+#       some user_role in _user_roles[_user_name]
+#       some permission in _role_permissions[user_role]
+#
+#       permission.method == input.attributes.request.http.method
+#       permission.path == input.attributes.request.http.path
+#     }
+#
+#     # Underscore prefix used only to signal that rules and functions are
+#     # intended to be referenced only within the same policy, i.e. "private".
+#     # It has no special meaning to OPA.
+#
+#     _user_name := parsed if {
+#       [_, encoded] := split(input.attributes.request.http.headers.authorization, " ")
+#       [parsed, _] := split(base64url.decode(encoded), ":")
+#     }
+#
+#     # _user_roles := {
+#     #   "alice": ["guest"],
+#     #   "bob": ["admin"],
+#     # }
+#     #
+#     # _role_permissions := {
+#     #   "guest": [{"method": "get", "path": "/productpage"}],
+#     #   "admin": [
+#     #     {"method": "get", "path": "/productpage"},
+#     #     {"method": "get", "path": "/api/v1/products"},
+#     #   ],
+#     # }
+#     _user_roles := {
+#       "alice": ["guest"],
+#       "bob": ["admin"],
+#       "charlie": ["user"],
+#     }
+#
+#     _role_permissions := {
+#       "guest": [
+#         {"method": "POST", "path": "/preprocessing-gateway"},
+#         {"method": "POST", "path": "/notify-leader"},
+#       ],
+#       "admin": [
+#         {"method": "POST", "path": "/preprocessing-gateway"},
+#         {"method": "POST", "path": "/notify-leader"},
+#         {"method": "GET", "path": "/heartbeat"},
+#         {"method": "POST", "path": "/update-counter"},
+#         {"method": "GET", "path": "/get-counter"},
+#         {"method": "GET", "path": "/get-command"},
+#       ],
+#       "user": [
+#         {"method": "POST", "path": "/preprocessing-gateway"},
+#         {"method": "POST", "path": "/notify-leader"},
+#         {"method": "POST", "path": "/heartbeat"},
+#         {"method": "POST", "path": "/update-counter"},
+#         {"method": "POST", "path": "/get-counter"},
+#         {"method": "POST", "path": "/get-command"},
+#       ],
+#     }
+#
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: opa-policy
+  namespace: opa-istio
 data:
   policy.rego: |
     package istio.authz
 
+    # Default deny
     default allow := false
 
+    # Allow health check endpoint (unconditionally)
     allow if {
-      input.parsed_path[0] == "health"
-      input.attributes.request.method == "GET"
+      http_request.method == "GET"
+      http_request.path == ["health"]
+      debug.log("Allowing health check")
     }
 
+    # allow if {
+    #   some user_role in _user_roles[_user_name]
+    #   some permission in _role_permissions[user_role]
+    #
+    #   permission.method == input.attributes.request.http.method
+    #   permission.path == input.attributes.request.http.path
+    # }
+    # Allow specific methods and paths based on roles and permissions
     allow if {
-      some user_role in _user_roles[_user_name]
-      some permission in _role_permissions[user_role]
-
-      permission.method == input.attributes.request.http.method
-      permission.path == input.attributes.request.http.path
+      is_valid_user_and_allowed_action
     }
 
-    # Underscore prefix used only to signal that rules and functions are
-    # intended to be referenced only within the same policy, i.e. "private".
-    # It has no special meaning to OPA.
+    # Function to validate authorization header and check user permissions
+    is_valid_user_and_allowed_action {
+      validate_auth_header
+      debug.log("User name: " ++ _user_name)
+      some user_role in user_roles[_user_name]
+      debug.log("User role: " ++ user_role)
+      some permission in role_permissions[user_role]
+      debug.log("Checking permission for method: " ++ permission.method ++ ", path: " ++ permission.path)
+      permission.method == http_request.method
+      permission.path == http_request.path
+    }
 
+    # Function to validate the authorization header
+    validate_auth_header {
+      debug.log("Authorization Header: " ++ http_request.headers.authorization)
+      [_, encoded] := split(http_request.headers.authorization, " ")
+      debug.log("Encoded part: " ++ encoded)
+      [username, _] := split(base64url.decode(encoded), ":")
+      _user_name = username
+      debug.log("Decoded username: " ++ username)
+    }
     _user_name := parsed if {
       [_, encoded] := split(input.attributes.request.http.headers.authorization, " ")
       [parsed, _] := split(base64url.decode(encoded), ":")
     }
 
-    _user_roles := {
+    # Define user-role mapping
+    user_roles = {
       "alice": ["guest"],
       "bob": ["admin"],
+      "charlie": ["user"],
     }
 
-    _role_permissions := {
-      "guest": [{"method": "GET", "path": "/productpage"}],
+    # Define role-permission mapping
+    role_permissions = {
+      "guest": [
+        {"method": "POST", "path": "/preprocessing-gateway"},
+        {"method": "POST", "path": "/notify-leader"},
+      ],
       "admin": [
-        {"method": "GET", "path": "/productpage"},
-        {"method": "GET", "path": "/api/v1/products"},
+        {"method": "POST", "path": "/preprocessing-gateway"},
+        {"method": "POST", "path": "/notify-leader"},
+        {"method": "GET", "path": "/heartbeat"},
+        {"method": "POST", "path": "/update-counter"},
+        {"method": "GET", "path": "/get-counter"},
+        {"method": "GET", "path": "/get-command"},
+      ],
+      "user": [
+        {"method": "POST", "path": "/preprocessing-gateway"},
+        {"method": "POST", "path": "/notify-leader"},
+        {"method": "POST", "path": "/heartbeat"},
+        {"method": "POST", "path": "/update-counter"},
+        {"method": "POST", "path": "/get-counter"},
+        {"method": "POST", "path": "/get-command"},
       ],
     }

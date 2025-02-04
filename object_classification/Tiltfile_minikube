@@ -56,6 +56,7 @@ local('echo "{content}" | kubectl apply -f -'.format(content=metallb_config))
 local("istioctl install --set profile=default -y")
 local("kubectl label namespace default istio-injection=enabled")
 
+#local("kubectl label namespace default opa-istio-injection=enabled")
 
 k8s_yaml('src/deployment/preprocessing.yml')
 k8s_yaml('src/deployment/ensemble.yml')

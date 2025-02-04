@@ -31,23 +31,45 @@ UPDATED_MESH_DATA=$(
   echo "$MESH_DATA" |
     awk 'BEGIN {FS=OFS="\n"} 
   { 
-    found=0
+    found_default=0
+    found_extension=0
     for (i=1; i<=NF; ++i) {
-      print $i
+      if ($i ~ /defaultConfig:/) {
+        found_default=1
+        default_index=i
+      }
       if ($i ~ /extensionProviders:/) {
-        found=1
-        print "    - name: '"$EXTERNAL_AUTH_PROVIDER_NAME"'"
-        print "      envoyExtAuthzGrpc:"
-        print "        service: '"$SERVICE_NAME"'"
-        print "        port: '"$PORT"'"
+        found_extension=1
+        extension_index=i
       }
     }
-    if (found == 0) {
-      print "extensionProviders:"
+    if (found_extension == 0 && found_default > 0) {
+      lines=""
+      for (i=1; i<default_index; ++i) {
+        lines = lines $i OFS
+      }
+      print lines "extensionProviders:"
       print "  - name: '"$EXTERNAL_AUTH_PROVIDER_NAME"'"
       print "    envoyExtAuthzGrpc:"
       print "      service: '"$SERVICE_NAME"'"
       print "      port: '"$PORT"'"
+      for (i=default_index; i<=NF; ++i) {
+        print $i
+      }
+    } else if (found_extension > 0) {
+      lines=""
+      for (i=1; i<=extension_index; ++i) {
+        lines = lines $i OFS
+      }
+      print lines "  - name: '"$EXTERNAL_AUTH_PROVIDER_NAME"'"
+      print "    envoyExtAuthzGrpc:"
+      print "      service: '"$SERVICE_NAME"'"
+      print "      port: '"$PORT"'"
+      for (i=extension_index+1; i<=NF; ++i) {
+        if ($i !~ /extensionProviders:/ && $i !~ /^[[:space:]]*-/) {
+          print $i
+        }
+      }
     }
   }'
 )
