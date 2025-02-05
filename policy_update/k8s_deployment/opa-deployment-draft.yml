@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: opa
+  template:
+    metadata:
+      labels:
+        app: opa
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: opa
+                topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: opa
+          image: openpolicyagent/opa:latest
+          args:
+            - "run"
+            - "--server"
+            - "--addr=:8181"
+            - "--config-file=/run/secrets/opa-config.yaml"
+          ports:
+            - containerPort: 8181
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8181
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8181
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+            - name: opa-config
+              mountPath: /run/secrets
+              readOnly: true
+      volumes:
+        - name: opa-config
+          secret:
+            secretName: opa-config

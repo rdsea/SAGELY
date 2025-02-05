@@ -1,0 +1,89 @@
+# General settings
+pipeline_id: pipeline_1
+ensemble: true
+
+# Model Information
+model_config_dict:
+  DenseNet121:
+    input_shape: [1, 224, 224, 3]
+    input_mode: torch
+  DenseNet201:
+    input_shape: [1, 224, 224, 3]
+    input_mode: torch
+  EfficientNetB0:
+    input_shape: [1, 224, 224, 3]
+    input_mode: raw
+  EfficientNetB7:
+    input_shape: [1, 600, 600, 3]
+    input_mode: raw
+  EfficientNetV2L:
+    input_shape: [1, 480, 480, 3]
+    input_mode: raw
+  EfficientNetV2S:
+    input_shape: [1, 384, 384, 3]
+    input_mode: raw
+  InceptionResNetV2:
+    input_shape: [1, 299, 299, 3]
+    input_mode: tf
+  InceptionV3:
+    input_shape: [1, 299, 299, 3]
+    input_mode: tf
+  MobileNet:
+    input_shape: [1, 224, 224, 3]
+    input_mode: tf
+  MobileNetV2:
+    input_shape: [1, 224, 224, 3]
+    input_mode: tf
+  NASNetLarge:
+    input_shape: [1, 331, 331, 3]
+    input_mode: tf
+  NASNetMobile:
+    input_shape: [1, 224, 224, 3]
+    input_mode: tf
+  ResNet50:
+    input_shape: [1, 224, 224, 3]
+    input_mode: caffe
+  ResNet50V2:
+    input_shape: [1, 224, 224, 3]
+    input_mode: tf
+  VGG16:
+    input_shape: [1, 224, 224, 3]
+    input_mode: caffe
+  Xception:
+    input_shape: [1, 299, 299, 3]
+    input_mode: tf
+qoa_config:
+  client:
+    user_id: aaltosea2
+    instance_id: inference_service_01
+    stage_id: ML_Inference
+    method: REST
+    application_name: nii
+    role: ml
+  connector:
+    amqp_connector:
+      class: AMQP
+      conf:
+        end_point: 195.148.22.62
+        exchange_name: nii_inference
+        exchange_type: topic
+        out_routing_key: nii.inference1
+  registration_url: http://0.0.0.0:5010/registration
+
+# External service configuration
+external_services:
+  mongodb:
+    username: admin_user
+    password: admin_pass
+    host: localhost
+    port: 27017
+    database_name: nii_case
+    collection_name: raw_prediction
+
+  kafka:
+    address: 127.0.0.1:9092
+    topic_name: nii_case
+
+  service_registry:
+    consul_config:
+      url: http://localhost:8500

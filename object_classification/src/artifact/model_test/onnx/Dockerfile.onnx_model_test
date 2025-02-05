@@ -1,0 +1,8 @@
+FROM rdsea/onnx_runtime:cuda_10.2
+
+WORKDIR /onnx_test
+
+COPY ./VGGG16.onnx ./VGGG16.onnx
+COPY ./prediction_test.py ./prediction_test.py
+
+CMD ["python3", "prediction_test.py"]

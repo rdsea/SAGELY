@@ -1,0 +1,183 @@
+# apiVersion: networking.istio.io/v1alpha3
+# kind: EnvoyFilter
+# metadata:
+#   name: ext-authz
+#   namespace: istio-system
+# spec:
+#   workloadSelector:
+#     labels:
+#       istio: ingressgateway
+#   configPatches:
+#     - applyTo: HTTP_FILTER
+#       match:
+#         context: GATEWAY
+#         listener:
+#           filterChain:
+#             filter:
+#               name: envoy.filters.network.http_connection_manager
+#               subFilter:
+#                 name: envoy.filters.http.router
+#           portNumber: 80
+#       patch:
+#         operation: INSERT_BEFORE
+#         value:
+#           name: envoy.filters.http.ext_authz
+#           typed_config:
+#             "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+#             http_service:
+#               authorization_request:
+#                 allowed_headers:
+#                   patterns:
+#                     - exact: ":method"
+#                     - exact: ":path"
+#                     - exact: ":authority"
+#                     - exact: "authorization"
+#               authorization_response:
+#                 allowed_upstream_headers:
+#                   patterns:
+#                     - exact: "x-ext-authz-check-result"
+#               server_uri:
+#                 cluster: ext-authz-cluster
+#                 timeout: 1.5s
+#                 uri: http://130.233.96.72:8181
+#     - applyTo: CLUSTER
+#       match:
+#         context: GATEWAY
+#       patch:
+#         operation: ADD
+#         value:
+#           connect_timeout: 1.5s
+#           lb_policy: ROUND_ROBIN
+#           load_assignment:
+#             cluster_name: ext-authz-cluster
+#             endpoints:
+#               - lb_endpoints:
+#                   - endpoint:
+#                       address:
+#                         socket_address:
+#                           address: 130.233.96.72
+#                           port_value: 8181
+#           name: ext-authz-cluster
+#           type: STRICT_DNS
+# apiVersion: networking.istio.io/v1alpha3
+# kind: EnvoyFilter
+# metadata:
+#   name: ext-authz-filter
+#   namespace: istio-system
+# spec:
+#   workloadSelector:
+#     labels:
+#       istio: ingressgateway
+#   configPatches:
+#     - applyTo: HTTP_FILTER
+#       match:
+#         context: GATEWAY
+#         listener:
+#           filterChain:
+#             filter:
+#               name: envoy.filters.network.http_connection_manager
+#               subFilter:
+#                 name: envoy.filters.http.router
+#           portNumber: 80
+#       patch:
+#         operation: INSERT_BEFORE
+#         value:
+#           name: envoy.filters.http.ext_authz
+#           typed_config:
+#             "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+#             http_service:
+#               authorization_request:
+#                 allowed_headers:
+#                   patterns:
+#                     - exact: ":method"
+#                     - exact: ":path"
+#                     - exact: ":authority"
+#                     - exact: "authorization"
+#               authorization_response:
+#                 allowed_upstream_headers:
+#                   patterns:
+#                     - exact: "x-ext-authz-check-result"
+#               server_uri:
+#                 uri: http://130.233.96.72:8181/v1/data/istio/authz/allow
+#                 cluster: ext-authz-cluster
+#                 timeout: 1.5s
+#     - applyTo: CLUSTER
+#       match:
+#         context: GATEWAY
+#       patch:
+#         operation: ADD
+#         value:
+#           name: ext-authz-cluster
+#           type: STRICT_DNS
+#           connect_timeout: 1.5s
+#           lb_policy: ROUND_ROBIN
+#           load_assignment:
+#             cluster_name: ext-authz-cluster
+#             endpoints:
+#               - lb_endpoints:
+#                   - endpoint:
+#                       address:
+#                         socket_address:
+#                           address: 130.233.96.72
+#                           port_value: 8181
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ext-authz-filter
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
+          portNumber: 80
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.ext_authz
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+            http_service:
+              authorization_request:
+                allowed_headers:
+                  patterns:
+                    - exact: ":method"
+                    - exact: ":path"
+                    - exact: ":authority"
+                    - exact: "authorization"
+              authorization_response:
+                allowed_upstream_headers:
+                  patterns:
+                    - exact: "x-ext-authz-check-result"
+              server_uri:
+                uri: http://opa.default.svc.cluster.local:8181/v1/data/istio/authz/allow
+                cluster: ext-authz-cluster
+                timeout: 1.5s
+    - applyTo: CLUSTER
+      match:
+        context: GATEWAY
+      patch:
+        operation: ADD
+        value:
+          name: ext-authz-cluster
+          type: STRICT_DNS
+          connect_timeout: 1.5s
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: ext-authz-cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: opa.default.svc.cluster.local
+                          port_value: 8181

@@ -1,0 +1,7 @@
+fastapi[standard]
+uvicorn[standard]
+Pillow
+numpy==1.16
+opencv-python==3.4.17.63
+requests
+
