@@ -1,3 +1,0 @@
-[submodule "policy_update/rego_git"]
-	path = policy_update/rego_git
-	url = https://github.com/hong3nguyen/rego_git
