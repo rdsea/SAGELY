@@ -2,11 +2,11 @@
 # Add the following to the mesh config to enable external authorization:
 # mesh: |-
 #   # ADD THIS HERE
-# extensionProviders:
-# - name: opa-ext-authz-grpc
-#   envoyExtAuthzGrpc:
-#     service: opa-ext-authz-grpc.local
-#     port: 9191
+#   extensionProviders:
+#   - name: opa-ext-authz-grpc
+#     envoyExtAuthzGrpc:
+#       service: opa-ext-authz-grpc.local
+#       port: 9191
 #   # END
 #   defaultConfig:
 #     discoveryAddress: istiod.istio-system.svc:15012
@@ -19,9 +19,6 @@ kind: AuthorizationPolicy
 metadata:
   name: ext-authz
 spec:
-  selector:
-    matchLabels:
-      app: gateway
   action: CUSTOM
   provider:
     # The provider name must match the extension provider defined in the mesh config.
