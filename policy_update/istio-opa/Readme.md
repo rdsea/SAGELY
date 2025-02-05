@@ -18,4 +18,3 @@ kubectl describe pod/<pod namne>
 kubectl logs <po name> -c <container in the pod> -n <namespace> --tail=-1
 # example:   kubectl logs productpage-v1-d49bb79b4-tjd5v -c opa-istio -n default --tail=-1
 ```
-
