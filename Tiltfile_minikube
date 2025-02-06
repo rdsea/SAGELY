@@ -11,7 +11,12 @@ docker_build('rdsea/ensemble', './object_classification/src',
    dockerfile="object_classification/src/ensemble/Dockerfile",
    only=["ensemble", "util"]
 )
-
+#docker_build(
+#    'rdsea/ensemble',
+#    'src',  # The build context
+#    dockerfile='ensemble/Dockerfile',
+#    only=['ensemble', 'util']  # Include both 'ensemble' and 'util' directories
+#)
 docker_build('rdsea/inference:cpu', './object_classification/src', 
    dockerfile="object_classification/src/inference/Dockerfile.cpu", 
    only=["inference", "util"]
