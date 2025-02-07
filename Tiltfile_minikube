@@ -11,12 +11,7 @@ docker_build('rdsea/ensemble', './object_classification/src',
    dockerfile="object_classification/src/ensemble/Dockerfile",
    only=["ensemble", "util"]
 )
-#docker_build(
-#    'rdsea/ensemble',
-#    'src',  # The build context
-#    dockerfile='ensemble/Dockerfile',
-#    only=['ensemble', 'util']  # Include both 'ensemble' and 'util' directories
-#)
+
 docker_build('rdsea/inference:cpu', './object_classification/src', 
    dockerfile="object_classification/src/inference/Dockerfile.cpu", 
    only=["inference", "util"]
@@ -57,7 +52,12 @@ data:
 local('echo "{content}" | kubectl apply -f -'.format(content=metallb_config))
 
 local("istioctl install --set profile=default -y")
+
+# apply tracing data from envoy to jaever
+k8s_yaml('monitoring/istio-operator.yml')
+
 local("kubectl label namespace default istio-injection=enabled")
+
 
 # configure OPA admission
 k8s_yaml('policy_update/istio-opa/opa-controller-sidecar.yml')
@@ -73,9 +73,9 @@ k8s_yaml('object_classification/src/deployment/gateway.yml')
 k8s_yaml('object_classification/src/deployment/jaeger.yml')
 
 #istio routing and gateway
-k8s_yaml('object_classification/src/deployment/istio/gateway.yml')
-k8s_yaml('object_classification/src/deployment/istio/virtual-services.yml')
-k8s_yaml('object_classification/src/deployment/istio/destination-rules.yml')
+k8s_yaml('istio/gateway.yml')
+k8s_yaml('istio/virtual-services.yml')
+k8s_yaml('istio/destination-rules.yml')
 
 
 k8s_resource('jaeger', port_forwards=16686)

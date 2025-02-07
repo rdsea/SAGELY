@@ -1,0 +1,119 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: gateway-dr
+spec:
+  host: gateway-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: preprocessing-dr
+spec:
+  host: preprocessing-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: mobilenetv2-dr
+spec:
+  host: mobilenetv2-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: efficientnetb0-dr
+spec:
+  host: efficientnetb0-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: ensemble-dr
+spec:
+  host: ensemble-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
