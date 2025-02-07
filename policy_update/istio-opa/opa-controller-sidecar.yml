@@ -208,6 +208,7 @@ data:
         "--config-file=/config/config.yaml",
         "--addr=localhost:8181",
         "--diagnostic-addr=0.0.0.0:8282",
+        "--watch",
         "/policy/policy.rego",
       ],
       "volumeMounts": [{
@@ -292,7 +293,9 @@ spec:
             - "--tls-cert-file=/certs/tls.crt"
             - "--tls-private-key-file=/certs/tls.key"
             - "--addr=0.0.0.0:8443"
+            - "--watch" # Add this flag to enable watching and spread the new configuration to sidecars -- need to check more they consume data and policies together
             - "/policies/inject.rego"
+            #- "/policies/"
           livenessProbe:
             httpGet:
               path: /health?plugins
@@ -314,6 +317,9 @@ spec:
             - readOnly: true
               mountPath: /policies
               name: inject-policy
+            # - readOnly: true
+            #   mountPath: /policies
+            #   name: opa-policy
       volumes:
         - name: inject-policy
           configMap:
@@ -321,6 +327,9 @@ spec:
         - name: server-cert
           secret:
             secretName: server-cert
+        # - name: opa-policy
+        #   configMap:
+        #     name: opa-policy
 ---
 ############################################################
 # OPA admission controller configuration.

@@ -13,30 +13,31 @@ allow if {
 }
 
 allow if {
-    roles_for_user[r]
-    required_roles[r]
+  roles_for_user[user_name][r]
+  required_roles[r]
 }
 
-roles_for_user contains r if {
-    r := user_roles[user_name][_]
+roles_for_user[user_name][r] if {
+  r := user_roles[user_name][_]
 }
 
-required_roles contains r if {
-    perm := role_perms[r][_]
-    perm.method = http_request.method
-    perm.path = http_request.path
+required_roles[r] if {
+  role_perms[r][_]
+  perm := role_perms[r][_]
+  perm.method == http_request.method
+  perm.path == http_request.path
 }
 
-user_name = parsed if {
-    [_, encoded] := split(http_request.headers.authorization, " ")
-    [parsed, _] := split(base64url.decode(encoded), ":")
+user_name := parsed if {
+  [_, encoded] := split(http_request.headers.authorization, " ")
+  [parsed, _] := split(base64url.decode(encoded), ":")
 }
 
 # Define user-role mapping
 user_roles = {
   "alice": ["guest"],
   "bob": ["admin"],
-  "charlie": ["admin"],
+  "charlie": ["user"],
 }
 
 # Define role-permission mapping
@@ -44,6 +45,7 @@ role_perms = {
   "guest": [
     {"method": "POST", "path": "/preprocessing-gateway"},
     {"method": "POST", "path": "/notify-leader"},
+    {"method": "GET", "path": "/get-counter"},
   ],
   "admin": [
     {"method": "POST", "path": "/preprocessing-gateway"},
