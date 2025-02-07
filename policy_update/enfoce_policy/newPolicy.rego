@@ -37,7 +37,7 @@ user_name := parsed if {
 user_roles = {
   "alice": ["guest"],
   "bob": ["admin"],
-  "charlie": ["user"],
+  "charlie": ["admin"],
 }
 
 # Define role-permission mapping
