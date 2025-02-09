@@ -1,0 +1,68 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: object-classification-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+        #- "object-classification.test.com"
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: ingress-vs
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - object-classification-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /preprocessing-gateway
+      route:
+        - destination:
+            host: gateway-service
+            port:
+              number: 1337
+    - match:
+        - uri:
+            prefix: /notify-leader
+        - uri:
+            prefix: /heartbeat
+        - uri:
+            prefix: /update-counter
+        - uri:
+            prefix: /get-counter
+        - uri:
+            prefix: /get-command
+      route:
+        - destination:
+            host: gateway-service
+            port:
+              number: 1337
+    # - match:
+    #     - uri:
+    #         prefix: /preprocessing
+    #   route:
+    #     - destination:
+    #         host: preprocessing-service
+    #         port:
+    #           number: 5010
+    #         subset: v1
+    # - match:
+    #     - uri:
+    #         prefix: /predict
+    #   route:
+    #     - destination:
+    #         host: ensemble-service
+    #         port:
+    #           number: 5011
+    #         subset: v1

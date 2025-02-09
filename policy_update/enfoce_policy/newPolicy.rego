@@ -6,6 +6,7 @@ import input.parsed_path
 # Default deny
 default allow := false
 
+
 # Allow health check endpoint (unconditionally)
 allow if {
   http_request.method == "GET"
@@ -25,12 +26,23 @@ required_roles[r] if {
   role_perms[r][_]
   perm := role_perms[r][_]
   perm.method == http_request.method
-  perm.path == http_request.path
+  #perm.path == http_request.path
+  # Ignore query parameters by considering only the base path
+  base_path := trim_query(http_request.path)
+  base_path == perm.path
 }
 
 user_name := parsed if {
   [_, encoded] := split(http_request.headers.authorization, " ")
   [parsed, _] := split(base64url.decode(encoded), ":")
+}
+
+
+# Trim query parameters from path
+trim_query(path_with_query) = base_path if {
+  # Fallback to the full path if there's no query parameter
+  paths := split(path_with_query, "?")
+  base_path := paths[0]
 }
 
 # Define user-role mapping
@@ -54,6 +66,10 @@ role_perms = {
     {"method": "POST", "path": "/update-counter"},
     {"method": "GET", "path": "/get-counter"},
     {"method": "GET", "path": "/get-command"},
+    {"method": "POST", "path": "/preprocessing/"},  # Include the preprocessing endpoint
+    {"method": "POST", "path": "/ensemble_service/"},  # Include the preprocessing endpoint
+    {"method": "POST", "path": "/inference"},  # Include the preprocessing endpoint
+    #{"method": "POST", "path": "/v1/traces"},  # Include the application tracing 
   ],
   "user": [
     {"method": "POST", "path": "/preprocessing-gateway"},

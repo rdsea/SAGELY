@@ -1,6 +1,7 @@
 ROS_sim/server_testing
 
 *.pyc
+*.lock
 
 ROS_sim/src/py_srvcli2/*
 ROS_sim/build/*
