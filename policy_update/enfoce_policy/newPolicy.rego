@@ -6,6 +6,7 @@ import input.parsed_path
 # Default deny
 default allow := false
 
+
 # Allow health check endpoint (unconditionally)
 allow if {
   http_request.method == "GET"
@@ -25,9 +26,10 @@ required_roles[r] if {
   role_perms[r][_]
   perm := role_perms[r][_]
   perm.method == http_request.method
-  perm.path == http_request.path
-  # Ignore query parameters by only considering the base path
-  perm.path == trim_query(http_request.path)
+  #perm.path == http_request.path
+  # Ignore query parameters by considering only the base path
+  base_path := trim_query(http_request.path)
+  base_path == perm.path
 }
 
 user_name := parsed if {
@@ -37,9 +39,12 @@ user_name := parsed if {
 
 
 # Trim query parameters from path
-trim_query(path_with_query) = base_path {
-  [base_path, _] := split(path_with_query, "?")
+trim_query(path_with_query) = base_path if {
+  # Fallback to the full path if there's no query parameter
+  paths := split(path_with_query, "?")
+  base_path := paths[0]
 }
+
 # Define user-role mapping
 user_roles = {
   "alice": ["guest"],

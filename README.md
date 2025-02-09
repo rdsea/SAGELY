@@ -17,3 +17,6 @@
 
 4. application
   - run via tilt
+
+5. tracing with jaeger
+
