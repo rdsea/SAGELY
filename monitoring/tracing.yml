@@ -10,4 +10,4 @@ spec:
         opentelemetry:
           port: 4317
           service: jaeger-collector.istio-system.svc.cluster.local
-#istioctl install -f ./tracing.yaml --skip-confirmation
+#istioctl install -f ./tracing.yml --skip-confirmation
