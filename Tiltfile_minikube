@@ -75,8 +75,8 @@ k8s_yaml('istio/destination-rules.yml')
 
 
 # apply tracing data from envoy to jaever
-#k8s_yaml('monitoring/istio-operator.yml')
-k8s_yaml('monitoring/jaeger-istio.yml')
-local("istioctl install -f monitoring/tracing.yml --skip-confirmation")
-k8s_yaml('monitoring/enable_tracing.yml')
-#k8s_resource('jaeger', port_forwards=16686)
+#k8s_yaml('monitoring/jaeger-istio.yml')
+#local("istioctl install -f monitoring/tracing.yml --skip-confirmation")
+#k8s_yaml('monitoring/enable_tracing.yml')
+
+k8s_resource('jaeger', port_forwards=16686)

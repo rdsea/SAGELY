@@ -474,6 +474,7 @@ data:
         {"method": "POST", "path": "/update-counter"},
         {"method": "GET", "path": "/get-counter"},
         {"method": "GET", "path": "/get-command"},
+        #{"method": "POST", "path": "/preprocessing/"},  # Include the preprocessing endpoint
       ],
       "user": [
         {"method": "POST", "path": "/preprocessing-gateway"},

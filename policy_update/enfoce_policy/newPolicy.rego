@@ -26,6 +26,8 @@ required_roles[r] if {
   perm := role_perms[r][_]
   perm.method == http_request.method
   perm.path == http_request.path
+  # Ignore query parameters by only considering the base path
+  perm.path == trim_query(http_request.path)
 }
 
 user_name := parsed if {
@@ -33,6 +35,11 @@ user_name := parsed if {
   [parsed, _] := split(base64url.decode(encoded), ":")
 }
 
+
+# Trim query parameters from path
+trim_query(path_with_query) = base_path {
+  [base_path, _] := split(path_with_query, "?")
+}
 # Define user-role mapping
 user_roles = {
   "alice": ["guest"],
@@ -54,6 +61,10 @@ role_perms = {
     {"method": "POST", "path": "/update-counter"},
     {"method": "GET", "path": "/get-counter"},
     {"method": "GET", "path": "/get-command"},
+    {"method": "POST", "path": "/preprocessing/"},  # Include the preprocessing endpoint
+    {"method": "POST", "path": "/ensemble_service/"},  # Include the preprocessing endpoint
+    {"method": "POST", "path": "/inference"},  # Include the preprocessing endpoint
+    #{"method": "POST", "path": "/v1/traces"},  # Include the application tracing 
   ],
   "user": [
     {"method": "POST", "path": "/preprocessing-gateway"},

@@ -1,4 +1,4 @@
-import logging
+import logging, base64
 import os
 import signal
 import sys
@@ -9,7 +9,7 @@ from uuid import uuid4
 import aiohttp
 import cv2
 import numpy as np
-from fastapi import FastAPI, HTTPException, UploadFile, status
+from fastapi import FastAPI, HTTPException, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from image_processing_functions import resize
 from opentelemetry import trace
@@ -100,8 +100,8 @@ def validate_image_type(content_type: Union[str, None]):
 
 
 @app.post("/preprocessing/")
-async def processing_image(file: UploadFile):
-
+async def processing_image(file: UploadFile, request: Request):
+    logging.info(request.headers)
     print("from preprocessing")
     validate_image_type(file.content_type)
 
@@ -149,10 +149,26 @@ async def processing_image(file: UploadFile):
     #         _ = await response.json()
 
     try:
+        # Retrieve original headers
+        headers = {k: v for k, v in request.headers.items()}
+        # Add any required headers for the downstream request, if necessary
+        if "Host" not in headers:
+            headers["Host"] = "object-classification.test.com"
+
+        # Add Authorization header if required
+        # Assuming the Authorization header is the same in the gateway and the preprocessing service
+        if "Authorization" not in headers or headers["Authorization"] is None:
+            username = 'bob'
+            password = 'password'
+            credentials = f"{username}:{password}"
+            encoded_credentials = base64.b64encode(credentials.encode()).decode()
+            headers["Authorization"] = f"Basic {encoded_credentials}"
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
             logging.info(ensemble_service_url)
             async with session.post(
-                ensemble_service_url,
+                #headers=request.headers,
+                headers=headers,
+                url=ensemble_service_url,
                 data=image_bytes,
                 params={"request_id": request_id},
             ) as response:

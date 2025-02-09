@@ -1,4 +1,5 @@
 #from fastapi import FastAPI, HTTPException
+import base64
 from fastapi import FastAPI, HTTPException, UploadFile, status, Request
 from pydantic import BaseModel
 from typing import Dict, Optional
@@ -141,6 +142,20 @@ async def processing_image(request: Request):
     logging.info(f"Request received in {(time.time() - start_time) * 1000:.2f} ms")
 
     try:
+        # # Retrieve original headers
+        # headers = {k: v for k, v in request.headers.items()}
+        # # Add any required headers for the downstream request, if necessary
+        # if "Host" not in headers:
+        #     headers["Host"] = "object-classification.test.com"
+        #
+        # # Add Authorization header if required
+        # # Assuming the Authorization header is the same in the gateway and the preprocessing service
+        # if "Authorization" not in headers or headers["Authorization"] is None:
+        #     username = 'bob'
+        #     password = 'password'
+        #     credentials = f"{username}:{password}"
+        #     encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        #     headers["Authorization"] = f"Basic {encoded_credentials}"
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), raise_for_status=True) as session:
             logging.info(f"Forwarding request to {preprocessing_url}")
 
