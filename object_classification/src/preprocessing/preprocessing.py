@@ -1,4 +1,4 @@
-import logging, base64
+import logging
 import os
 import signal
 import sys
@@ -149,25 +149,10 @@ async def processing_image(file: UploadFile, request: Request):
     #         _ = await response.json()
 
     try:
-        # Retrieve original headers
-        headers = {k: v for k, v in request.headers.items()}
-        # Add any required headers for the downstream request, if necessary
-        if "Host" not in headers:
-            headers["Host"] = "object-classification.test.com"
-
-        # Add Authorization header if required
-        # Assuming the Authorization header is the same in the gateway and the preprocessing service
-        if "Authorization" not in headers or headers["Authorization"] is None:
-            username = 'bob'
-            password = 'password'
-            credentials = f"{username}:{password}"
-            encoded_credentials = base64.b64encode(credentials.encode()).decode()
-            headers["Authorization"] = f"Basic {encoded_credentials}"
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
             logging.info(ensemble_service_url)
             async with session.post(
-                #headers=request.headers,
-                headers=headers,
+                headers=request.headers,
                 url=ensemble_service_url,
                 data=image_bytes,
                 params={"request_id": request_id},

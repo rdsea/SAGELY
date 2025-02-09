@@ -53,9 +53,9 @@ app.state.config = config
 
 
 async def send_post_request(
-    session: aiohttp.ClientSession, url: str, image_data: bytes
+    session: aiohttp.ClientSession, url: str, image_data: bytes, headers
 ):
-    async with session.post(url, data=image_data) as response:
+    async with session.post(url, data=image_data, headers=headers) as response:
         return await response.json()  # Assuming the response is JSON
 
 
@@ -63,7 +63,7 @@ def get_inference_service_url(ensemble_chosen: list[str]):
     return [f"http://{item.lower()}-service:5012/inference" for item in ensemble_chosen]
 
 
-async def process_image_task(image_data: bytes, request_id: str):
+async def process_image_task(image_data: bytes, request_id: str, headers):
     # current_span = trace.get_current_span()
     ensemble = app.state.config["ensemble"]
     chosen_ensemble_function = getattr(
@@ -76,7 +76,7 @@ async def process_image_task(image_data: bytes, request_id: str):
     if list_service_url:
         async with aiohttp.ClientSession(trust_env=True) as session:
             tasks = [
-                asyncio.create_task(send_post_request(session, url, image_data))
+                asyncio.create_task(send_post_request(session, url, image_data, headers))
                 for url in list_service_url
             ]
             done, _ = await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
@@ -100,8 +100,9 @@ async def ensemble(
     try:
         image_bytes = await request.body()
         request_id = request.query_params["request_id"]
+        headers = request.headers
         # logging.info(image_bytes)
-        background_tasks.add_task(process_image_task, image_bytes, request_id)
+        background_tasks.add_task(process_image_task, image_bytes, request_id, headers)
 
         response = "Success to add image to Ensemble Service"
         return JSONResponse(content={"response": response}, status_code=200)
