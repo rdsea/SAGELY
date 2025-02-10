@@ -6,6 +6,17 @@ import asyncio
 import aiohttp
 from aiohttp.client_exceptions import ClientError
 
+import base64
+
+username = 'bob'
+password = 'password'
+credentials = f"{username}:{password}"
+encoded_credentials = base64.b64encode(credentials.encode()).decode()
+
+headers = {
+    "Host": "object-classification.test.com",
+    "Authorization": f"Basic {encoded_credentials}"
+}
 
 async def send_request(url, jpeg_images_list, requesting_interval, device_id):
     while True:
@@ -30,8 +41,9 @@ async def send_request(url, jpeg_images_list, requesting_interval, device_id):
                     filename="random_image.jpeg",
                     content_type="image/jpeg",
                 )
+
                 #form_data.add_field("device_id", device_id)
-                headers = {"Host": "object-classification.test.com"}
+                #headers = {"Host": "object-classification.test.com"}
                 async with session.post(
                     url, data=form_data, headers=headers
                 ) as response:

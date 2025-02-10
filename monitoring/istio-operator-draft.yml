@@ -1,0 +1,14 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio-operator
+  namespace: istio-system
+spec:
+  meshConfig:
+    enableTracing: true
+    defaultConfig:
+      tracing:
+        enabled: true
+        provider:
+          zipkin:
+            address: "jaeger.default:9411" # Update to match your Jaeger service name and namespace.

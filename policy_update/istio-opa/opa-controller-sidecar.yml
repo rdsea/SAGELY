@@ -208,6 +208,7 @@ data:
         "--config-file=/config/config.yaml",
         "--addr=localhost:8181",
         "--diagnostic-addr=0.0.0.0:8282",
+        "--watch",
         "/policy/policy.rego",
       ],
       "volumeMounts": [{
@@ -292,7 +293,9 @@ spec:
             - "--tls-cert-file=/certs/tls.crt"
             - "--tls-private-key-file=/certs/tls.key"
             - "--addr=0.0.0.0:8443"
+            - "--watch" # Add this flag to enable watching and spread the new configuration to sidecars -- need to check more they consume data and policies together
             - "/policies/inject.rego"
+            #- "/policies/"
           livenessProbe:
             httpGet:
               path: /health?plugins
@@ -314,6 +317,9 @@ spec:
             - readOnly: true
               mountPath: /policies
               name: inject-policy
+            # - readOnly: true
+            #   mountPath: /policies
+            #   name: opa-policy
       volumes:
         - name: inject-policy
           configMap:
@@ -321,6 +327,9 @@ spec:
         - name: server-cert
           secret:
             secretName: server-cert
+        # - name: opa-policy
+        #   configMap:
+        #     name: opa-policy
 ---
 ############################################################
 # OPA admission controller configuration.
@@ -402,14 +411,18 @@ data:
 ############################################################
 # Example policy to enforce on OPA-Istio sidecars.
 ############################################################
+#
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: opa-policy
-  namespace: opa-istio
+  #namespace: opa-istio
 data:
   policy.rego: |
     package istio.authz
+
+    import input.attributes.request.http as http_request
+    import input.parsed_path
 
     # Default deny
     default allow := false
@@ -418,44 +431,26 @@ data:
     allow if {
       http_request.method == "GET"
       http_request.path == ["health"]
-      debug.log("Allowing health check")
     }
 
-    # allow if {
-    #   some user_role in _user_roles[_user_name]
-    #   some permission in _role_permissions[user_role]
-    #
-    #   permission.method == input.attributes.request.http.method
-    #   permission.path == input.attributes.request.http.path
-    # }
-    # Allow specific methods and paths based on roles and permissions
     allow if {
-      is_valid_user_and_allowed_action
+      roles_for_user[user_name][r]
+      required_roles[r]
     }
 
-    # Function to validate authorization header and check user permissions
-    is_valid_user_and_allowed_action {
-      validate_auth_header
-      debug.log("User name: " ++ _user_name)
-      some user_role in user_roles[_user_name]
-      debug.log("User role: " ++ user_role)
-      some permission in role_permissions[user_role]
-      debug.log("Checking permission for method: " ++ permission.method ++ ", path: " ++ permission.path)
-      permission.method == http_request.method
-      permission.path == http_request.path
+    roles_for_user[user_name][r] if {
+      r := user_roles[user_name][_]
     }
 
-    # Function to validate the authorization header
-    validate_auth_header {
-      debug.log("Authorization Header: " ++ http_request.headers.authorization)
+    required_roles[r] if {
+      role_perms[r][_]
+      perm := role_perms[r][_]
+      perm.method == http_request.method
+      perm.path == http_request.path
+    }
+
+    user_name := parsed if {
       [_, encoded] := split(http_request.headers.authorization, " ")
-      debug.log("Encoded part: " ++ encoded)
-      [username, _] := split(base64url.decode(encoded), ":")
-      _user_name = username
-      debug.log("Decoded username: " ++ username)
-    }
-    _user_name := parsed if {
-      [_, encoded] := split(input.attributes.request.http.headers.authorization, " ")
       [parsed, _] := split(base64url.decode(encoded), ":")
     }
 
@@ -467,7 +462,7 @@ data:
     }
 
     # Define role-permission mapping
-    role_permissions = {
+    role_perms = {
       "guest": [
         {"method": "POST", "path": "/preprocessing-gateway"},
         {"method": "POST", "path": "/notify-leader"},
@@ -479,6 +474,7 @@ data:
         {"method": "POST", "path": "/update-counter"},
         {"method": "GET", "path": "/get-counter"},
         {"method": "GET", "path": "/get-command"},
+        #{"method": "POST", "path": "/preprocessing/"},  # Include the preprocessing endpoint
       ],
       "user": [
         {"method": "POST", "path": "/preprocessing-gateway"},
