@@ -7,7 +7,8 @@ logging.basicConfig(level=logging.INFO)
 # Configuration
 # JAEGER_API_URL = 'http://localhost:16686/api/dependencies'
 
-JAEGER_API_URL = "http://localhost:16686/api/traces?lookback=1h&service=preprocessing"
+#JAEGER_API_URL = "http://localhost:16686/api/traces?lookback=1h&service=preprocessing"
+JAEGER_API_URL = 'http://localhost:16686/api/traces?lookback=1h&service=preprocessing-service'
 DEFAULT_LIMIT = 100  # Adjust the limit to control the number of traces per request
 
 
