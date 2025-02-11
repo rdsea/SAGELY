@@ -9,7 +9,7 @@ from uuid import uuid4
 import aiohttp
 import cv2
 import numpy as np
-from fastapi import FastAPI, HTTPException, UploadFile, status
+from fastapi import FastAPI, HTTPException, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from image_processing_functions import resize
 from opentelemetry import trace
@@ -100,8 +100,8 @@ def validate_image_type(content_type: Union[str, None]):
 
 
 @app.post("/preprocessing/")
-async def processing_image(file: UploadFile):
-
+async def processing_image(file: UploadFile, request: Request):
+    logging.info(request.headers)
     print("from preprocessing")
     validate_image_type(file.content_type)
 
@@ -153,7 +153,8 @@ async def processing_image(file: UploadFile):
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
             logging.info(ensemble_service_url)
             async with session.post(
-                ensemble_service_url,
+                headers=request.headers,
+                url=ensemble_service_url,
                 data=image_bytes,
                 params={"request_id": request_id},
             ) as response:
