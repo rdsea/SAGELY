@@ -117,7 +117,8 @@ async def processing_image(file: UploadFile):
         processed_image = image
 
     start_time = time.time()
-    ensemble_service_url = "http://ensemble-service:5011/ensemble_service/"
+    #ensemble_service_url = "http://ensemble-service:5011/ensemble_service/"
+    ensemble_service_url = "http://ensemble-service:5011"
 
 
     logging.info(f"{(time.time() - start_time)*1000}")
