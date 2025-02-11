@@ -13,6 +13,8 @@ ROS_sim/src/client_drone/client_drone/testing_env.sh
 ROS_sim/src/client_drone/resouce/*
 ROS_sim/src/client_drone/test/*
 
+policy_update/istio-opa/draft/*
+policy_update/rego_git/*
 
 */image/*
 object_classification/src/artifact/dataset/*
