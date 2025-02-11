@@ -54,6 +54,10 @@ local('echo "{content}" | kubectl apply -f -'.format(content=metallb_config))
 local("istioctl install --set profile=default -y")
 local("kubectl label namespace default istio-injection=enabled")
 
+# apply tracing data from envoy to jaeger
+k8s_yaml('monitoring/jaeger-istio.yml')
+local("istioctl install -f monitoring/tracing.yml --skip-confirmation")
+k8s_yaml('monitoring/enable_tracing.yml')
 
 # configure OPA admission
 k8s_yaml('policy_update/istio-opa/opa-controller-sidecar.yml')
@@ -66,7 +70,7 @@ k8s_yaml('object_classification/src/deployment/ensemble.yml')
 k8s_yaml('object_classification/src/deployment/MobileNetV2.yml')
 k8s_yaml('object_classification/src/deployment/EfficientNetB0.yml')
 k8s_yaml('object_classification/src/deployment/gateway.yml')
-k8s_yaml('object_classification/src/deployment/jaeger.yml')
+#k8s_yaml('object_classification/src/deployment/jaeger.yml')
 
 #istio routing and gateway
 k8s_yaml('istio/gateway.yml')
@@ -74,10 +78,6 @@ k8s_yaml('istio/virtual-services.yml')
 k8s_yaml('istio/destination-rules.yml')
 
 
-# apply tracing data from envoy to jaever
-#k8s_yaml('monitoring/jaeger-istio.yml')
-#local("istioctl install -f monitoring/tracing.yml --skip-confirmation")
-#k8s_yaml('monitoring/enable_tracing.yml')
 
 
-k8s_resource('jaeger', port_forwards=16686)
+#k8s_resource('jaeger', port_forwards=16686)
