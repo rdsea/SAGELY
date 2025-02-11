@@ -57,6 +57,23 @@ async def send_post_request(
 ):
     async with session.post(url, data=image_data, headers=headers) as response:
         return await response.json()  # Assuming the response is JSON
+    #
+    # headers = dict(headers)  # Make a copy of headers
+    # headers['Accept'] = 'application/json'  # Ensure Accept header is set
+    # logging.info(f"Sending request to {url} with headers: {headers}")
+    #
+    # async with session.post(url, data=image_data, headers=headers) as response:
+    #     response_text = await response.text()
+    #     logging.info(f"Received response from {url} with status: {response.status}, headers: {response.headers}")
+    #
+    #     if response.content_type == "application/json":
+    #         return await response.json()
+    #     else:
+    #         logging.error(f"Unexpected content-type: {response.content_type}, response body: {response_text}")
+    #         raise aiohttp.client_exceptions.ContentTypeError(
+    #             response.request_info, response.history,
+    #             code=response.status, message=response_text, headers=response.headers
+    #     )
 
 
 def get_inference_service_url(ensemble_chosen: list[str]):
@@ -64,6 +81,11 @@ def get_inference_service_url(ensemble_chosen: list[str]):
 
 
 async def process_image_task(image_data: bytes, request_id: str, headers):
+
+    # Combine headers with the 'Accept' header
+    # headers = dict(headers)
+    # headers['Accept'] = 'application/json'
+
     # current_span = trace.get_current_span()
     ensemble = app.state.config["ensemble"]
     chosen_ensemble_function = getattr(
