@@ -16,6 +16,8 @@ ROS_sim/src/client_drone/test/*
 policy_update/istio-opa/draft/*
 policy_update/rego_git/*
 
+setting/*
+
 */image/*
 object_classification/src/artifact/dataset/*
 *.csv
