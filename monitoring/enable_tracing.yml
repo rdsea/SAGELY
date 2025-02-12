@@ -7,3 +7,9 @@ spec:
   tracing:
     - providers:
         - name: jaeger
+      # the below is the sample trace rate 100 and with foo and bar
+      customTags:
+        foo:
+          literal:
+            value: bar
+      randomSamplingPercentage: 100
