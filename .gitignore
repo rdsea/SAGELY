@@ -30,3 +30,5 @@ policy_update/docker/*
 application-testing/*
 
 test/*
+
+*.DS_Store
