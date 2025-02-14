@@ -1,11 +1,7 @@
 # from fastapi import FastAPI, HTTPException
-import asyncio
-import logging
-import time
 from typing import Dict, Optional
 
-import aiohttp
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
