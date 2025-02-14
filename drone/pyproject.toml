@@ -1,5 +1,5 @@
 [project]
-name = "ros-simulation"
+name = "drone"
 version = "0.1.0"
 description = "Add your description here"
 authors = [{ name = "hong3nguyen", email = "tringuyennht@gmail.com" }]
@@ -27,4 +27,4 @@ dev-dependencies = []
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ros_simulation"]
+packages = ["src/drone"]
