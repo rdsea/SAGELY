@@ -1,6 +1,5 @@
 import logging
 import os
-import signal
 import sys
 import time
 from typing import Union
@@ -26,7 +25,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 import asyncio
-import subprocess
 
 AioHttpClientInstrumentor().instrument()
 # Service name is required for most backends

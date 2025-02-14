@@ -1,13 +1,14 @@
 # from fastapi import FastAPI, HTTPException
-from fastapi import FastAPI, HTTPException, UploadFile, status, Request
-from pydantic import BaseModel
+import asyncio
+import logging
+import time
 from typing import Dict, Optional
 
+import aiohttp
+from fastapi import FastAPI, HTTPException, Request
 from opentelemetry import trace
-
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
-
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 # from opentelemetry.sdk.metrics import MeterProvider
@@ -15,8 +16,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-
-import asyncio, time, logging, aiohttp
+from pydantic import BaseModel
 
 AioHttpClientInstrumentor().instrument()
 # Service name is required for most backends
@@ -167,59 +167,59 @@ async def startup_event():
     commands = {}  # Initialize or clean up commands
 
 
-@app.post("/preprocessing-gateway")
-async def processing_image(request: Request):
-    logging.info("enter preprocessing from gateway")
-    start_time = time.time()
-    preprocessing_url = "http://preprocessing-service:5010/preprocessing/"
-
-    logging.info(f"Request received in {(time.time() - start_time) * 1000:.2f} ms")
-
-    try:
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=60), raise_for_status=True
-        ) as session:
-            logging.info(f"Forwarding request to {preprocessing_url}")
-
-            async with session.request(
-                method=request.method,
-                url=preprocessing_url,
-                headers=request.headers,
-                data=await request.body(),
-                allow_redirects=False,  # Do not allow redirects
-            ) as response:
-                if response.status == 307:
-                    logging.error(
-                        f"Got redirected to: {response.headers.get('Location')}"
-                    )
-                    raise HTTPException(
-                        status_code=response.status,
-                        detail="Unexpected redirect occurred.",
-                    )
-                response_data = await response.json()
-                logging.info(
-                    f"Response received in {(time.time() - start_time) * 1000:.2f} ms"
-                )
-                return response_data
-
-    except aiohttp.ClientError as e:
-        logging.error(f"Client error: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to connect to preprocessing service.",
-        )
-    except asyncio.TimeoutError:
-        logging.error("Request to preprocessing service timed out.")
-        raise HTTPException(
-            status_code=500,
-            detail="Request to preprocessing service timed out.",
-        )
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred.",
-        )
+# @app.post("/preprocessing-gateway")
+# async def processing_image(request: Request):
+#     logging.info("enter preprocessing from gateway")
+#     start_time = time.time()
+#     preprocessing_url = "http://preprocessing-service:5010/preprocessing/"
+#
+#     logging.info(f"Request received in {(time.time() - start_time) * 1000:.2f} ms")
+#
+#     try:
+#         async with aiohttp.ClientSession(
+#             timeout=aiohttp.ClientTimeout(total=60), raise_for_status=True
+#         ) as session:
+#             logging.info(f"Forwarding request to {preprocessing_url}")
+#
+#             async with session.request(
+#                 method=request.method,
+#                 url=preprocessing_url,
+#                 headers=request.headers,
+#                 data=await request.body(),
+#                 allow_redirects=False,  # Do not allow redirects
+#             ) as response:
+#                 if response.status == 307:
+#                     logging.error(
+#                         f"Got redirected to: {response.headers.get('Location')}"
+#                     )
+#                     raise HTTPException(
+#                         status_code=response.status,
+#                         detail="Unexpected redirect occurred.",
+#                     )
+#                 response_data = await response.json()
+#                 logging.info(
+#                     f"Response received in {(time.time() - start_time) * 1000:.2f} ms"
+#                 )
+#                 return response_data
+#
+#     except aiohttp.ClientError as e:
+#         logging.error(f"Client error: {e}")
+#         raise HTTPException(
+#             status_code=500,
+#             detail="Failed to connect to preprocessing service.",
+#         )
+#     except asyncio.TimeoutError:
+#         logging.error("Request to preprocessing service timed out.")
+#         raise HTTPException(
+#             status_code=500,
+#             detail="Request to preprocessing service timed out.",
+#         )
+#     except Exception as e:
+#         logging.error(f"Unexpected error: {e}")
+#         raise HTTPException(
+#             status_code=500,
+#             detail="An unexpected error occurred.",
+#         )
 
 
 FastAPIInstrumentor.instrument_app(app)

@@ -108,7 +108,7 @@ class ClientNode(Node):
             self.get_logger().error(f"YAML file {self.yaml_file} does not exist")
 
     def main(self):
-        stop_event = Event()
+        # stop_event = Event()
         monitor_leader()
 
 
@@ -262,7 +262,7 @@ def campaign_for_leadership():
     global GROUP_ID, COUNTER_INCREMENT, stop_event
     while True:
         try:
-            with etcd.lock(f"/election/{GROUP_ID}") as lock:
+            with etcd.lock(f"/election/{GROUP_ID}") as _:
                 etcd.put(f"/election/{GROUP_ID}/leader", NODE_ID)
                 logger.info(f"I am the leader now for group {GROUP_ID}: {NODE_ID}")
                 notify_edge_server(NODE_ID, GROUP_ID)
