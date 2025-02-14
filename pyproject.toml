@@ -28,7 +28,7 @@ allow-direct-references = true
 
 [tool.rye.workspace]
 members = [
-  "src/holistic_policy/context_formalization",
+  "src/holistic_policy/context",
   "src/holistic_policy/service_discovery",
   "src/holistic_policy/policy_update",
 ]
