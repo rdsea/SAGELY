@@ -18,7 +18,7 @@ ROS_sim/*
 policy_update/istio-opa/draft/*
 policy_update/rego_git/*
 
-setting/*
+src/holistic_policy/k8s_deployment/setting/*
 
 */image/*
 object_classification/src/artifact/dataset/*
