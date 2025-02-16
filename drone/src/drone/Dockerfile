@@ -13,13 +13,13 @@ RUN apt-get update && apt-get install -y jq \
 #RUN echo "source /opt/ros/iron/setup.bash" >> /root/.bashrc
 
 # Create and build workspace
-RUN mkdir -p /root/client_drone/src/data
+RUN mkdir -p /root/_drone/src/data
 
 # Copy the package into the workspace
-COPY . /root/client_drone/src/client_drone
+COPY . /root/drone/src/object_detection
 
 # Set the working directory
-WORKDIR /root/client_drone/src/client_drone
+WORKDIR /root/drone/src/object_detection
 
 RUN pip install requests etcd3 pydantic
 
@@ -29,13 +29,14 @@ RUN /bin/bash -c "source /opt/ros/iron/setup.bash && colcon build"
 # Source the setup script
 #RUN echo "source /root/client_drone/src/client_drone/install/setup.bash" >> /root/.bashrc
 
-WORKDIR /root/client_drone/src/client_drone/client_drone
+RUN chmod +x scripts/entrypoint_etcd.sh
+#
+RUN chmod +x scripts/trigger_request.sh
+
+WORKDIR /root/drone/src/object_detection/client_drone
 
 ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
-RUN chmod +x entrypoint_etcd.sh
-
-RUN chmod +x trigger_request.sh
 
 # Define entry point
 ENTRYPOINT ["/bin/bash", "-c"]

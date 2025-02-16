@@ -1,30 +1,35 @@
 # Note for ROS 
 
-### Install ROS iron
-- ROS supports
-  - networking for remote and connect among robots
-
-
-### Rosdep to manage dependencies
-> rosdep install -i --from-path src --rosdistro iron -y
-
-- Colon to build package
-  - build
-  - Install
-  - log
-  - src
-
-# 
 ```bash
+.
+├── client_drone
+│   ├── client_config.yaml
+│   ├── client_drone.yaml
+│   ├── client.py
+│   └── __init__.py
+├── Dockerfile
+├── package.xml
+├── pyproject_.toml
+├── requirements.txt
+├── resource
+│   └── client_drone
+├── scripts
+│   ├── entrypoint_etcd.sh
+│   ├── etcd
+│   ├── etcdctl
+│   └── trigger_request.sh
+├── setup.cfg
+└── setup.py
 
-cd src/client_drone
 
-docker build -t client_drone . 
-
-# Download etcd version 3.5
+# build docker
+docker build -t drone_ros2 . 
+# debug mode insde the docker
+docker run --rm -it drone_ros2  /bin/bash -c "echo 'Hello from Docker!'" 
+# Download etcd version 3.5 -- in docker can download and extract direct; however, to be ez I cp from my local directory to
 # let the etcd and etcdctl in src/client_drone/clinet_drone
-
-docker run --network host -v <image_data_for_sending>:/root/client_drone/src/data/val_images --rm -it --name client_drone0 client_drone "./entrypoint_etcd.sh <drone_id>"
+docker run --network host -v <image_data_for_sending>:/root/client_drone/src/data/val_images --rm -it --name client_drone0 client_drone "../script/entrypoint_etcd.sh <drone_id>"
+#docker run --network host -v ~/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images --rm -it --name drone0 drone_ros2 "../scripts/entrypoint_etcd.sh 0"
 
 # DEBUG
 #docker exec -it client_drone ros2 run client_drone client --ros-args -p yaml_file:=client_drone.yaml
@@ -32,8 +37,9 @@ docker run --network host -v <image_data_for_sending>:/root/client_drone/src/dat
 
 ```
 
-Test
+# different Test for etcd
 ```bash
+# 3 nodes
 export TOKEN=token-01
 export CLUSTER_STATE=new
 export NAME_0=drone_0

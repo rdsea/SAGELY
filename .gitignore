@@ -13,6 +13,8 @@ ROS_sim/src/client_drone/client_drone/testing_env.sh
 ROS_sim/src/client_drone/resouce/*
 ROS_sim/src/client_drone/test/*
 
+ROS_sim/*
+
 policy_update/istio-opa/draft/*
 policy_update/rego_git/*
 
@@ -32,3 +34,7 @@ application-testing/*
 test/*
 
 *.DS_Store
+
+src/holistic_policy/k8s_deployment/setting/*
+drone/src/drone/scripts/etcd
+drone/src/drone/scripts/etcdctl

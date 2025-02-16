@@ -14,7 +14,7 @@ HOST_0=0.0.0.0
 HOST_1=0.0.0.0
 HOST_2=0.0.0.0
 
-CLUSTER=${NAME_0}=http://${HOST_0}:2380,${NAME_1}=http://${HOST_1}:2381,${NAME_2}=http://${HOST_2}:2382
+CLUSTER=${NAME_0}=http://${HOST_0}:2380 #,${NAME_1}=http://${HOST_1}:2381,${NAME_2}=http://${HOST_2}:2382
 
 # Set variables based on the instance ID
 case $INSTANCE_ID in
@@ -49,7 +49,7 @@ esac
 #   --initial-cluster ${CLUSTER} \
 #   --initial-cluster-state ${CLUSTER_STATE} --initial-cluster-token ${TOKEN} &
 
-./etcd --data-dir=data.etcd --name ${THIS_NAME} \
+../scripts/etcd --data-dir=data.etcd --name ${THIS_NAME} \
   --advertise-client-urls http://${THIS_IP}:${CLIENT_PORT} --listen-client-urls http://${THIS_IP}:${CLIENT_PORT} \
   --initial-advertise-peer-urls http://${THIS_IP}:${PEER_PORT} --listen-peer-urls http://${THIS_IP}:${PEER_PORT} \
   --initial-cluster ${CLUSTER} \
@@ -61,14 +61,14 @@ ETCD_ENDPOINT="${THIS_IP}:${CLIENT_PORT}" # Use the client port for this instanc
 trigger_request() {
   # Place your logic here to run the trigger_request.sh script
   echo $THIS_NAME
-  ./trigger_request.sh ${THIS_NAME}
+  ../scripts/trigger_request.sh ${THIS_NAME}
 }
 
 while true; do
   # Find the current leader
   #LEADER_NAME=$(./etcdctl --endpoints=$ETCD_ENDPOINT endpoint status -w json | jq -r '.[] | select(.Leader == .EndpointID) | .Endpoint | .[7:]')
   # Get the raw output of etcdctl
-  raw_output=$(./etcdctl --endpoints=$ETCD_ENDPOINT endpoint status)
+  raw_output=$(../scripts/etcdctl --endpoints=$ETCD_ENDPOINT endpoint status)
 
   # Extract the leader status with field extraction (adjust if necessary)
   LEADER_TRUE=$(echo "$raw_output" | awk -F "," '{print $5}' | tr -d ' ' | tr -d '\n')
