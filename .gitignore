@@ -18,12 +18,13 @@ ROS_sim/*
 policy_update/istio-opa/draft/*
 policy_update/rego_git/*
 
-src/holistic_policy/k8s_deployment/setting/*
+src/holistic_policy/k8s_deployment/setting
 
 */image/*
 object_classification/src/artifact/dataset/*
 *.csv
 *.onnx
+*.JPEG
 
 policy_update/rego_git/*
 policy_update/istio-opa/knowledge.md
@@ -35,6 +36,5 @@ test/*
 
 *.DS_Store
 
-src/holistic_policy/k8s_deployment/setting/*
 drone/src/drone/scripts/etcd
 drone/src/drone/scripts/etcdctl
