@@ -29,6 +29,14 @@ spec:
             prefix: /notify-leader
         - uri:
             prefix: /heartbeat
+      route:
+        - destination:
+            host: service-discovery-service
+            port:
+              number: 1337
+    - match:
+        - uri:
+            prefix: /context
         - uri:
             prefix: /update-counter
         - uri:
@@ -37,9 +45,9 @@ spec:
             prefix: /get-command
       route:
         - destination:
-            host: service-discovery-service
+            host: context-service
             port:
-              number: 1337
+              number: 1338
     - match:
         - uri:
             prefix: /preprocessing

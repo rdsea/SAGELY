@@ -2,6 +2,7 @@
 from typing import Dict, Optional
 import asyncio
 from fastapi import FastAPI, HTTPException
+import duckdb
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 
@@ -55,21 +56,47 @@ class ChangeTaskParameterCommand(BaseModel):
     counter_increment: Optional[int] = None
 
 
-# Dictionary to store counter values for each group
-counters: Dict[str, int] = {}
-# Dictionary to store current leader info for each group
-current_leaders: Dict[str, str] = {}
-# Dictionary to store commands for each node
-commands: Dict[
-    str, Dict[str, str]
-] = {}  # commands[node_id][command_type] = command_data
-
+# # Dictionary to store counter values for each group
+# counters: Dict[str, int] = {}
+# # Dictionary to store current leader info for each group
+# current_leaders: Dict[str, str] = {}
+# # Dictionary to store commands for each node
+# commands: Dict[
+#     str, Dict[str, str]
+# ] = {}  # commands[node_id][command_type] = command_data
+#
 # Timeout duration in seconds
 HEARTBEAT_TIMEOUT = 4
-# Store last heartbeat timestamps
-last_heartbeat: Dict[str, datetime] = {}
-# Background task status flags
-monitoring: Dict[str, bool] = {}
+# # Store last heartbeat timestamps
+# last_heartbeat: Dict[str, datetime] = {}
+# # Background task status flags
+# monitoring: Dict[str, bool] = {}
+
+
+# Create necessary tables
+conn.execute("""
+CREATE TABLE IF NOT EXISTS counters (
+    group_id STRING PRIMARY KEY,
+    counter INTEGER
+)
+""")
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS leaders (
+    group_id STRING PRIMARY KEY,
+    leader_id STRING,
+    last_heartbeat TIMESTAMP
+)
+""")
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS commands (
+    node_id STRING,
+    command_type STRING,
+    command_data STRING,
+    PRIMARY KEY (node_id, command_type)
+)
+""")
 
 
 class LeaderMessage(BaseModel):
