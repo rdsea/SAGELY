@@ -14,7 +14,7 @@ HOST_0=0.0.0.0
 HOST_1=0.0.0.0
 HOST_2=0.0.0.0
 
-CLUSTER=${NAME_0}=http://${HOST_0}:2380 #,${NAME_1}=http://${HOST_1}:2381,${NAME_2}=http://${HOST_2}:2382
+#CLUSTER=${NAME_0}=http://${HOST_0}:2380 #,${NAME_1}=http://${HOST_1}:2381,${NAME_2}=http://${HOST_2}:2382
 
 # Set variables based on the instance ID
 case $INSTANCE_ID in
@@ -23,18 +23,24 @@ case $INSTANCE_ID in
   THIS_IP=$HOST_0
   PEER_PORT=2380
   CLIENT_PORT=2379
+  # testing only
+  CLUSTER=${NAME_0}=http://${HOST_0}:2380
   ;;
 1)
   THIS_NAME=$NAME_1
   THIS_IP=$HOST_1
   PEER_PORT=2381
   CLIENT_PORT=2378
+  # testing only
+  CLUSTER=${NAME_1}=http://${HOST_1}:2381
   ;;
 2)
   THIS_NAME=$NAME_2
   THIS_IP=$HOST_2
   PEER_PORT=2382
   CLIENT_PORT=2377
+  # testing only
+  CLUSTER=${NAME_2}=http://${HOST_2}:2381
   ;;
 *)
   echo "Invalid instance ID. Use 0, 1, or 2."

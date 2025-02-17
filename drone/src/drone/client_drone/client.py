@@ -23,6 +23,7 @@ EDGE_SERVER_SEND_IMG = ""
 DS_PATH = ""
 RATE = ""
 COUNTER_INCREMENT = 1  # Initial counter increment value
+HEADER = {}
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -95,14 +96,16 @@ class ClientNode(Node):
                 EDGE_SERVER_UPDATE_COUNTER_URL = self.server_url + "/update-counter"
                 EDGE_SERVER_GET_COUNTER_URL = self.server_url + "/get-counter"
                 EDGE_SERVER_GET_COMMAND_URL = self.server_url + "/get-command"
-                EDGE_SERVER_SEND_IMG = self.server_url + "/preprocessing-gateway"
+                EDGE_SERVER_SEND_IMG = self.server_url + "/preprocessing"
 
                 NODE_ID = self.device_id
+                GROUP_ID = self.group_id
                 DS_PATH = self.ds_path
                 RATE = self.rate
                 # NODE_ID = "node-1"
                 # GROUP_ID = "group-1"
                 etcd = self.initialize_etcd_client(host=host, port=port)
+                formalize_HEADER()
 
         else:
             self.get_logger().error(f"YAML file {self.yaml_file} does not exist")
@@ -121,12 +124,25 @@ class ChangeTaskParameterCommand(BaseModel):
     counter_increment: Optional[int] = None
 
 
+def formalize_HEADER():
+    global HEADER 
+    HEADER = {
+        "Host": "object-classification.test.com",
+        "Authorization": f"Basic {NODE_ID}:{GROUP_ID}"
+    }
+
 def notify_edge_server(node_id, group_id):
     try:
         response = requests.post(
-            EDGE_SERVER_NOTIFY_URL, json={"leader_id": node_id, "group_id": group_id}
+            EDGE_SERVER_NOTIFY_URL,
+            headers=HEADER,
+            json={"leader_id": node_id, "group_id": group_id},
         )
         response.raise_for_status()
+        
+        # edit the header when become a leader and ready to keep heartbeat
+        formalize_HEADER()
+        
         logger.info(
             f"Edge server notified about new leader for group {group_id}: {node_id}"
         )
@@ -139,6 +155,7 @@ def send_heartbeat(node_id, group_id, stop_event):
         try:
             response = requests.post(
                 EDGE_SERVER_HEARTBEAT_URL,
+                headers=HEADER,
                 json={"leader_id": node_id, "group_id": group_id},
             )
             response.raise_for_status()
@@ -153,11 +170,17 @@ def send_heartbeat(node_id, group_id, stop_event):
 
 def update_counter(node_id, group_id, stop_event):
     current_counter = get_counter(group_id)
+
+    logger.info(
+        f"Header: {HEADER}"
+    )
     while not stop_event.is_set():
         current_counter += COUNTER_INCREMENT
         try:
+            # can edit to async 
             response = requests.post(
                 EDGE_SERVER_UPDATE_COUNTER_URL,
+                headers=HEADER,
                 json={
                     "leader_id": node_id,
                     "group_id": group_id,
@@ -169,6 +192,7 @@ def update_counter(node_id, group_id, stop_event):
                 f"Counter updated to {current_counter} by leader {node_id} of group {group_id}"
             )
 
+            #main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
             main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
 
         except requests.RequestException as e:
@@ -179,7 +203,9 @@ def update_counter(node_id, group_id, stop_event):
 def get_counter(group_id):
     try:
         response = requests.get(
-            EDGE_SERVER_GET_COUNTER_URL, params={"group_id": group_id}
+            EDGE_SERVER_GET_COUNTER_URL,
+            headers=HEADER,
+            params={"group_id": group_id}
         )
         response.raise_for_status()
         return response.json().get("counter", 0)
@@ -190,8 +216,10 @@ def get_counter(group_id):
 
 def delete_command(node_id, command_type):
     try:
+        # maybe need to check the authorization here again?
         response = requests.delete(
-            f"{EDGE_SERVER_GET_COMMAND_URL}/{node_id}/{command_type}"
+            f"{EDGE_SERVER_GET_COMMAND_URL}/{node_id}/{command_type}",
+            headers=HEADER,
         )
         response.raise_for_status()
         logger.info(f"Command {command_type} for node {node_id} deleted from server")
@@ -215,6 +243,7 @@ def follow_leader(leader, group_id, stop_event):
             logger.info(f"Following leader {leader} of group {group_id}")
             response = requests.post(
                 EDGE_SERVER_HEARTBEAT_URL,
+                headers=HEADER,
                 json={"leader_id": leader, "group_id": group_id},
             )
             response.raise_for_status()
@@ -230,7 +259,8 @@ def poll_commands(stop_event):
         try:
             for command_type in ["change-group-or-id", "change-task-parameter"]:
                 response = requests.get(
-                    f"{EDGE_SERVER_GET_COMMAND_URL}/{NODE_ID}/{command_type}"
+                    f"{EDGE_SERVER_GET_COMMAND_URL}/{NODE_ID}/{command_type}",
+                    headers=HEADER,
                 )
                 if response.status_code == 200:
                     command_value = response.json().get("command")
@@ -253,6 +283,7 @@ def poll_commands(stop_event):
                             )
                             COUNTER_INCREMENT = command.counter_increment
                         delete_command(NODE_ID, command_type)
+                    formalize_HEADER()
         except Exception as e:
             logger.error(f"Failed to get command: {e}")
         time.sleep(3)
@@ -386,10 +417,10 @@ def send_request(url, requesting_interval, jpeg_images_list, ds_path):
     start_time = time.time()
     file = {"file": ("random_image", img_data, "image/jpeg")}
 
-    response = requests.post(url, files=file)
+    response = requests.post(url, headers=HEADER, files=file)
     print(response.json(), synset_id, (time.time() - start_time) * 1000)
 
-    response = requests.post(url, files=file)
+    response = requests.post(url, headers=HEADER, files=file)
 
 
 def main_send_request(url, group_id, node_id, req_rate, ds_path):

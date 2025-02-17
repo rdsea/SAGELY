@@ -13,7 +13,7 @@ drone_0:
 
 drone_1:
   device_id: "1"
-  group_id: "0"
+  group_id: "1"
   server_url: "http://192.168.49.2:80"
   ds_path: "../../data/val_images"
   #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"

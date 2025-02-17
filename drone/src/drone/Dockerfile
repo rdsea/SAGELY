@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y jq \
 #RUN echo "source /opt/ros/iron/setup.bash" >> /root/.bashrc
 
 # Create and build workspace
-RUN mkdir -p /root/_drone/src/data
+RUN mkdir -p /root/drone/src/data
 
 # Copy the package into the workspace
 COPY . /root/drone/src/object_classification
