@@ -1,0 +1,11 @@
+[project]
+dependencies = ["duckdb"]
+requires-python = ">= 3.9"
+
+name = "context-management"
+version = "0.1.0"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+virtual = true

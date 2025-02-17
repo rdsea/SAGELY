@@ -17,7 +17,7 @@ spec:
     enableTracing: true
     defaultConfig:
       tracing: {} # disable legacy MeshConfig tracing options
-    # edit this one to capture all rquest o.w the tracing rate is 1%
+    # edit this one to capture all request o.w the tracing rate is 1%
     # defaultProviders:
     #   tracer:
     #     zipkin: # Assuming you're using Zipkin for tracing

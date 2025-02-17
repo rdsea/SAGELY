@@ -1,9 +1,11 @@
 # from fastapi import FastAPI, HTTPException
-from typing import Dict, Optional
 import asyncio
+from datetime import datetime, timedelta
+from typing import Dict, Optional
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime, timedelta
+import aiohttp
 
 # from opentelemetry import trace
 # from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -31,7 +33,7 @@ from datetime import datetime, timedelta
 # tracer = trace.get_tracer(__name__)
 app = FastAPI()
 # Connect to DuckDB database or create it if it does not exist
-conn = duckdb.connect("service-discovery.db")
+# conn = duckdb.connect("service-discovery.db")
 
 
 # Models for leader notification, counter update, and commands
@@ -70,11 +72,6 @@ HEARTBEAT_TIMEOUT = 4
 last_heartbeat: Dict[str, datetime] = {}
 # Background task status flags
 monitoring: Dict[str, bool] = {}
-
-
-class LeaderMessage(BaseModel):
-    group_id: str
-    leader_id: str
 
 
 # @app.post("/notify-leader")
@@ -200,7 +197,7 @@ async def get_counter(group_id: str):
 #     )
 #     return {"message": f"{command_type} command sent"}
 #
-# after detecing chnage, asking another support
+# after detecting change, asking another support
 #
 @app.post("/send-command/change-group-or-id")
 async def send_change_group_or_id_command(

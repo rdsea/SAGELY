@@ -6,13 +6,12 @@ import asyncio
 import aiohttp
 from aiohttp.client_exceptions import ClientError
 
-import base64
 
 username = "bob"
-#password = "password"
+# password = "password"
 group_id = "0"
 credentials = f"{username}:{group_id}"
-#encoded_credentials = base64.b64encode(credentials.encode()).decode()
+# encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
 headers = {
     "Host": "object-classification.test.com",

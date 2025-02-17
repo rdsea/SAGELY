@@ -1,4 +1,4 @@
-# Note for ROS 
+# Note for ROS
 
 ```bash
 .
@@ -23,9 +23,9 @@
 
 
 # build docker
-docker build -t drone_ros2 . 
-# debug mode insde the docker
-docker run --rm -it drone_ros2  /bin/bash -c "echo 'Hello from Docker!'" 
+docker build -t drone_ros2 .
+# debug mode inside the docker
+docker run --rm -it drone_ros2  /bin/bash -c "echo 'Hello from Docker!'"
 # Download etcd version 3.5 -- in docker can download and extract direct; however, to be ez I cp from my local directory to
 # let the etcd and etcdctl in src/client_drone/clinet_drone
 docker run --network host -v <image_data_for_sending>:/root/drone/src/data/val_images --rm -it --name client_drone0 client_drone "../script/entrypoint_etcd.sh <drone_id>"
@@ -38,6 +38,7 @@ docker run --network host -v <image_data_for_sending>:/root/drone/src/data/val_i
 ```
 
 # different Test for etcd
+
 ```bash
 # 3 nodes
 export TOKEN=token-01
@@ -61,7 +62,7 @@ export CLIENT_PORT=2379
   --initial-cluster-state ${CLUSTER_STATE} --initial-cluster-token ${TOKEN} &
 
 
-# single node 
+# single node
 export TOKEN=token-01
 export CLUSTER_STATE=new
 export NAME_0=drone_0

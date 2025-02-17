@@ -34,5 +34,6 @@ members = [
   "src/holistic_policy/service_discovery",
   "src/holistic_policy/policy_update",
   "drone",
-  "applications/object_classification/src/*"
+  "applications/object_classification/src/*",
+
 ]

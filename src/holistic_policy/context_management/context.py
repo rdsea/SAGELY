@@ -1,10 +1,12 @@
 # from fastapi import FastAPI, HTTPException
-from typing import Dict, Optional
 import asyncio
-from fastapi import FastAPI, HTTPException
-import duckdb
-from pydantic import BaseModel
 from datetime import datetime, timedelta
+from typing import Optional
+
+import aiohttp
+import duckdb
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 # from opentelemetry import trace
 # from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -57,9 +59,9 @@ class ChangeTaskParameterCommand(BaseModel):
 
 
 # # Dictionary to store counter values for each group
-# counters: Dict[str, int] = {}
+counters: dict[str, int] = {}
 # # Dictionary to store current leader info for each group
-# current_leaders: Dict[str, str] = {}
+current_leaders: dict[str, str] = {}
 # # Dictionary to store commands for each node
 # commands: Dict[
 #     str, Dict[str, str]
@@ -68,7 +70,7 @@ class ChangeTaskParameterCommand(BaseModel):
 # Timeout duration in seconds
 HEARTBEAT_TIMEOUT = 4
 # # Store last heartbeat timestamps
-# last_heartbeat: Dict[str, datetime] = {}
+last_heartbeat: dict[str, datetime] = {}
 # # Background task status flags
 # monitoring: Dict[str, bool] = {}
 
@@ -97,11 +99,6 @@ CREATE TABLE IF NOT EXISTS commands (
     PRIMARY KEY (node_id, command_type)
 )
 """)
-
-
-class LeaderMessage(BaseModel):
-    group_id: str
-    leader_id: str
 
 
 # @app.post("/notify-leader")
@@ -192,6 +189,7 @@ async def heartbeat(message: LeaderMessage):
 
 @app.post("/update-counter")
 async def update_counter(update: CounterUpdate):
+    global counters
     if current_leaders.get(update.group_id) != update.leader_id:
         raise HTTPException(
             status_code=400, detail="Only leader can update the counter"
@@ -209,6 +207,7 @@ async def update_counter(update: CounterUpdate):
 
 @app.get("/get-counter")
 async def get_counter(group_id: str):
+    global counters
     if group_id not in counters:
         counters[group_id] = 0
     return {"counter": counters[group_id]}
@@ -227,7 +226,7 @@ async def get_counter(group_id: str):
 #     )
 #     return {"message": f"{command_type} command sent"}
 #
-# after detecing chnage, asking another support
+# after detecting change, asking another support
 #
 @app.post("/send-command/change-group-or-id")
 async def send_change_group_or_id_command(
