@@ -28,7 +28,7 @@ docker build -t drone_ros2 .
 docker run --rm -it drone_ros2  /bin/bash -c "echo 'Hello from Docker!'" 
 # Download etcd version 3.5 -- in docker can download and extract direct; however, to be ez I cp from my local directory to
 # let the etcd and etcdctl in src/client_drone/clinet_drone
-docker run --network host -v <image_data_for_sending>:/root/client_drone/src/data/val_images --rm -it --name client_drone0 client_drone "../script/entrypoint_etcd.sh <drone_id>"
+docker run --network host -v <image_data_for_sending>:/root/drone/src/data/val_images --rm -it --name client_drone0 client_drone "../script/entrypoint_etcd.sh <drone_id>"
 #docker run --network host -v ~/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images --rm -it --name drone0 drone_ros2 "../scripts/entrypoint_etcd.sh 0"
 
 # DEBUG

@@ -125,11 +125,12 @@ class ChangeTaskParameterCommand(BaseModel):
 
 
 def formalize_HEADER():
-    global HEADER 
+    global HEADER
     HEADER = {
         "Host": "object-classification.test.com",
-        "Authorization": f"Basic {NODE_ID}:{GROUP_ID}"
+        "Authorization": f"Basic {NODE_ID}:{GROUP_ID}",
     }
+
 
 def notify_edge_server(node_id, group_id):
     try:
@@ -139,10 +140,10 @@ def notify_edge_server(node_id, group_id):
             json={"leader_id": node_id, "group_id": group_id},
         )
         response.raise_for_status()
-        
+
         # edit the header when become a leader and ready to keep heartbeat
         formalize_HEADER()
-        
+
         logger.info(
             f"Edge server notified about new leader for group {group_id}: {node_id}"
         )
@@ -171,13 +172,11 @@ def send_heartbeat(node_id, group_id, stop_event):
 def update_counter(node_id, group_id, stop_event):
     current_counter = get_counter(group_id)
 
-    logger.info(
-        f"Header: {HEADER}"
-    )
+    logger.info(f"Header: {HEADER}")
     while not stop_event.is_set():
         current_counter += COUNTER_INCREMENT
         try:
-            # can edit to async 
+            # can edit to async
             response = requests.post(
                 EDGE_SERVER_UPDATE_COUNTER_URL,
                 headers=HEADER,
@@ -192,7 +191,7 @@ def update_counter(node_id, group_id, stop_event):
                 f"Counter updated to {current_counter} by leader {node_id} of group {group_id}"
             )
 
-            #main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
+            # main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
             main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
 
         except requests.RequestException as e:
@@ -203,9 +202,7 @@ def update_counter(node_id, group_id, stop_event):
 def get_counter(group_id):
     try:
         response = requests.get(
-            EDGE_SERVER_GET_COUNTER_URL,
-            headers=HEADER,
-            params={"group_id": group_id}
+            EDGE_SERVER_GET_COUNTER_URL, headers=HEADER, params={"group_id": group_id}
         )
         response.raise_for_status()
         return response.json().get("counter", 0)
