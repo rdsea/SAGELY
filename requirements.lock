@@ -128,6 +128,7 @@ docker==7.1.0
     # via qoa4ml
 docutils==0.21.2
     # via catkin-pkg
+duckdb==1.2.0
 email-validator==2.2.0
     # via fastapi
 empy==3.3.4

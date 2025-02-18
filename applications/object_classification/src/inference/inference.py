@@ -4,31 +4,32 @@ import sys
 
 import numpy as np
 import yaml
-from fastapi import FastAPI, Request
-from opentelemetry import trace
-
-# from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-# from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-
 from datamodel import ImageClassificationModelEnum, InferenceServiceConfig
+from fastapi import FastAPI, Request
 from image_classification_agent import ImageClassificationAgent
 
 chosen_model = os.environ["CHOSEN_MODEL"]
-resource = Resource(attributes={SERVICE_NAME: f"inference_{chosen_model}"})
+if os.environ.get("MANUAL_DEBUG"):
+    from opentelemetry import trace
 
-traceProvider = TracerProvider(resource=resource)
-processor = BatchSpanProcessor(
-    OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
-)
-traceProvider.add_span_processor(processor)
-trace.set_tracer_provider(traceProvider)
-tracer = trace.get_tracer(__name__)
+    # from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+    # from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    resource = Resource(attributes={SERVICE_NAME: f"inference_{chosen_model}"})
+
+    traceProvider = TracerProvider(resource=resource)
+    processor = BatchSpanProcessor(
+        OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
+    )
+    traceProvider.add_span_processor(processor)
+    trace.set_tracer_provider(traceProvider)
+    tracer = trace.get_tracer(__name__)
+
 
 # reader = PeriodicExportingMetricReader(
 #     OTLPMetricExporter(endpoint="http://localhost:4318/v1/metrics")
@@ -95,6 +96,9 @@ async def inference(request: Request):
         return ml_agent.predict(reconstructed_image)
 
 
-FastAPIInstrumentor.instrument_app(
-    app,
-)
+if os.environ.get("MANUAL_DEBUG"):
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+    FastAPIInstrumentor.instrument_app(
+        app,
+    )

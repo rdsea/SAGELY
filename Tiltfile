@@ -86,4 +86,4 @@ k8s_yaml('src/holistic_policy/k8s_deployment/istio/application_gateway.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/istio/virtual_services.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/istio/destination_rules.yml')
 
-#k8s_resource('jaeger', port_forwards=16686)
+k8s_resource('jaeger', port_forwards=16686)

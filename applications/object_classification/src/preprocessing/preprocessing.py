@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import sys
@@ -8,37 +9,35 @@ from uuid import uuid4
 import aiohttp
 import cv2
 import numpy as np
-from fastapi import FastAPI, HTTPException, UploadFile, status, Request
+from fastapi import FastAPI, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse
+
 from image_processing_functions import resize
-from opentelemetry import trace
 
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+if os.environ.get("MANUAL_DEBUG"):
+    from opentelemetry import trace
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    # from opentelemetry.sdk.metrics import MeterProvider
+    # from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-# from opentelemetry.sdk.metrics import MeterProvider
-# from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    AioHttpClientInstrumentor().instrument()
+    # Service name is required for most backends
+    resource = Resource(attributes={SERVICE_NAME: "preprocessing"})
 
-import asyncio
+    traceProvider = TracerProvider(resource=resource)
+    processor = BatchSpanProcessor(
+        OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
+    )
+    traceProvider.add_span_processor(processor)
+    trace.set_tracer_provider(traceProvider)
 
-AioHttpClientInstrumentor().instrument()
-# Service name is required for most backends
-resource = Resource(attributes={SERVICE_NAME: "preprocessing"})
+    tracer = trace.get_tracer(__name__)
 
-traceProvider = TracerProvider(resource=resource)
-processor = BatchSpanProcessor(
-    OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
-)
-traceProvider.add_span_processor(processor)
-trace.set_tracer_provider(traceProvider)
-
-
-tracer = trace.get_tracer(__name__)
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 util_directory = os.path.join(current_directory, "..", "util")
@@ -185,4 +184,7 @@ async def processing_image(file: UploadFile, request: Request):
     return "File accepted"
 
 
-FastAPIInstrumentor.instrument_app(app)
+if os.environ.get("MANUAL_DEBUG"):
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+    FastAPIInstrumentor.instrument_app(app)

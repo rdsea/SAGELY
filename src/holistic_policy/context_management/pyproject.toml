@@ -1,5 +1,7 @@
 [project]
-dependencies = ["duckdb"]
+dependencies = [
+    "duckdb>=1.2.0",
+]
 requires-python = ">= 3.9"
 
 name = "context-management"

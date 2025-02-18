@@ -10,35 +10,35 @@ import ensemble_function
 import aiohttp
 from fastapi import BackgroundTasks, FastAPI, Form, Request
 from fastapi.responses import JSONResponse
-from opentelemetry import trace
 
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+if os.environ.get("MANUAL_TRACING"):
+    from opentelemetry import trace
 
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-# Enable instrumentation
-AioHttpClientInstrumentor().instrument()
+    AioHttpClientInstrumentor().instrument()
+    resource = Resource(attributes={SERVICE_NAME: "ensemble"})
+
+    traceProvider = TracerProvider(resource=resource)
+    processor = BatchSpanProcessor(
+        OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
+    )
+    traceProvider.add_span_processor(processor)
+    trace.set_tracer_provider(traceProvider)
+    tracer = trace.get_tracer(__name__)
+
 current_directory = os.path.dirname(os.path.abspath(__file__))
 util_directory = os.path.join(current_directory, "..", "util")
 sys.path.append(util_directory)
 
-# TODO: find better way please!!!
+# TODO: change utils to package that other service can reuse
 import utils  # noqa: E402
 
-resource = Resource(attributes={SERVICE_NAME: "ensemble"})
-
-traceProvider = TracerProvider(resource=resource)
-processor = BatchSpanProcessor(
-    OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
-)
-traceProvider.add_span_processor(processor)
-trace.set_tracer_provider(traceProvider)
-tracer = trace.get_tracer(__name__)
 config_lock = asyncio.Lock()  # Lock to control access to the global variable
 
 
@@ -146,4 +146,7 @@ async def change_requirement(configuration: Annotated[dict, Form()]):
         return JSONResponse(content={"error": f"Error: {e}"}, status_code=500)
 
 
-FastAPIInstrumentor.instrument_app(app)
+if os.environ.get("MANUAL_TRACING"):
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+    FastAPIInstrumentor.instrument_app(app)
