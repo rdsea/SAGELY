@@ -456,6 +456,7 @@ data:
 
     # Define user-role mapping
     user_roles = {
+      "amdin" : ["admin"],
       "alice": ["guest"],
       "bob": ["admin"],
       "charlie": ["user"],
@@ -468,6 +469,7 @@ data:
         {"method": "POST", "path": "/notify-leader"},
       ],
       "admin": [
+        {"method": "POST", "path": "/abnormal"},
         {"method": "POST", "path": "/preprocessing-gateway"},
         {"method": "POST", "path": "/notify-leader"},
         {"method": "GET", "path": "/heartbeat"},
