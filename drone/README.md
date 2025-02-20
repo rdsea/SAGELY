@@ -81,3 +81,9 @@ export CLUSTER=${NAME_0}=http://${HOST_0}:2380,${NAME_1}=http://${HOST_1}:2381,$
   --initial-cluster-token token-01 &
 
 ```
+```bash
+# setting PX4 with GCS communication -- not clear
+mavlink start -m uas -r 2000000 -s 255.255.255.255:14550 -d /dev/ttyACM0
+# or in PX4's rcS script
+mavlink start -b 921600 -r 2000000 -d /dev/ttyACM0 -o 14550
+```
