@@ -35,14 +35,22 @@ spec:
             port:
               number: 1337
     - match:
-        - uri:
-            prefix: /context
+        # - uri:
+        #     prefix: /context
         - uri:
             prefix: /update-counter
         - uri:
             prefix: /get-counter
         - uri:
             prefix: /get-command
+        - uri:
+            prefix: /send-command/change-group-or-id
+        - uri:
+            prefix: /send-command/change-task-parameter
+        - uri:
+            prefix: /get-command/{node_id}/{command_type} # delete command
+        # - uri:
+        #     prefix: /get-command/{node_id}/{command_type}
       route:
         - destination:
             host: context-service

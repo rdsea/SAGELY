@@ -8,30 +8,6 @@ import duckdb
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-# from opentelemetry import trace
-# from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-# from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
-# from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-#
-# # from opentelemetry.sdk.metrics import MeterProvider
-# # from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-# from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-# from opentelemetry.sdk.trace import TracerProvider
-# from opentelemetry.sdk.trace.export import BatchSpanProcessor
-#
-# AioHttpClientInstrumentor().instrument()
-# Service name is required for most backends
-# resource = Resource(attributes={SERVICE_NAME: "preprocessing"})
-
-# traceProvider = TracerProvider(resource=resource)
-# processor = BatchSpanProcessor(
-#     OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
-# )
-# traceProvider.add_span_processor(processor)
-# trace.set_tracer_provider(traceProvider)
-
-
-# tracer = trace.get_tracer(__name__)
 app = FastAPI()
 # Connect to DuckDB database or create it if it does not exist
 conn = duckdb.connect("service-discovery.db")
@@ -63,14 +39,14 @@ counters: dict[str, int] = {}
 # # Dictionary to store current leader info for each group
 current_leaders: dict[str, str] = {}
 # # Dictionary to store commands for each node
-# commands: Dict[
-#     str, Dict[str, str]
-# ] = {}  # commands[node_id][command_type] = command_data
-#
-# Timeout duration in seconds
-HEARTBEAT_TIMEOUT = 4
-# # Store last heartbeat timestamps
-last_heartbeat: dict[str, datetime] = {}
+commands: Dict[
+    str, Dict[str, str]
+] = {}  # commands[node_id][command_type] = command_data
+
+# # Timeout duration in seconds
+# HEARTBEAT_TIMEOUT = 4
+# # # Store last heartbeat timestamps
+# last_heartbeat: dict[str, datetime] = {}
 # # Background task status flags
 # monitoring: Dict[str, bool] = {}
 
@@ -99,92 +75,6 @@ CREATE TABLE IF NOT EXISTS commands (
     PRIMARY KEY (node_id, command_type)
 )
 """)
-
-
-# @app.post("/notify-leader")
-# async def notify_leader(message: LeaderMessage):
-#     global current_leaders
-#     current_leaders[message.group_id] = message.leader_id
-#     print(
-#         f"Received new leader notification for group {message.group_id}: {message.leader_id}"
-#     )
-#     return {"message": "Leader updated successfully"}
-@app.post("/notify-leader")
-async def notify_leader(message: LeaderMessage):
-    global current_leaders, monitoring
-
-    current_leaders[message.group_id] = message.leader_id
-    last_heartbeat[message.group_id] = datetime.now()
-
-    if not monitoring.get(message.group_id, False):
-        monitoring[message.group_id] = True
-        asyncio.create_task(monitor_heartbeat(message.group_id))
-
-    print(
-        f"Received new leader notification for group {message.group_id}: {message.leader_id}"
-    )
-    return {"message": "Leader updated successfully"}
-
-
-async def monitor_heartbeat(group_id: str):
-    while monitoring.get(group_id, False):
-        await asyncio.sleep(HEARTBEAT_TIMEOUT)
-        if datetime.now() - last_heartbeat.get(group_id, datetime.min) > timedelta(
-            seconds=HEARTBEAT_TIMEOUT
-        ):
-            print(
-                f"Leader in group {group_id} is suspected to have crashed. No heartbeat received for {HEARTBEAT_TIMEOUT} seconds."
-            )
-            monitoring[group_id] = False
-            # Trigger the command to change group or ID
-            await send_command_on_leader_crash(group_id)
-            return
-
-
-async def send_command_on_leader_crash(group_id: str):
-    new_command = ChangeGroupOrIDCommand(new_group_id="new-group-id")
-    target_node_id = "node-2"  # Determine the target node dynamically if needed
-
-    payload = new_command.json()
-    headers = {"Content-Type": "application/json"}
-
-    url = f"http://localhost:8080/send-command/change-group-or-id?target_node_id={target_node_id}"
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, data=payload, headers=headers) as response:
-            if response.status == 200:
-                print(f"Sent change-group-or-id command to {target_node_id}")
-            else:
-                print(
-                    f"Failed to send change-group-or-id command to {target_node_id}, status: {response.status}, detail: {await response.text()}"
-                )
-
-
-# @app.post("/heartbeat")
-# async def heartbeat(message: LeaderMessage):
-#     if current_leaders.get(message.group_id) == message.leader_id:
-#         print(
-#             f"Received heartbeat from leader {message.leader_id} of group {message.group_id}"
-#         )
-#         return {"message": "Heartbeat received"}
-#     else:
-#         print(
-#             f"Received heartbeat from non-leader or unknown leader {message.leader_id} of group {message.group_id}"
-#         )
-#         raise HTTPException(status_code=400, detail="Unknown leader or leader mismatch")
-@app.post("/heartbeat")
-async def heartbeat(message: LeaderMessage):
-    if current_leaders.get(message.group_id) == message.leader_id:
-        last_heartbeat[message.group_id] = datetime.now()
-        print(
-            f"Received heartbeat from leader {message.leader_id} of group {message.group_id}"
-        )
-        return {"message": "Heartbeat received"}
-    else:
-        print(
-            f"Received heartbeat from non-leader or unknown leader {message.leader_id} of group {message.group_id}"
-        )
-        raise HTTPException(status_code=400, detail="Unknown leader or leader mismatch")
 
 
 @app.post("/update-counter")
