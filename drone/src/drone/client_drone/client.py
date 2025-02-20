@@ -449,7 +449,6 @@ def main(args=None):
     client_node = ClientNode()
     # client_node.main_send_request()
     client_node.main()
-
     client_node.destroy_node()
     rclpy.shutdown()
 
