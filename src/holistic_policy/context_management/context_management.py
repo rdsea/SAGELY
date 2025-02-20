@@ -1,5 +1,5 @@
 # from fastapi import FastAPI, HTTPException
-import asyncio
+# import asyncio
 from typing import Optional
 import aiohttp
 import duckdb
