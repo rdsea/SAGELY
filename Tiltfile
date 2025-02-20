@@ -69,7 +69,7 @@ k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/jaeger_istio.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_controller_sidecar.yml')
 
 # enable external provider: jaeger and OPA
-local("istioctl install -f src/holistic_policy/k8s_deployment/monitoring/external_provider_tracing_opa.yml --skip-confirmation")
+local("istioctl install -f src/holistic_policy/k8s_deployment/monitoring/external_provider.yml --skip-confirmation")
 k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/enable_tracing.yml') # enable tracing
 
 # enable opa sidecar
