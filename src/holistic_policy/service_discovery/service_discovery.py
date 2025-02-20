@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 import json
 from typing import Dict
 
+# imulate a ground control station
+
 app = FastAPI()
 
 # # Dictionary to store counter values for each group
@@ -82,7 +84,10 @@ async def monitor_heartbeat(group_id: str):
 
 
 async def send_command_on_leader_crash(group_id: str, leader_id: str):
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Basic admin:admin",
+    }
     payload = {"group_id": group_id, "leader_id": leader_id}
     url = URL_NOTI_CRASH
 

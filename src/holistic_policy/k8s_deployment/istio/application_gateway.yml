@@ -35,8 +35,8 @@ spec:
             port:
               number: 1337
     - match:
-        # - uri:
-        #     prefix: /context
+        - uri:
+            prefix: /notify-leader
         - uri:
             prefix: /update-counter
         - uri:
@@ -48,7 +48,8 @@ spec:
         - uri:
             prefix: /send-command/change-task-parameter
         - uri:
-            prefix: /get-command/{node_id}/{command_type} # delete command
+            #prefix: /get-command/{node_id}/{command_type} # delete command
+            regex: /get-command/.*/.*/ # regex since path parameters are used
         # - uri:
         #     prefix: /get-command/{node_id}/{command_type}
       route:

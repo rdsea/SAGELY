@@ -1,23 +1,23 @@
 FROM debian:stable-slim
 
-WORKDIR /context
+WORKDIR /context_management
 
 # Missing package for opencv, takes around 500mb
 RUN apt-get update
 
 COPY --from=ghcr.io/astral-sh/uv:0.4.3 /uv /bin/uv
 
-COPY ./context/*.toml ./
+COPY ./context_management/*.toml ./
 
 RUN uv sync --compile-bytecode --no-cache
 
-COPY ./context/run_server.sh ./
+COPY ./context_management/run_server.sh ./
 
-COPY ./context/context.py ./
+COPY ./context_management/context_management.py ./
 
 EXPOSE 1338
 
-ENV PATH="/context/.venv/bin:$PATH"
+ENV PATH="/context_management/.venv/bin:$PATH"
 
 ENTRYPOINT [ "./run_server.sh" ]
 

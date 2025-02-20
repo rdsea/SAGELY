@@ -3,6 +3,11 @@ docker_build('service_discovery', 'src/holistic_policy',
    only=["service_discovery"]
 )
 
+docker_build('context_management', 'src/holistic_policy', 
+   dockerfile="src/holistic_policy/context_management/Dockerfile",
+   only=["context_management"]
+)
+
 docker_build('rdsea/preprocessing', 'applications/object_classification/src', 
    dockerfile="applications/object_classification/src/preprocessing/Dockerfile",
    only=["preprocessing", "util"]
@@ -78,6 +83,7 @@ k8s_yaml('applications/object_classification/src/deployment/EfficientNetB0.yml')
 
 # src
 k8s_yaml('src/holistic_policy/k8s_deployment/policy_deployment/service_discovery.yml')
+k8s_yaml('src/holistic_policy/k8s_deployment/policy_deployment/context_management.yml')
 
 #k8s_yaml('object_classification/src/deployment/jaeger.yml')
 

@@ -456,7 +456,7 @@ data:
 
     # Define user-role mapping
     user_roles = {
-      "amdin" : ["admin"]
+      "amdin" : ["admin"],
       "alice": ["guest"],
       "bob": ["admin"],
       "charlie": ["user"],
