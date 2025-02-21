@@ -10,13 +10,25 @@ from threading import Event, Thread, Timer
 app = FastAPI()
 
 # Configuration variables (replace with actual values)
-EDGE_SERVER_URL = "http://192.168.49.2:8000"
+EDGE_SERVER_URL = "http://192.168.49.2"
 EDGE_SERVER_NOTIFY_URL = EDGE_SERVER_URL + "/notify-leader"
 EDGE_SERVER_HEARTBEAT_URL = EDGE_SERVER_URL + "/heartbeat"
 EDGE_SERVER_UPDATE_COUNTER_URL = EDGE_SERVER_URL + "/update-counter"
 EDGE_SERVER_GET_COUNTER_URL = EDGE_SERVER_URL + "/get-counter"
 EDGE_SERVER_GET_COMMAND_URL = EDGE_SERVER_URL + "/get-command"
+
+# turn the message to a local fastapi
 GCS_FASTAPI_URL = "http://127.0.0.1:8000"
+
+# Define URL mapping
+URL_MAPPING = {
+    "HEARTBEAT": EDGE_SERVER_HEARTBEAT_URL,
+    "LEADER_NOTI": EDGE_SERVER_NOTIFY_URL,
+    "UPDATE_COUNTER": EDGE_SERVER_UPDATE_COUNTER_URL,
+    "GET_COUNTER": EDGE_SERVER_GET_COUNTER_URL,
+    "GET_COMMAND": EDGE_SERVER_GET_COMMAND_URL,
+    # Add more mappings as needed
+}
 
 
 # Pydantic Models
@@ -107,14 +119,35 @@ def mavlink_listener(server_ip, server_port, loop):
         try:
             payload = {"mavlink_message": message.to_dict()}
             headers = {"Content-Type": "application/json"}
+
+            mav_type = message.get_type()  # Get the MAVLink message type
+            url = URL_MAPPING.get(
+                mav_type, EDGE_SERVER_NOTIFY_URL
+            )  # Determine URL based on message type
+
             async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{GCS_FASTAPI_URL}/receive-mavlink", json=payload, headers=headers
-                ) as response:
+                async with session.post(url, json=payload, headers=headers) as response:
                     response.raise_for_status()
-                    print("Message forwarded to FastAPI successfully.")
+                    print(
+                        f"Message of type {mav_type} forwarded to {url} successfully."
+                    )
         except Exception as e:
             print(f"Exception occurred while forwarding message: {e}")
+
+    while True:
+        msg = mav_conn.recv_match(blocking=True)
+        if msg:
+            print(f"Received message: {msg}")
+            asyncio.run_coroutine_threadsafe(forward_message_to_fastapi(msg), loop)
+
+        #     async with aiohttp.ClientSession() as session:
+        #         async with session.post(
+        #             f"{GCS_FASTAPI_URL}/receive-mavlink", json=payload, headers=headers
+        #         ) as response:
+        #             response.raise_for_status()
+        #             print("Message forwarded to FastAPI successfully.")
+        # except Exception as e:
+        #     print(f"Exception occurred while forwarding message: {e}")
 
     while True:
         msg = mav_conn.recv_match(blocking=True)
@@ -141,3 +174,40 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# import socket
+# import requests
+#
+# # Set up client for GCS communication
+# GCS_IP = 'localhost'  # Assuming GCS script is running locally
+# GCS_PORT = 14550      # Replace with actual port
+# s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#
+# # Edge server
+# EDGE_SERVER_IP = 'http://edge.server.ip:8000'  # Replace with actual IP and port of the edge server
+#
+# # Helper function to send a POST request to the FastAPI server
+# def send_post_request(endpoint, data):
+#     url = f"{EDGE_SERVER_IP}{endpoint}"
+#     try:
+#         response = requests.post(url, json=data)
+#         if response.status_code == 200:
+#             print(f"Response from edge server: {response.json()}")
+#         else:
+#             print(f"Failed to send data to edge server: {response.text}")
+#     except requests.exceptions.RequestException as e:
+#         print(f"An error occurred: {e}")
+#
+# while True:
+#     data, addr = s.recvfrom(1024)
+#     print(f"Received message from GCS: {data.decode('utf-8')}")
+#
+#     # Define the payload for the POST request
+#     payload = {
+#         "group_id": 1,  # Example group ID
+#         "leader_id": data.decode('utf-8')  # Assuming the received data is the leader ID
+#     }
+#
+#     # Send the payload to the desired endpoint on the FastAPI server
+#     send_post_request('/notify-leader', payload)
+#     send_post_request('/heartbeat', payload)
