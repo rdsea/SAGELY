@@ -66,7 +66,10 @@ local("kubectl label namespace default istio-injection=enabled")
 k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/jaeger_istio.yml')
 
 # OPA admission
-k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_controller_sidecar.yml')
+k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_controller.yml')
+k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_authz.yml')
+k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_config.yml')
+
 
 # enable external provider: jaeger and OPA
 local("istioctl install -f src/holistic_policy/k8s_deployment/monitoring/external_provider.yml --skip-confirmation")
