@@ -150,6 +150,8 @@ flatten-dict==0.4.2
 frozenlist==1.5.0
     # via aiohttp
     # via aiosignal
+future==1.0.0
+    # via pymavlink
 googleapis-common-protos==1.67.0
     # via opentelemetry-exporter-otlp-proto-grpc
     # via opentelemetry-exporter-otlp-proto-http
@@ -180,6 +182,8 @@ jinja2==3.1.5
 lark==1.2.2
 lazy-import==0.2.2
     # via qoa4ml
+lxml==5.3.1
+    # via pymavlink
 markdown-it-py==3.0.0
     # via rich
 markupsafe==3.0.2
@@ -271,6 +275,7 @@ pydantic-core==2.18.4
 pygments==2.19.1
     # via devtools
     # via rich
+pymavlink==2.4.42
 pyparsing==3.2.1
     # via catkin-pkg
 pytest==8.3.4
