@@ -40,6 +40,7 @@ RUN cd /root && \
 RUN /bin/bash -c "MicroXRCEAgent udp4 -p 8888 &"
 # PX4 simulator is automatically 
 
+
 # Create and build workspace
 RUN mkdir -p /root/drone/src/data
 

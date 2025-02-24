@@ -30,6 +30,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
+            "sensor_publisher = client_drone.sensor_publisher:main",
             "client = client_drone.client:main",
             "drone_data_sender = client_drone.drone_data_sender:main",
         ],
