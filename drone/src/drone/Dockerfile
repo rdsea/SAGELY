@@ -2,31 +2,58 @@
 FROM osrf/ros:humble-desktop-full
 
 # Install necessary packages
-RUN apt-get update && apt-get install -y jq \
-    git \ 
-    cmake \
-    build-essential \
-    sudo \
-    wget \
-    #ros-iron-desktop \
-    python3-pip\
-    python3-colcon-common-extensions \
-    #vim \
-    && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && apt-get install -y jq \
+#     git \ 
+#     cmake \
+#     build-essential \
+#     sudo \
+#     wget \
+#     #ros-iron-desktop \
+#     python3-pip\
+#     python3-colcon-common-extensions \
+#     #vim \
+#     && rm -rf /var/lib/apt/lists/*
 
+RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt-get update && apt-get install -y \
+  git \
+  cmake \
+  build-essential \
+  python3-pip \
+  python3-venv \
+  python3-colcon-common-extensions \
+  clang \
+  lldb \
+  ninja-build \
+  libgtest-dev \
+  libeigen3-dev \
+  libopencv-dev \
+  libyaml-dev \
+  libgstreamer1.0-dev \
+  libgstreamer-plugins-base1.0-dev \
+  gstreamer1.0-plugins-good \
+  gstreamer1.0-tools \
+  sudo \
+  wget \
+  curl \
+  tmux \
+  ruby 
 # Set up environment
 #RUN echo "source /opt/ros/iron/setup.bash" >> /root/.bashrc
 
+WORKDIR /root
+
 # Install PX4
 RUN cd /root && \
-    git clone https://github.com/PX4/PX4-Autopilot.git --recursive && \
+    git clone --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
     bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
     cd PX4-Autopilot && \
     make px4_sitl
 
 # Setup Micro XRCE-DDS Agent & Client
 RUN cd /root && \
-    git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && \
+    git clone --depth 1 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && \
     cd Micro-XRCE-DDS-Agent && \
     mkdir build && \
     cd build && \
@@ -35,39 +62,56 @@ RUN cd /root && \
     make install && \
     ldconfig /usr/local/lib/
 
+RUN mkdir -p /root/ws_sensor_combined/src && \
+    cd /root/ws_sensor_combined/src && \
+    git clone --depth 1 https://github.com/PX4/px4_msgs.git && \
+    git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
+    /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_sensor_combined && colcon build"
+
+# Build ROS 2 Workspace ws_offboard_control
+# RUN mkdir -p /root/ws_offboard_control/src && \
+#   cd /root/ws_offboard_control/src && \
+#   git clone --depth 1 https://github.com/PX4/px4_msgs.git && \
+#   git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
+#   /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_offboard_control && colcon build"
+
 # start the agent
+
 # MicroXRCEAgent udp4 -p 8888
 RUN /bin/bash -c "MicroXRCEAgent udp4 -p 8888 &"
-# PX4 simulator is automatically 
-
 
 # Create and build workspace
 RUN mkdir -p /root/drone/src/data
 
-# Copy the package into the workspace
+# # Copy the package into the workspace
 COPY . /root/drone/src/object_classification
 
-# Set the working directory
+# # Set the working directory
 WORKDIR /root/drone/src/object_classification
 
-RUN pip install requests etcd3 pydantic
+# RUN pip install requests etcd3 pydantic
+RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
 
 # Build the workspace
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 
-# Source the setup script
-#RUN echo "source /root/client_drone/src/client_drone/install/setup.bash" >> /root/.bashrc
-
-RUN chmod +x scripts/entrypoint_etcd.sh
+RUN /bin/bash -c "make px4_sitl gz_x500"
+# mavlink start -d /dev/ttyACM0 -b 57600
+# mavlink stream -d /dev/ttyACM0 -s SCALED_PRESSURE2 -r 10
+# # Source the setup script
+# #RUN echo "source /root/client_drone/src/client_drone/install/setup.bash" >> /root/.bashrc
 #
-RUN chmod +x scripts/trigger_request.sh
-
-WORKDIR /root/drone/src/object_classification/client_drone
-
-ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+# RUN chmod +x scripts/entrypoint_etcd.sh
+# #
+# RUN chmod +x scripts/trigger_request.sh
+#
+# WORKDIR /root/drone/src/object_classification/client_drone
+#
+# ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
 
 # Define entry point
-ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["tmuxinator", "start", "px4_ros2_gazebo_gcs"]
+#ENTRYPOINT ["/bin/bash", "-c"]
 
 #CMD ["ros2 run client_drone client --ros-args -p yaml_file:=client_drone.yaml"]
