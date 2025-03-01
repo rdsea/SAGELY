@@ -78,7 +78,11 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
 # start the agent
 
 # MicroXRCEAgent udp4 -p 8888
-RUN /bin/bash -c "MicroXRCEAgent udp4 -p 8888 &"
+# RUN /bin/bash -c "MicroXRCEAgent udp4 -p 8888 &"
+
+# RUN /bin/bash -c "make px4_sitl gz_x500"
+# mavlink start -d /dev/ttyACM0 -b 57600
+# mavlink stream -d /dev/ttyACM0 -s SCALED_PRESSURE2 -r 10
 
 # Create and build workspace
 RUN mkdir -p /root/drone/src/data
@@ -90,14 +94,11 @@ COPY . /root/drone/src/object_classification
 WORKDIR /root/drone/src/object_classification
 
 # RUN pip install requests etcd3 pydantic
-RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
-
 # Build the workspace
+RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 
-RUN /bin/bash -c "make px4_sitl gz_x500"
-# mavlink start -d /dev/ttyACM0 -b 57600
-# mavlink stream -d /dev/ttyACM0 -s SCALED_PRESSURE2 -r 10
+
 # # Source the setup script
 # #RUN echo "source /root/client_drone/src/client_drone/install/setup.bash" >> /root/.bashrc
 #
@@ -111,7 +112,7 @@ RUN /bin/bash -c "make px4_sitl gz_x500"
 
 
 # Define entry point
-CMD ["tmuxinator", "start", "px4_ros2_gazebo_gcs"]
-#ENTRYPOINT ["/bin/bash", "-c"]
+#CMD ["tmuxinator", "start", "px4_ros2_gazebo_gcs"]
+ENTRYPOINT ["/bin/bash", "-c"]
 
 #CMD ["ros2 run client_drone client --ros-args -p yaml_file:=client_drone.yaml"]
