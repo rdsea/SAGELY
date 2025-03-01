@@ -74,6 +74,7 @@ k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_config.yml')
 # enable external provider: jaeger and OPA
 local("istioctl install -f src/holistic_policy/k8s_deployment/monitoring/external_provider.yml --skip-confirmation")
 k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/enable_tracing.yml') # enable tracing
+k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/prometheus.yml') # enable tracing
 
 # enable opa sidecar
 local("kubectl label namespace default opa-istio-injection=enabled")
