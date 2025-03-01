@@ -17,6 +17,8 @@ FROM osrf/ros:humble-desktop-full
 RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt-get update && apt-get install -y \
+  tcpdump \ 
+  vim \
   git \
   cmake \
   build-essential \
@@ -81,9 +83,9 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
 # RUN /bin/bash -c "MicroXRCEAgent udp4 -p 8888 &"
 
 # RUN /bin/bash -c "make px4_sitl gz_x500"
+#
 # mavlink start -d /dev/ttyACM0 -b 57600
-# mavlink stream -d /dev/ttyACM0 -s SCALED_PRESSURE2 -r 10
-
+# mavlink stream -d /dev/tty -s SCALED_PRESSURE2 -r 10
 # Create and build workspace
 RUN mkdir -p /root/drone/src/data
 
