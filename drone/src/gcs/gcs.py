@@ -10,7 +10,7 @@ from threading import Event, Thread, Timer
 app = FastAPI()
 
 # Configuration variables (replace with actual values)
-# EDGE_SERVER_URL = "http://192.168.49.2"
+EDGE_SERVER_URL = "http://192.168.49.2"
 EDGE_SERVER_NOTIFY_URL = EDGE_SERVER_URL + "/notify-leader"
 EDGE_SERVER_HEARTBEAT_URL = EDGE_SERVER_URL + "/heartbeat"
 EDGE_SERVER_UPDATE_COUNTER_URL = EDGE_SERVER_URL + "/update-counter"
