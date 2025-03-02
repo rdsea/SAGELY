@@ -31,6 +31,8 @@ setup(
     entry_points={
         "console_scripts": [
             "sensor_publisher = client_drone.sensor_publisher:main",
+            "publisher = client_drone.publisher:main",
+            "subscriber = client_drone.subscriber:main",
             "client = client_drone.client:main",
             "drone_data_sender = client_drone.drone_data_sender:main",
         ],

@@ -81,9 +81,159 @@ export CLUSTER=${NAME_0}=http://${HOST_0}:2380,${NAME_1}=http://${HOST_1}:2381,$
   --initial-cluster-token token-01 &
 
 ```
-```bash
-# setting PX4 with GCS communication -- not clear
-mavlink start -m uas -r 2000000 -s 255.255.255.255:14550 -d /dev/ttyACM0
-# or in PX4's rcS script
-mavlink start -b 921600 -r 2000000 -d /dev/ttyACM0 -o 14550
+# MicroXRCEAgent, ROS2, PX4, and MAVLink Setup
+
+This guide outlines the steps to set up communication between a ROS2 node and PX4 using DDS (via Micro XRCE-DDS), and then forward the data to a GCS using MAVLink.
+
+## Steps
+
+### 1. Start Micro XRCE-DDS Agent
+
+Start the Micro XRCE-DDS Agent to handle DDS communication between ROS2 and PX4:
+
+```sh
+MicroXRCEAgent udp4 -p 8888
 ```
+### 2. Run ROS2 Publisher Node
+This node generates numerical data and publishes it via DDS:
+
+```bash
+ros2 run clinet_drone publisher
+```
+```python
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64
+import random
+
+
+class NumberPublisher(Node):
+    def __init__(self):
+        super().__init__("number_publisher")
+
+        # DDS publisher
+        self.publisher_ = self.create_publisher(Float64, "number_data", 10)
+        self.timer_ = self.create_timer(1.0, self.timer_callback)
+
+    def timer_callback(self):
+        # Generate random number between 0 and 100
+        number = random.uniform(0.0, 100.0)
+
+        # Publish the number using DDS
+        msg = Float64()
+        msg.data = number
+        self.publisher_.publish(msg)
+        self.get_logger().info(f"Published number: {msg.data}")
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = NumberPublisher()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+```
+### 3. Run ROS2 DDS to MAVLink Forwarder Node
+This node subscribes to the DDS topic, converts the data to MAVLink format, and sends it to PX4 at udpout://127.0.0.1:14550:
+```bash
+ros2 run client_drone subscriber
+```
+```python
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64
+from pymavlink import mavutil
+from pymavlink.dialects.v20 import common as mavlink2
+
+
+class DDS2PX4Forwarder(Node):
+    def __init__(self):
+        super().__init__("dds2px4_forwarder")
+
+        # MAVLink connection setup to PX4 (MAVLink instance on port 14550)
+        self.mav = mavutil.mavlink_connection("udpout:127.0.0.1:14550")
+        self.subscription = self.create_subscription(
+            Float64, "number_data", self.listener_callback, 10
+        )
+
+    def listener_callback(self, msg):
+        number = msg.data
+
+        # Ensure time_boot_ms fits within valid range
+        time_boot_ms = (self.get_clock().now().nanoseconds // 1000000) % 4294967296
+
+        named_value_float = mavlink2.MAVLink_named_value_float_message(
+            time_boot_ms=time_boot_ms,
+            name=b"number",  # 10-character name identifier
+            value=number,
+        )
+        try:
+            self.mav.mav.send(named_value_float)
+            self.get_logger().info(f"Sent number to PX4: {number}")
+        except Exception as e:
+            self.get_logger().error(f"Failed to send number: {str(e)}")
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = DDS2PX4Forwarder()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### 4. Run PX4 SITL
+Execute PX4 SITL to run its own PX4 device:
+```bash
+cd <path-to-PX4>/buid/px4_sitl_default/bin
+./px4 # make px4_sitl_default gazebo
+```
+### 5. Configure PX4 to Forward MAVLink Messages
+Run the following commands in the PX4 console to forward messages:
+```bash
+# in the px4 shell
+mavlink stop-all
+mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
+```
+This configuration forwards the port 14550 to 14551 (GCS port).
+
+### 6. Run GCS Script
+This script listens on port 14551 and prints the received MAVLink messages:
+```bash
+python3 gcs_setting2.py
+```
+```python
+
+from pymavlink import mavutil
+
+# Create a connection to listen to MAVLink messages
+conn = mavutil.mavlink_connection("udp:127.0.0.1:14551")
+
+print("Waiting for MAVLink messages...")
+
+while True:
+    msg = conn.recv_match(blocking=True)
+    if msg:
+        msg_type = msg.get_type()
+        if msg_type == "NAMED_VALUE_FLOAT":
+            number_data = msg.value
+            print(
+                f"Received Named Value Float: {msg.name} = {number_data}"
+            )
+        else:
+            print(f"Received MAVLink message: {msg_type}")
+```
+
+
+
+

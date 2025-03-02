@@ -3,11 +3,6 @@
 # from px4_msgs.msg import VehicleCommand
 #
 #
-import rclpy
-from rclpy.node import Node
-from px4_msgs.msg import VehicleCommand
-from pymavlink import mavutil
-from pymavlink.dialects.v20 import common as mavlink2
 
 # import rclpy
 # from rclpy.node import Node
@@ -17,27 +12,41 @@ from pymavlink.dialects.v20 import common as mavlink2
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
-import random
+from pymavlink import mavutil
+from pymavlink.dialects.v20 import common as mavlink2
 
 
-class NumberPublisher(Node):
+class DDS2PX4Forwarder(Node):
     def __init__(self):
-        super().__init__("number_publisher")
-        self.publisher_ = self.create_publisher(Float64, "number_data", 10)
-        self.timer_ = self.create_timer(1.0, self.timer_callback)
+        super().__init__("dds2px4_forwarder")
 
-    def timer_callback(self):
-        msg = Float64()
-        msg.data = random.uniform(
-            0.0, 100.0
-        )  # Generate random number between 0 and 100
-        self.publisher_.publish(msg)
-        self.get_logger().info(f"Published number: {msg.data}")
+        # MAVLink connection setup to PX4 (MAVLink instance on port 14550)
+        self.mav = mavutil.mavlink_connection("udpout:127.0.0.1:14550")
+        self.subscription = self.create_subscription(
+            Float64, "number_data", self.listener_callback, 10
+        )
+
+    def listener_callback(self, msg):
+        number = msg.data
+
+        # Ensure time_boot_ms fits within valid range
+        time_boot_ms = (self.get_clock().now().nanoseconds // 1000000) % 4294967296
+
+        named_value_float = mavlink2.MAVLink_named_value_float_message(
+            time_boot_ms=time_boot_ms,
+            name=b"number",  # 10-character name identifier
+            value=number,
+        )
+        try:
+            self.mav.mav.send(named_value_float)
+            self.get_logger().info(f"Sent number to PX4: {number}")
+        except Exception as e:
+            self.get_logger().error(f"Failed to send number: {str(e)}")
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = NumberPublisher()
+    node = DDS2PX4Forwarder()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
