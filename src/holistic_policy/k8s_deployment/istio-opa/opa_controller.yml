@@ -135,23 +135,28 @@ data:
       },
     }
 
-    patch = [{
-      "op": "add",
-      "path": "/spec/containers/-",
-      "value": opa_container,
-    }, {
-      "op": "add",
-      "path": "/spec/volumes/-",
-      "value": opa_config_volume,
-    }, {
-      "op": "add",
-      "path": "/spec/volumes/-",
-      "value": opa_policy_volume,
-    }]
+    patch = [
+      {
+        "op": "add",
+        "path": "/spec/containers/-",
+        "value": opa_container,
+      },
+      {
+        "op": "add",
+        "path": "/spec/volumes/-",
+        "value": opa_config_volume,
+      },
+      {
+        "op": "add",
+        "path": "/spec/volumes/-",
+        "value": opa_policy_volume,
+      },
+    ]
 
     opa_container = {
       "image": "openpolicyagent/opa:latest-istio",
       "name": "opa-istio",
+      "ports": [{"containerPort": 8282}],
       "args": [
         "run",
         "--server",
@@ -161,25 +166,24 @@ data:
         "--watch",
         "/policy/policy.rego",
       ],
-      "volumeMounts": [{
-        "mountPath": "/config",
-        "name": "opa-istio-config",
-      }, {
-        "mountPath": "/policy",
-        "name": "opa-policy",
-      }],
-      "readinessProbe": {
-        "httpGet": {
-          "path": "/health?plugins",
-          "port": 8282,
+      "volumeMounts": [
+        {
+          "mountPath": "/config",
+          "name": "opa-istio-config",
         },
-      },
-      "livenessProbe": {
-        "httpGet": {
-          "path": "/health?plugins",
-          "port": 8282,
+        {
+          "mountPath": "/policy",
+          "name": "opa-policy",
         },
-      }
+      ],
+      "readinessProbe": {"httpGet": {
+        "path": "/health?plugins",
+        "port": 8282,
+      }},
+      "livenessProbe": {"httpGet": {
+        "path": "/health?plugins",
+        "port": 8282,
+      }},
     }
 
     opa_config_volume = {

@@ -23,7 +23,7 @@ data:
   config.yaml: |
     plugins:
       envoy_ext_authz_grpc:
-        addr: 9191
+        addr: :9191
         path: istio/authz/allow
     decision_logs:
       console: true
@@ -54,6 +54,11 @@ data:
     allow if {
       http_request.method == "GET"
       http_request.path == ["health"]
+    }
+
+    allow if {
+      http_request.method == "GET"
+      http_request.path == ["metrics"]
     }
 
     allow if {
