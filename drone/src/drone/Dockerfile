@@ -83,12 +83,12 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
 # RUN /bin/bash -c "MicroXRCEAgent udp4 -p 8888 &"
 
 # ros2 run client_drone publisher # gernerate data 
-# ros2 run client_drone subscriber # collect data and transform to MAVLink format to 14550
+# ros2 run client_drone subscriber # collect data and transform to MAVLink format to 14550 -- notice the protocol udpout://127.0.0.1:14550 
 # execute ./px4  # run its own px4 device
 # mavlink stop-all
 # mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f # forwad port 14550 to 14551 (port from GCS)
 #
-# python3 
+# python3 gcs_setting2.py # listen from port 14551 and print 
 # Create and build workspace
 RUN mkdir -p /root/drone/src/data
 
