@@ -54,12 +54,12 @@ spec:
         #     prefix: /get-command/{node_id}/{command_type}
       route:
         - destination:
-            host: context-service
+            host: context-management-service
             port:
               number: 1338
     - match:
         - uri:
-            prefix: /preprocessing
+            prefix: /preprocessing/
       route:
         - destination:
             host: preprocessing-service

@@ -75,7 +75,7 @@ role_perms := {
 	"admin": [
 		# service_discovery
 		{"method": "POST", "path": "/notify-leader"},
-		{"method": "GET", "path": "/heartbeat"},
+		{"method": "POST", "path": "/heartbeat"},
 		{"method": "POST", "path": "/update-counter"},
 		{"method": "GET", "path": "/get-counter"},
 		{"method": "GET", "path": "/get-command"},

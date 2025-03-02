@@ -6,6 +6,11 @@ import duckdb
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 URL_POLICY_PLANNER = "http://192.168.49.2/policy-planner"
@@ -73,12 +78,16 @@ async def notify_leader(message: LeaderMessage):
 
 @app.post("/update-counter")
 async def update_counter(update: CounterMessage):
-    global counters
-
-    current_leader = conn.execute(
+    # global counters
+    # logger.info(
+    #     f"Counter for group {update.group_id} updated to {update.counter} by leader {update.leader_id}"
+    # )
+    current_leader_record = conn.execute(
         "SELECT leader_id FROM counters WHERE group_id = ?",
         (update.group_id,),
     ).fetchone()
+
+    current_leader = current_leader_record[0] if current_leader_record else None
 
     if current_leader is None:
         conn.execute(
@@ -88,13 +97,15 @@ async def update_counter(update: CounterMessage):
         )
         raise HTTPException(status_code=404, detail="Group not found")
 
+    print(f"current leader: {current_leader}, update leader: {update.leader_id}")
+
     if current_leader != update.leader_id:
         raise HTTPException(
             status_code=400, detail="Only leader can update the counter"
         )
 
     conn.execute(
-        "UPDATE counters SET counter = ? WHERE group_id = ?",
+        "UPDATE counters SET counter_value = ? WHERE group_id = ?",
         (update.counter, update.group_id),
     )
 
@@ -106,7 +117,7 @@ async def update_counter(update: CounterMessage):
 
 @app.get("/get-counter")
 async def get_counter(group_id: str):
-    global counters
+    # global counters
 
     counter_value = conn.execute(
         "SELECT counter_value FROM counters WHERE group_id = ?",
@@ -115,6 +126,8 @@ async def get_counter(group_id: str):
 
     if counter_value is None:
         counter_value = 0
+
+    print(f"value: {counter_value}")
 
     return {"counter": counter_value}
 

@@ -96,7 +96,7 @@ class ClientNode(Node):
                 EDGE_SERVER_UPDATE_COUNTER_URL = self.server_url + "/update-counter"
                 EDGE_SERVER_GET_COUNTER_URL = self.server_url + "/get-counter"
                 EDGE_SERVER_GET_COMMAND_URL = self.server_url + "/get-command"
-                EDGE_SERVER_SEND_IMG = self.server_url + "/preprocessing"
+                EDGE_SERVER_SEND_IMG = self.server_url + "/preprocessing/"
 
                 NODE_ID = self.device_id
                 GROUP_ID = self.group_id
@@ -205,7 +205,15 @@ def get_counter(group_id):
             EDGE_SERVER_GET_COUNTER_URL, headers=HEADER, params={"group_id": group_id}
         )
         response.raise_for_status()
-        return response.json().get("counter", 0)
+        json_response = response.json()
+        logger.info(f"Received response: {json_response}")
+
+        if isinstance(json_response, dict) and "counter" in json_response:
+            return json_response["counter"]
+        else:
+            logger.error(f"Unexpected response format: {json_response}")
+            return 0
+        # return response.json().get("counter", 0)
     except requests.RequestException as e:
         logger.error(f"Failed to get counter: {e}")
         return 0
