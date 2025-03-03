@@ -58,6 +58,9 @@ trim_query(path_with_query) := base_path if {
 	base_path := paths[0]
 }
 
+path_matches(request_path, policy_path) {
+    regex.match(policy_path, request_path)
+}
 # Define user-role mapping
 user_roles := {
 	"0": ["admin"],
@@ -79,6 +82,14 @@ role_perms := {
 		{"method": "POST", "path": "/update-counter"},
 		{"method": "GET", "path": "/get-counter"},
 		{"method": "GET", "path": "/get-command"},
+		{"method": "GET", "path": "/get-command/"},
+		#{"method": "POST", "path": "/send-command/"},
+		{"method": "POST", "path": "/send-command/change-group-or-id"},
+		#{"method": "GET", "path": "/get-command/0/change-group-or-id"},
+		{"method": "GET", "path": "^/get-command/[0-9]+/.+/?$"},
+		{"method": "DELETE", "path": "^/get-command/[0-9]+/.+/?$"},
+		# {"method": "GET", "path": "/get-command/{leader_id}/{command_type}"},
+		# {"method": "DELETE", "path": "/get-command/{leader_id}/{command_type}"},
 		# application
 		{"method": "POST", "path": "/preprocessing/"}, # Include the preprocessing endpoint
 		{"method": "POST", "path": "/ensemble_service/"}, # Include the preprocessing endpoint

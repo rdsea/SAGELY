@@ -209,10 +209,10 @@ def get_counter(group_id):
         logger.info(f"Received response: {json_response}")
 
         if isinstance(json_response, dict) and "counter" in json_response:
-            return json_response["counter"]
-        else:
-            logger.error(f"Unexpected response format: {json_response}")
-            return 0
+            counter_value = json_response["counter"]
+            if isinstance(counter_value, list) and len(counter_value) == 1:
+                return counter_value[0]
+            return counter_value
         # return response.json().get("counter", 0)
     except requests.RequestException as e:
         logger.error(f"Failed to get counter: {e}")
@@ -422,10 +422,28 @@ def send_request(url, requesting_interval, jpeg_images_list, ds_path):
     start_time = time.time()
     file = {"file": ("random_image", img_data, "image/jpeg")}
 
-    response = requests.post(url, headers=HEADER, files=file)
-    print(response.json(), synset_id, (time.time() - start_time) * 1000)
+    try:
+        response = requests.post(url, headers=HEADER, files=file)
+        response.raise_for_status()  # Raises HTTPError for bad responses (4XX or 5XX)
 
-    response = requests.post(url, headers=HEADER, files=file)
+        # Try to parse the response content as JSON
+        try:
+            response_json = response.json()
+        except ValueError:
+            logger.error("Response is not in JSON format")
+            response_json = None
+
+        # Print the JSON response, synset_id, and the request time
+        logger.info(
+            f"Response: {response_json}, Synset ID: {synset_id}, Time: {(time.time() - start_time) * 1000}"
+        )
+
+    except requests.RequestException as e:
+        logger.error(f"Request failed: {e}")
+    # response = requests.post(url, headers=HEADER, files=file)
+    # print(response.json(), synset_id, (time.time() - start_time) * 1000)
+    #
+    # response = requests.post(url, headers=HEADER, files=file)
 
 
 def main_send_request(url, group_id, node_id, req_rate, ds_path):

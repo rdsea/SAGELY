@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS counters (
 
 conn.execute("""
 CREATE TABLE IF NOT EXISTS commands (
-    leader_id STRING PRIMARY KEY,
+    leader_id STRING,
     command_type STRING,
     command_data STRING
 )
@@ -132,7 +132,7 @@ async def get_counter(group_id: str):
     return {"counter": counter_value}
 
 
-# @app.post("/send-command/change-group-or-id")
+@app.post("/send-command/change-group-or-id")
 async def send_change_group_or_id_command(
     command: ChangeGroupOrIDCommand, target_node_id: str
 ):
@@ -140,8 +140,8 @@ async def send_change_group_or_id_command(
         command_type = "change-group-or-id"
         command_data = command.json()
         conn.execute(
-            "INSERT INTO commands (leader_id, command_type, command_data) VALUES (?, ?, ?) "
-            "ON CONFLICT(node_id, command_type) DO UPDATE SET command_data=excluded.command_data",
+            "INSERT INTO commands (leader_id, command_type, command_data) VALUES (?, ?, ?) ",
+            # "ON CONFLICT(leader_id, command_type) DO UPDATE SET command_data=excluded.command_data",
             (target_node_id, command_type, command_data),
         )
         print(
