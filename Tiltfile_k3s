@@ -28,42 +28,88 @@ docker_build('rdsea/inference:cpu', 'applications/object_classification/src',
 
 
 print("Installing MetalLB...")
+
 local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml")
+
 local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml")
 
+
+
 print("Waiting for MetalLB pods to be ready...")
+
 local("kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=120s")
 
+
+
 print("Configuring MetalLB...")
+
 hostname_ip = str(local("hostname -I")).split()[0]
+
+
 
 print("Host IP: " + hostname_ip)
 
+
+
 # Extract network base from IP to create a network range
+
 network_prefix = ".".join(hostname_ip.split(".")[:3])
 
+
+
 # Create the IP range for MetalLB to use, adjust as necessary for your network
+
 ip_range = f"{network_prefix}.100-{network_prefix}.200"
+
 print("MetalLB IP Range: " + ip_range)
 
-# Construct the MetalLB ConfigMap
-metallb_config = f"""
+
+
+# Write MetalLB configuration to a temporary file
+
+metallb_config_path = "/tmp/metallb_config.yaml"
+
+metallb_config_content = f"""
+
 apiVersion: v1
+
 kind: ConfigMap
+
 metadata:
+
   namespace: metallb-system
+
   name: config
+
 data:
+
   config: |
+
     address-pools:
+
     - name: default
+
       protocol: layer2
+
       addresses:
+
       - {ip_range}
+
 """
 
+
+
+with open(metallb_config_path, 'w') as f:
+
+    f.write(metallb_config_content)
+
+
+
 # Apply the MetalLB configuration
-local('echo "{content}" | kubectl apply -f -'.format(content=metallb_config))
+
+local(f'kubectl apply -f {metallb_config_path}')
+
+
 
 print("MetalLB configured.")
 
