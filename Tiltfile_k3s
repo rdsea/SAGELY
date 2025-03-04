@@ -1,3 +1,5 @@
+allow_k8s_contexts('default')
+
 docker_build('service_discovery', 'src/holistic_policy', 
    dockerfile="src/holistic_policy/service_discovery/Dockerfile",
    only=["service_discovery"]
@@ -24,22 +26,28 @@ docker_build('rdsea/inference:cpu', 'applications/object_classification/src',
    )
 
 
-print("Enabling Ingress and MetalLB addons...")
-local("minikube addons enable ingress")
-local("minikube addons enable metallb")
+
+print("Installing MetalLB...")
+local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml")
+local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml")
+
+print("Waiting for MetalLB pods to be ready...")
+local("kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=120s")
 
 print("Configuring MetalLB...")
-minikube_ip = str(local("minikube ip")).strip()
-print("Minikube IP: " + minikube_ip)
+hostname_ip = str(local("hostname -I")).split()[0]
+
+print("Host IP: " + hostname_ip)
 
 # Extract network base from IP to create a network range
-minikube_network_prefix = ".".join(minikube_ip.split(".")[:3])
-minikube_network_range = minikube_ip + "-{0}.255".format(minikube_network_prefix)
+network_prefix = ".".join(hostname_ip.split(".")[:3])
 
-print(minikube_network_range)
+# Create the IP range for MetalLB to use, adjust as necessary for your network
+ip_range = f"{network_prefix}.100-{network_prefix}.200"
+print("MetalLB IP Range: " + ip_range)
 
-#Construct the MetalLB ConfigMap content directly in the shell command
-metallb_config = """
+# Construct the MetalLB ConfigMap
+metallb_config = f"""
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -51,11 +59,13 @@ data:
     - name: default
       protocol: layer2
       addresses:
-      - {network_range}
-""".format(network_range=minikube_network_range)
+      - {ip_range}
+"""
 
-# Using a shell command to write config and apply it directly
+# Apply the MetalLB configuration
 local('echo "{content}" | kubectl apply -f -'.format(content=metallb_config))
+
+print("MetalLB configured.")
 
 # ISTIO
 # install istio default profile and enable
