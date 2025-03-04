@@ -29,12 +29,12 @@ docker_build('rdsea/inference:cpu', 'applications/object_classification/src',
 
 print("Installing MetalLB...")
 
-local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml#")
+local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml")
 local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml")
 
 # Wait for MetalLB pods to be available
 print("Waiting for MetalLB pods to be ready...")
-local("kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=120s")
+#local("kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=120s")
 
 # Get the host IP address
 minikube_ip = str(local("hostname -I")).split()[0]
