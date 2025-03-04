@@ -29,7 +29,7 @@ docker_build('rdsea/inference:cpu', 'applications/object_classification/src',
 
 print("Installing MetalLB...")
 local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml")
-local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml")
+local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml")
 
 # Wait for MetalLB pods to be available
 print("Waiting for MetalLB pods to be ready...")
