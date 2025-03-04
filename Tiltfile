@@ -1,3 +1,5 @@
+allow_k8s_contexts('default')
+
 docker_build('service_discovery', 'src/holistic_policy', 
    dockerfile="src/holistic_policy/service_discovery/Dockerfile",
    only=["service_discovery"]
