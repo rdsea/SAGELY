@@ -36,11 +36,13 @@ spec:
               number: 1337
     - match:
         - uri:
-            prefix: /notify-leader
+            prefix: /notify-context
         - uri:
             prefix: /update-counter
         - uri:
             prefix: /get-counter
+        - uri:
+            prefix: /get-leader
         - uri:
             prefix: /get-command
         - uri:
@@ -74,4 +76,4 @@ spec:
     #         host: ensemble-service
     #         port:
     #           number: 5011
-    #         subset: v1
+    #         subset: v2

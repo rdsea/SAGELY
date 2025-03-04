@@ -1,7 +1,8 @@
 # from fastapi import FastAPI, HTTPException
 import asyncio
 import aiohttp
-from fastapi import FastAPI, HTTPException
+import httpx
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 import json
@@ -28,6 +29,7 @@ last_heartbeat: Dict[str, datetime] = {}
 # Background task status flags
 monitoring: Dict[str, bool] = {}
 URL_NOTI_CRASH = "http://192.168.49.2/abnormal-detect"
+CONTEXT_MANAGEMENT_SERVICE_URL = "http://192.168.49.2/notify-context"
 
 
 # Models for leader notification, counter update, and commands
@@ -37,8 +39,11 @@ class LeaderMessage(BaseModel):
 
 
 @app.post("/notify-leader")
-async def notify_leader(message: LeaderMessage):
+async def notify_leader(request: Request, message: LeaderMessage):
     global current_leaders, monitoring
+
+    # Forward the received message to /notify-leader-context
+    await forward_request_to_context(request, message)
 
     current_leaders[message.group_id] = message.leader_id
     last_heartbeat[message.group_id] = datetime.now()
@@ -50,7 +55,30 @@ async def notify_leader(message: LeaderMessage):
     print(
         f"Received new leader notification for group {message.group_id}: {message.leader_id}"
     )
+
     return {"message": "Leader updated successfully"}
+
+
+async def forward_request_to_context(request: Request, message: LeaderMessage):
+    # Extract headers from the incoming request
+    # headers = dict(request.headers)
+    headers = {
+        k: v for k, v in request.headers.items() if k.lower() != "content-length"
+    }  # Exclude Content-Length
+    print(f"Forwarding headers: {headers}")  # Debug statement
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                CONTEXT_MANAGEMENT_SERVICE_URL,
+                json=message.dict(),
+                headers=headers,  # Including the original headers
+            )
+            response.raise_for_status()
+            print(f"Forwarded to context-management-service: {response.json()}")
+        except httpx.HTTPStatusError as e:
+            print(f"Failed to forward to context-management-service: {str(e)}")
+        except Exception as e:
+            print(f"An error occurred while forwarding the request: {str(e)}")
 
 
 @app.post("/heartbeat")

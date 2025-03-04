@@ -58,8 +58,9 @@ CREATE TABLE IF NOT EXISTS commands (
 """)
 
 
-@app.post("/notify-leader")
-async def notify_leader(message: LeaderMessage):
+@app.post("/notify-context")
+async def notify_leader_context(message: LeaderMessage):
+    print("what happen here")
     try:
         # current_leaders[message.group_id] = message.leader_id
         conn.execute(
@@ -128,8 +129,21 @@ async def get_counter(group_id: str):
         counter_value = 0
 
     print(f"value: {counter_value}")
-
     return {"counter": counter_value}
+
+
+@app.get("/get-leader")
+async def get_leader(group_id: str):
+    leader_value = conn.execute(
+        "SELECT leader_id FROM counters WHERE group_id = ?",
+        (group_id,),
+    ).fetchone()
+
+    if leader_value is None:
+        leader_value = None
+
+    print(f"value: {leader_value}")
+    return {"leader_id": leader_value}
 
 
 @app.post("/send-command/change-group-or-id")
@@ -238,7 +252,7 @@ async def abnormal_detection(target_leader_id: str, group_id: str):
         ) as response:
             if response.status == 200:
                 print(
-                    f"Sent policy-planner changr from {target_leader_id} to {group_id}"
+                    f"Sent policy-planner change from {target_leader_id} to {group_id}"
                 )
             else:
                 print(
