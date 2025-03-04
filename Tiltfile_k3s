@@ -29,8 +29,8 @@ docker_build('rdsea/inference:cpu', 'applications/object_classification/src',
 
 print("Installing MetalLB...")
 
-#local("minikube addons enable ingress")
-local("sudo kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml")
+local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml#")
+local("kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml")
 
 # Wait for MetalLB pods to be available
 print("Waiting for MetalLB pods to be ready...")
