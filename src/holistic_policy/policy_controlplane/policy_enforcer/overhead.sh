@@ -6,11 +6,6 @@ NAMESPACE="default" # Set your OPA namespace if necessary
 # Get the OPA pod name starting with "preprocessing"
 OPA_POD=$(kubectl get pods -n $NAMESPACE | grep preprocessing- | awk '{print $1}')
 
-OPA_CONTEXT=$(kubectl get pods -n $NAMESPACE | grep context-managment- | awk '{print $1}')
-OPA_ENSEMBLE=$(kubectl get pods -n $NAMESPACE | grep ensemble- | awk '{print $1}')
-OPA_MOBILE=$(kubectl get pods -n $NAMESPACE | grep preprocessing- | awk '{print $1}')
-OPA_=$(kubectl get pods -n $NAMESPACE | grep preprocessing- | awk '{print $1}')
-
 # Check if OPA pod is found
 if [ -z "$OPA_POD" ]; then
   echo "OPA pod starting with 'preprocessing' not found in namespace $NAMESPACE"

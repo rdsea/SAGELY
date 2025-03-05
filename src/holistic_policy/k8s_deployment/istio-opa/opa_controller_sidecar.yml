@@ -230,22 +230,9 @@ data:
       #     "path": "/health?plugins",
       #     "port": 8282,
       #   },
-      #}
+      # }
     }
 
-    # file_watcher_container = {
-    #   "name": "file-watcher",
-    #   "image": "appropriate/inotify",
-    #   "args": [
-    #     "sh", "-c", "inotifywait -m /policy --format '%T %w%f' --timefmt '%Y-%m-%d %H:%M:%S' | tee /logs/file_changes.log"
-    #   ],
-    #   "volumeMounts": [
-    #     {
-    #       "mountPath": "/policy",
-    #       "name": "opa-policy"
-    #     }
-    #   ]
-    # }
     opa_config_volume = {
       "name": "opa-istio-config",
       "configMap": {"name": "opa-istio-config"},
@@ -325,6 +312,13 @@ spec:
           #     port: 8443
           #   initialDelaySeconds: 5
           #   periodSeconds: 5
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector.istio-system.svc.cluster.local:4317" # or port 4318 for HTTP/JSON
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=opa-admission-controller"
+            - name: OTEL_TRACES_SAMPLER
+              value: "always_on"
           volumeMounts:
             - readOnly: true
               mountPath: /certs
