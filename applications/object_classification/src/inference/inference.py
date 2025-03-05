@@ -90,10 +90,24 @@ async def inference(request: Request):
     # print(f"Received context2: {ctx2}")
     # logging.info(image_bytes)
     # with tracer.start_span("inference"):
-    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-    # NOTE: Here we assume that the processing service has reshape the input image to size 224,224,3
-    reconstructed_image = image_array.reshape((224, 224, 3))
-    return ml_agent.predict(reconstructed_image)
+    # image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    # # NOTE: Here we assume that the processing service has reshape the input image to size 224,224,3
+    # reconstructed_image = image_array.reshape((224, 224, 3))
+    # return ml_agent.predict(reconstructed_image)
+    try:
+        image = Image.open(io.BytesIO(image_bytes))
+        image = image.resize((224, 224))  # Ensure correct size
+        reconstructed_image = np.array(image)
+
+        if reconstructed_image.shape != (224, 224, 3):
+            raise ValueError(
+                f"Image shape {reconstructed_image.shape} doesn't match expected shape (224, 224, 3)."
+            )
+
+        return ml_agent.predict(reconstructed_image)
+
+    except Exception as e:
+        return {"error": str(e)}
 
 
 if os.environ.get("MANUAL_DEBUG"):
