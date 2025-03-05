@@ -201,7 +201,6 @@ data:
 
     opa_container = {
       "image": "openpolicyagent/opa:latest-istio",
-    #"image": "opa-sidecar",
       "name": "opa-istio",
       "args": [
         "run",

@@ -82,14 +82,26 @@ k8s_yaml('applications/object_classification/src/deployment/MobileNetV2.yml')
 k8s_yaml('applications/object_classification/src/deployment/EfficientNetB0.yml')
 
 # src
+
+# create new namespace for services without sidecar injection
+local("kubectl apply -f - <<EOF\n\
+apiVersion: v1\n\
+kind: Namespace\n\
+metadata:\n\
+  name: platform-context\n\
+EOF\n")
+
+local("kubectl label namespace platform-context istio-injection=enabled")
+
 k8s_yaml('src/holistic_policy/k8s_deployment/policy_deployment/service_discovery.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/policy_deployment/context_management.yml')
 
-#k8s_yaml('object_classification/src/deployment/jaeger.yml')
+#k8s_yaml('src/holistic_policy/src/k8s_deployment/monitoring/jaeger.yml')
+
 
 #istio routing and gateway
 k8s_yaml('src/holistic_policy/k8s_deployment/istio/application_gateway.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/istio/virtual_services.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/istio/destination_rules.yml')
 
-k8s_resource('jaeger', port_forwards=16686)
+#k8s_resource('jaeger', port_forwards=16686)
