@@ -199,14 +199,24 @@ data:
       "value": opa_policy_volume,
     }]
 
+
+    opa_ulimit_init_container = {
+      "name": "set-ulimits",
+      "image": "busybox",
+      "command": ["sh", "-c", "ulimit -n 65536"]
+    }
+
+
     opa_container = {
-      "image": "openpolicyagent/opa:latest-istio",
+    #"image": "openpolicyagent/opa:latest-istio",
+      "image": "opa-sidecar",
       "name": "opa-istio",
       "args": [
         "run",
         "--server",
         "--config-file=/config/config.yaml",
         "--addr=localhost:8181",
+        "--log-level=debug",
         "--diagnostic-addr=0.0.0.0:8282",
         "--watch",
         "/policy/policy.rego",
@@ -218,20 +228,33 @@ data:
         "mountPath": "/policy",
         "name": "opa-policy",
       }],
-      "readinessProbe": {
-        "httpGet": {
-          "path": "/health?plugins",
-          "port": 8282,
-        },
-      },
-      "livenessProbe": {
-        "httpGet": {
-          "path": "/health?plugins",
-          "port": 8282,
-        },
-      }
+      # "readinessProbe": {
+      #   "httpGet": {
+      #     "path": "/health?plugins",
+      #     "port": 8282,
+      #   },
+      # },
+      # "livenessProbe": {
+      #   "httpGet": {
+      #     "path": "/health?plugins",
+      #     "port": 8282,
+      #   },
+      #}
     }
 
+    file_watcher_container = {
+      "name": "file-watcher",
+      "image": "appropriate/inotify",
+      "args": [
+        "sh", "-c", "inotifywait -m /policy --format '%T %w%f' --timefmt '%Y-%m-%d %H:%M:%S' | tee /logs/file_changes.log"
+      ],
+      "volumeMounts": [
+        {
+          "mountPath": "/policy",
+          "name": "opa-policy"
+        }
+      ]
+    }
     opa_config_volume = {
       "name": "opa-istio-config",
       "configMap": {"name": "opa-istio-config"},
@@ -293,23 +316,24 @@ spec:
             - "--tls-cert-file=/certs/tls.crt"
             - "--tls-private-key-file=/certs/tls.key"
             - "--addr=0.0.0.0:8443"
+            - "--log-level=debug"
             - "--watch" # Add this flag to enable watching and spread the new configuration to sidecars -- need to check more they consume data and policies together
             - "/policies/inject.rego"
             #- "/policies/"
-          livenessProbe:
-            httpGet:
-              path: /health?plugins
-              scheme: HTTPS
-              port: 8443
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /health?plugins
-              scheme: HTTPS
-              port: 8443
-            initialDelaySeconds: 5
-            periodSeconds: 5
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health?plugins
+          #     scheme: HTTPS
+          #     port: 8443
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 5
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health?plugins
+          #     scheme: HTTPS
+          #     port: 8443
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 5
           volumeMounts:
             - readOnly: true
               mountPath: /certs
@@ -407,6 +431,7 @@ data:
         path: istio/authz/allow
     decision_logs:
       console: true
+      debug: true
 ---
 ############################################################
 # Example policy to enforce on OPA-Istio sidecars.
@@ -594,4 +619,3 @@ data:
 #         {"method": "POST", "path": "/zone2/update"}
 #     ]
 # }
-
