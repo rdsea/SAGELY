@@ -21,15 +21,22 @@ roles_for_user[user_name][r] if {
 	r := user_roles[user_name][_]
 }
 
+# MAIN
 required_roles[r] if {
 	role_perms[r][_]
 	perm := role_perms[r][_]
 	perm.method == http_request.method
 
 	#perm.path == http_request.path
+
 	# Ignore query parameters by considering only the base path
 	base_path := trim_query(http_request.path)
-	base_path == perm.path
+
+	# check base_path with correctly permisison.path
+	#base_path == perm.path
+
+	# check the base_path with permisison.path including regex
+	path_matches(base_path, perm.path)
 }
 
 #user_name := parsed if {
@@ -58,7 +65,11 @@ trim_query(path_with_query) := base_path if {
 	base_path := paths[0]
 }
 
-# Define user-role mapping
+path_matches(request_path, policy_path) if {
+	regex.match(policy_path, request_path)
+}
+
+#Define user-role mapping
 user_roles := {
 	"0": ["admin"],
 	"1": ["admin"],
@@ -75,10 +86,15 @@ role_perms := {
 	"admin": [
 		# service_discovery
 		{"method": "POST", "path": "/notify-leader"},
-		{"method": "GET", "path": "/heartbeat"},
+		{"method": "POST", "path": "/notify-context"},
+		{"method": "POST", "path": "/heartbeat"},
 		{"method": "POST", "path": "/update-counter"},
 		{"method": "GET", "path": "/get-counter"},
-		{"method": "GET", "path": "/get-command"},
+		{"method": "GET", "path": "/get-leader"},
+		{"method": "POST", "path": "/send-command/change-group-or-id"},
+		#{"method": "GET", "path": "/get-command/0/change-group-or-id"},
+		{"method": "GET", "path": "^/get-command/[0-9]+/.+/?$"},
+		{"method": "DELETE", "path": "^/get-command/[0-9]+/.+/?$"},
 		# application
 		{"method": "POST", "path": "/preprocessing/"}, # Include the preprocessing endpoint
 		{"method": "POST", "path": "/ensemble_service/"}, # Include the preprocessing endpoint

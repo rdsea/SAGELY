@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: service-discovery
+  namespace: platform-context
   labels:
     app: service-discovery
     version: v1
@@ -28,6 +29,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: service-discovery-service
+  namespace: platform-context
 spec:
   ports:
     - port: 1337

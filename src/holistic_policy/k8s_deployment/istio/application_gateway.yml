@@ -31,16 +31,19 @@ spec:
             prefix: /heartbeat
       route:
         - destination:
-            host: service-discovery-service
+            host: service-discovery-service.platform-context.svc.cluster.local
+            #host: service-discovery-service
             port:
               number: 1337
     - match:
         - uri:
-            prefix: /notify-leader
+            prefix: /notify-context
         - uri:
             prefix: /update-counter
         - uri:
             prefix: /get-counter
+        - uri:
+            prefix: /get-leader
         - uri:
             prefix: /get-command
         - uri:
@@ -54,12 +57,13 @@ spec:
         #     prefix: /get-command/{node_id}/{command_type}
       route:
         - destination:
-            host: context-service
+            host: context-management-service.platform-context.svc.cluster.local
+            #host: context-management-service
             port:
               number: 1338
     - match:
         - uri:
-            prefix: /preprocessing
+            prefix: /preprocessing/
       route:
         - destination:
             host: preprocessing-service
@@ -74,4 +78,4 @@ spec:
     #         host: ensemble-service
     #         port:
     #           number: 5011
-    #         subset: v1
+    #         subset: v2

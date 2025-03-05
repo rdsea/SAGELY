@@ -6,6 +6,11 @@ import duckdb
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 URL_POLICY_PLANNER = "http://192.168.49.2/policy-planner"
@@ -46,15 +51,16 @@ CREATE TABLE IF NOT EXISTS counters (
 
 conn.execute("""
 CREATE TABLE IF NOT EXISTS commands (
-    leader_id STRING PRIMARY KEY,
+    leader_id STRING,
     command_type STRING,
     command_data STRING
 )
 """)
 
 
-@app.post("/notify-leader")
-async def notify_leader(message: LeaderMessage):
+@app.post("/notify-context")
+async def notify_leader_context(message: LeaderMessage):
+    print("what happen here")
     try:
         # current_leaders[message.group_id] = message.leader_id
         conn.execute(
@@ -73,12 +79,16 @@ async def notify_leader(message: LeaderMessage):
 
 @app.post("/update-counter")
 async def update_counter(update: CounterMessage):
-    global counters
-
-    current_leader = conn.execute(
+    # global counters
+    # logger.info(
+    #     f"Counter for group {update.group_id} updated to {update.counter} by leader {update.leader_id}"
+    # )
+    current_leader_record = conn.execute(
         "SELECT leader_id FROM counters WHERE group_id = ?",
         (update.group_id,),
     ).fetchone()
+
+    current_leader = current_leader_record[0] if current_leader_record else None
 
     if current_leader is None:
         conn.execute(
@@ -88,13 +98,15 @@ async def update_counter(update: CounterMessage):
         )
         raise HTTPException(status_code=404, detail="Group not found")
 
+    print(f"current leader: {current_leader}, update leader: {update.leader_id}")
+
     if current_leader != update.leader_id:
         raise HTTPException(
             status_code=400, detail="Only leader can update the counter"
         )
 
     conn.execute(
-        "UPDATE counters SET counter = ? WHERE group_id = ?",
+        "UPDATE counters SET counter_value = ? WHERE group_id = ?",
         (update.counter, update.group_id),
     )
 
@@ -106,7 +118,7 @@ async def update_counter(update: CounterMessage):
 
 @app.get("/get-counter")
 async def get_counter(group_id: str):
-    global counters
+    # global counters
 
     counter_value = conn.execute(
         "SELECT counter_value FROM counters WHERE group_id = ?",
@@ -116,10 +128,25 @@ async def get_counter(group_id: str):
     if counter_value is None:
         counter_value = 0
 
+    print(f"value: {counter_value}")
     return {"counter": counter_value}
 
 
-# @app.post("/send-command/change-group-or-id")
+@app.get("/get-leader")
+async def get_leader(group_id: str):
+    leader_value = conn.execute(
+        "SELECT leader_id FROM counters WHERE group_id = ?",
+        (group_id,),
+    ).fetchone()
+
+    if leader_value is None:
+        leader_value = None
+
+    print(f"value: {leader_value}")
+    return {"leader_id": leader_value}
+
+
+@app.post("/send-command/change-group-or-id")
 async def send_change_group_or_id_command(
     command: ChangeGroupOrIDCommand, target_node_id: str
 ):
@@ -127,8 +154,8 @@ async def send_change_group_or_id_command(
         command_type = "change-group-or-id"
         command_data = command.json()
         conn.execute(
-            "INSERT INTO commands (leader_id, command_type, command_data) VALUES (?, ?, ?) "
-            "ON CONFLICT(node_id, command_type) DO UPDATE SET command_data=excluded.command_data",
+            "INSERT INTO commands (leader_id, command_type, command_data) VALUES (?, ?, ?) ",
+            # "ON CONFLICT(leader_id, command_type) DO UPDATE SET command_data=excluded.command_data",
             (target_node_id, command_type, command_data),
         )
         print(
@@ -225,7 +252,7 @@ async def abnormal_detection(target_leader_id: str, group_id: str):
         ) as response:
             if response.status == 200:
                 print(
-                    f"Sent policy-planner changr from {target_leader_id} to {group_id}"
+                    f"Sent policy-planner change from {target_leader_id} to {group_id}"
                 )
             else:
                 print(

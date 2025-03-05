@@ -1,0 +1,9 @@
+services:
+  - name: example-service
+    url: http://localhost:8181
+bundles:
+  example-bundle:
+    service: example-service
+    resource: /v1/data/example
+
+default_decision: /example/allow
