@@ -1,39 +1,45 @@
 #!/bin/bash
 
-# Endpoint to measure
-SERVICE_ENDPOINT=<service_endpoint>
+# Ensure the kubeconfig is set for the appropriate cluster
+NAMESPACE="default" # Set your OPA namespace if necessary
 
-# Number of iterations
-ITERATIONS=10
+# Get the OPA pod name starting with "preprocessing"
+OPA_POD=$(kubectl get pods -n $NAMESPACE | grep preprocessing- | awk '{print $1}')
 
-# Function to measure average response time
-measure_response_time() {
-  local total_time=0
-  for i in $(seq 1 $ITERATIONS); do
-    local time=$(curl -o /dev/null -s -w "%{time_total}\n" $SERVICE_ENDPOINT)
-    total_time=$(echo "$total_time + $time" | bc)
+# Check if OPA pod is found
+if [ -z "$OPA_POD" ]; then
+  echo "OPA pod starting with 'preprocessing' not found in namespace $NAMESPACE"
+  exit 1
+fi
+
+NEW_POLICY=$1
+# Define the pattern to recognize the log updates
+LOG_IDENTIFIER="{\"event\":\"REMOVE"
+
+# Capture start time
+START_TIME=$(date +%s%N)
+
+# Run the kubectl command to create and replace the configmap
+kubectl create configmap opa-policy --from-file=policy.rego=test_new2.rego --dry-run=client -o yaml | kubectl replace -f -
+
+# Function to monitor logs
+monitor_logs() {
+  while true; do
+    # Capture logs from the OPA pod and look for the specific event
+    LOG_ENTRY=$(kubectl logs -n $NAMESPACE -c opa-istio $OPA_POD --tail=10 | grep $LOG_IDENTIFIER)
+    echo $LOG_ENTRY
+    if [ -n "$LOG_ENTRY" ]; then
+      END_TIME=$(date +%s%N)
+      DURATION=$((($END_TIME - $START_TIME) / 1000000)) # Duration in milliseconds
+      echo "Duration: $DURATION ms"
+      echo "Log entry received: $LOG_ENTRY"
+      break
+    fi
+
+    # Sleep for 1 second before checking again
+    sleep 1
   done
-  echo "scale=3; $total_time / $ITERATIONS" | bc
 }
 
-# Measure baseline performance
-echo "Measuring baseline performance..."
-BASELINE_TIME=$(measure_response_time)
-
-# Apply the new policy
-echo "Applying new rego policy..."
-kubectl create configmap opa-policy --from-file=policy.rego=new_policy.rego --dry-run=client -o yaml | kubectl replace -f -
-
-# Wait for the new policy to propagate (adjust the sleep time as needed)
-sleep 30
-
-# Measure performance after applying the new policy
-echo "Measuring performance with new policy..."
-NEW_POLICY_TIME=$(measure_response_time)
-
-# Output the results
-echo "Baseline Average Response Time: $BASELINE_TIME seconds"
-echo "New Policy Average Response Time: $NEW_POLICY_TIME seconds"
-
-OVERHEAD=$(echo "scale=3; $NEW_POLICY_TIME - $BASELINE_TIME" | bc)
-echo "Response Time Overhead: $OVERHEAD seconds"
+# Start monitoring logs
+monitor_logs
