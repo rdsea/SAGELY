@@ -6,6 +6,11 @@ NAMESPACE="default" # Set your OPA namespace if necessary
 # Get the OPA pod name starting with "preprocessing"
 OPA_POD=$(kubectl get pods -n $NAMESPACE | grep preprocessing- | awk '{print $1}')
 
+OPA_CONTEXT=$(kubectl get pods -n $NAMESPACE | grep context-managment- | awk '{print $1}')
+OPA_ENSEMBLE=$(kubectl get pods -n $NAMESPACE | grep ensemble- | awk '{print $1}')
+OPA_MOBILE=$(kubectl get pods -n $NAMESPACE | grep preprocessing- | awk '{print $1}')
+OPA_=$(kubectl get pods -n $NAMESPACE | grep preprocessing- | awk '{print $1}')
+
 # Check if OPA pod is found
 if [ -z "$OPA_POD" ]; then
   echo "OPA pod starting with 'preprocessing' not found in namespace $NAMESPACE"
@@ -19,12 +24,9 @@ LOG_IDENTIFIER="REMOVE"
 # Capture the current last log unique ID
 CURRENT_LOG_ID=$(kubectl logs -n $NAMESPACE -c opa-istio $OPA_POD --tail=5 | grep $LOG_IDENTIFIER | tail -n 1 | awk -F'"' '{print $5}')
 
-echo $CURRENT_LOG_ID
-
 # Check if CURRENT_LOG_ID is found
 if [ -z "$CURRENT_LOG_ID" ]; then
   echo "No existing log entry with '$LOG_IDENTIFIER' found"
-  exit 1
 fi
 
 # Capture the start time
@@ -41,7 +43,7 @@ monitor_logs() {
 
     NEW_LOG_ID=$(echo $LOG_ENTRY | awk -F'"' '{print $5}')
 
-    echo $NEW_LOG_ID
+    #echo $NEW_LOG_ID
 
     # Check if new log entry with different unique ID is found
     if [ "$NEW_LOG_ID" != "$CURRENT_LOG_ID" ]; then
