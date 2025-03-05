@@ -199,17 +199,9 @@ data:
       "value": opa_policy_volume,
     }]
 
-
-    opa_ulimit_init_container = {
-      "name": "set-ulimits",
-      "image": "busybox",
-      "command": ["sh", "-c", "ulimit -n 65536"]
-    }
-
-
     opa_container = {
-    #"image": "openpolicyagent/opa:latest-istio",
-      "image": "opa-sidecar",
+      "image": "openpolicyagent/opa:latest-istio",
+    #"image": "opa-sidecar",
       "name": "opa-istio",
       "args": [
         "run",
@@ -242,19 +234,19 @@ data:
       #}
     }
 
-    file_watcher_container = {
-      "name": "file-watcher",
-      "image": "appropriate/inotify",
-      "args": [
-        "sh", "-c", "inotifywait -m /policy --format '%T %w%f' --timefmt '%Y-%m-%d %H:%M:%S' | tee /logs/file_changes.log"
-      ],
-      "volumeMounts": [
-        {
-          "mountPath": "/policy",
-          "name": "opa-policy"
-        }
-      ]
-    }
+    # file_watcher_container = {
+    #   "name": "file-watcher",
+    #   "image": "appropriate/inotify",
+    #   "args": [
+    #     "sh", "-c", "inotifywait -m /policy --format '%T %w%f' --timefmt '%Y-%m-%d %H:%M:%S' | tee /logs/file_changes.log"
+    #   ],
+    #   "volumeMounts": [
+    #     {
+    #       "mountPath": "/policy",
+    #       "name": "opa-policy"
+    #     }
+    #   ]
+    # }
     opa_config_volume = {
       "name": "opa-istio-config",
       "configMap": {"name": "opa-istio-config"},
