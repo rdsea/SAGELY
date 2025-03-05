@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
         - name: service-discovery
-          imagePullPolicy: "Never"
-          image: service_discovery
+          imagePullPolicy: "IfNotPresent"
+          image: rdsea/service_discovery
           ports:
             - containerPort: 1337
 ---

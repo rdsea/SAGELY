@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: efficientnetb0
-          imagePullPolicy: "Never"
+          imagePullPolicy: "IfNotPresent"
           image: rdsea/inference:cpu
           ports:
             - containerPort: 5012

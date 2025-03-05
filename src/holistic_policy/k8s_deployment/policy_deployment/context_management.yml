@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
         - name: context-management
-          imagePullPolicy: "Never"
-          image: context_management
+          imagePullPolicy: "IfNotPresent"
+          image: rdsea/context_management
           ports:
             - containerPort: 1338
 ---
