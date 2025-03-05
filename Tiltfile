@@ -1,9 +1,9 @@
-docker_build('service_discovery', 'src/holistic_policy', 
+docker_build('rdsea/service_discovery', 'src/holistic_policy', 
    dockerfile="src/holistic_policy/service_discovery/Dockerfile",
    only=["service_discovery"]
 )
 
-docker_build('context_management', 'src/holistic_policy', 
+docker_build('rdsea/context_management', 'src/holistic_policy', 
    dockerfile="src/holistic_policy/context_management/Dockerfile",
    only=["context_management"]
 )
