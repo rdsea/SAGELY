@@ -14,9 +14,6 @@ SYNC_KUBELET=$3
 NUMBER_SERVICES=$4
 POLICY_SIZE=$5
 
-NUMBER_SERVICES=$5
-POLICY_SIZE=$6
-
 # Define the pattern to recognize the log updates
 LOG_IDENTIFIER="REMOVE"
 
@@ -25,14 +22,12 @@ monitor_logs() {
   POD_NAME=$1
   CONTAINER_NAME=$2
 
-  LOG_ENTRY=$3
-
   # Capture the current last log unique ID
   CURRENT_LOG_ID=$3
 
   while true; do
     # Capture logs from the pod and look for a new unique ID
-    LOG_ENTRY=$(kubectl logs -n "$NAMESPACE" -c "$CONTAINER_NAME" "$POD_NAME" --tail=100 | grep $LOG_IDENTIFIER | tail -n 1)
+    LOG_ENTRY=$(kubectl logs -n "$NAMESPACE" -c "$CONTAINER_NAME" "$POD_NAME" --tail=5 | grep $LOG_IDENTIFIER | tail -n 1)
 
     NEW_LOG_ID=$(echo "$LOG_ENTRY" | awk -F'"' '{print $5}')
 
@@ -55,48 +50,38 @@ monitor_logs() {
     sleep 0.1
   done
 }
-# Capture the start time
-# Start monitoring logs from all pods in parallel
 
 for i in {1..1000}; do
 
-    LOG_ENTRY=$(kubectl logs -n "$NAMESPACE" -c "$CONTAINER_NAME" "$POD" --tail=100 | grep $LOG_IDENTIFIER | tail -n 1)
-    # Assuming all pods have the same container name 'opa-istio'
-    monitor_logs "$POD" opa-istio "$LOG_ENTRY" &
+  if [ $((i % 2)) -eq 0 ]; then
+    POLICY=$POLICY_1
   else
-    echo "Skipping pod $POD as it is not in Running state"
+    POLICY=$POLICY_2
   fi
 
-  # Capture the start time
-  START_TIME=$(date +%s%N)
-
-  # Run the kubectl command to create and replace the configmap (executed only once)
-  kubectl create configmap opa-policy --from-file=policy.rego="$POLICY" --dry-run=client -o yaml | kubectl replace -f -
 
   # Start monitoring logs from all pods in parallel
   for POD in $PODS; do
     # Skip any pods that are not running
     STATUS=$(kubectl get pod "$POD" -n $NAMESPACE -o jsonpath='{.status.phase}')
+
     if [ "$STATUS" = "Running" ]; then
       echo "$POD"
       # Assuming all pods have the same container name 'opa-istio'
+      CURRENT_LOG_ID=$(kubectl logs -n "$NAMESPACE" -c "$CONTAINER_NAME" "$POD" --tail=5 | grep $LOG_IDENTIFIER | tail -n 1 | awk -F'"' '{print $5}')
       monitor_logs "$POD" opa-istio &
     else
       echo "Skipping pod $POD as it is not in Running state"
     fi
   done
 
+  # Capture the start time
+  START_TIME=$(date +%s%N)
+
+  # Run the kubectl command to create and replace the configmap (executed only once)
+  kubectl create configmap opa-policy --from-file=policy.rego="$POLICY" --dry-run=client -o yaml | kubectl replace -f -
   # Wait for all background processes to finish
   wait
   echo "All pod monitoring processes have completed in $i"
+  sleep 3
 done
-
-# Wait for all background processes to finish
-
-
-# Run the kubectl command to create and replace the configmap (executed only once)
-kubectl create configmap opa-policy --from-file=policy.rego="$1" --dry-run=client -o yaml | kubectl replace -f -
-
-wait
-
-echo "All pod monitoring processes have completed."
