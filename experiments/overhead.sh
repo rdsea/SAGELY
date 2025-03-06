@@ -17,7 +17,7 @@ NEW_POLICY=$1
 LOG_IDENTIFIER="REMOVE"
 
 # Capture the current last log unique ID
-CURRENT_LOG_ID=$(kubectl logs -n $NAMESPACE -c opa-istio $OPA_POD --tail=5 | grep $LOG_IDENTIFIER | tail -n 1 | awk -F'"' '{print $5}')
+CURRENT_LOG_ID=$(kubectl logs -n $NAMESPACE -c opa-istio "$OPA_POD" --tail=5 | grep $LOG_IDENTIFIER | tail -n 1 | awk -F'"' '{print $5}')
 
 # Check if CURRENT_LOG_ID is found
 if [ -z "$CURRENT_LOG_ID" ]; then
@@ -28,22 +28,22 @@ fi
 START_TIME=$(date +%s%N)
 
 # Run the kubectl command to create and replace the configmap
-kubectl create configmap opa-policy --from-file=policy.rego=test_new2.rego --dry-run=client -o yaml | kubectl replace -f -
+kubectl create configmap opa-policy --from-file=policy.rego="$NEW_POLICY" --dry-run=client -o yaml | kubectl replace -f -
 
 # Function to monitor logs
 monitor_logs() {
   while true; do
     # Capture logs from the OPA pod and look for a new unique ID
-    LOG_ENTRY=$(kubectl logs -n $NAMESPACE -c opa-istio $OPA_POD --tail=5 | grep $LOG_IDENTIFIER | tail -n 1) #| awk -F'"' '{print $5}')
+    LOG_ENTRY=$(kubectl logs -n "$NAMESPACE" -c opa-istio "$OPA_POD" --tail=5 | grep $LOG_IDENTIFIER | tail -n 1) #| awk -F'"' '{print $5}')
 
-    NEW_LOG_ID=$(echo $LOG_ENTRY | awk -F'"' '{print $5}')
+    NEW_LOG_ID=$(echo "$LOG_ENTRY" | awk -F'"' '{print $5}')
 
     #echo $NEW_LOG_ID
 
     # Check if new log entry with different unique ID is found
     if [ "$NEW_LOG_ID" != "$CURRENT_LOG_ID" ]; then
       END_TIME=$(date +%s%N)
-      DURATION=$((($END_TIME - $START_TIME) / 1000000)) # Duration in milliseconds
+      DURATION=$(((END_TIME - START_TIME) / 1000000)) # Duration in milliseconds
       echo "Duration: $DURATION ms"
       echo "Log entry received: $LOG_ENTRY"
       break

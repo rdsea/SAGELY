@@ -15,7 +15,7 @@ monitor_logs() {
   CONTAINER_NAME=$2
 
   # Capture the current last log unique ID
-  CURRENT_LOG_ID=$(kubectl logs -n $NAMESPACE -c $CONTAINER_NAME $POD_NAME --tail=5 | grep $LOG_IDENTIFIER | tail -n 1 | awk -F'"' '{print $5}')
+  CURRENT_LOG_ID=$(kubectl logs -n "$NAMESPACE" -c "$CONTAINER_NAME" "$POD_NAME" --tail=5 | grep $LOG_IDENTIFIER | tail -n 1 | awk -F'"' '{print $5}')
 
   # Check if CURRENT_LOG_ID is found
   # if [ -z "$CURRENT_LOG_ID" ]; then
@@ -28,11 +28,11 @@ monitor_logs() {
 
   while true; do
     # Capture logs from the pod and look for a new unique ID
-    LOG_ENTRY=$(kubectl logs -n $NAMESPACE -c $CONTAINER_NAME $POD_NAME --tail=5 | grep $LOG_IDENTIFIER | tail -n 1)
+    LOG_ENTRY=$(kubectl logs -n "$NAMESPACE" -c "$CONTAINER_NAME" "$POD_NAME" --tail=5 | grep $LOG_IDENTIFIER | tail -n 1)
 
-    NEW_LOG_ID=$(echo $LOG_ENTRY | awk -F'"' '{print $5}')
+    NEW_LOG_ID=$(echo "$LOG_ENTRY" | awk -F'"' '{print $5}')
 
-    echo $NEW_LOG_ID
+    echo "$NEW_LOG_ID"
     # Check if new log entry with different unique ID is found
     if [ "$NEW_LOG_ID" != "$CURRENT_LOG_ID" ]; then
       END_TIME=$(date +%s%N)
@@ -50,16 +50,16 @@ monitor_logs() {
 START_TIME=$(date +%s%N)
 
 # Run the kubectl command to create and replace the configmap (executed only once)
-kubectl create configmap opa-policy --from-file=policy.rego=test_new2.rego --dry-run=client -o yaml | kubectl replace -f -
+kubectl create configmap opa-policy --from-file=policy.rego="$1" --dry-run=client -o yaml | kubectl replace -f -
 
 # Start monitoring logs from all pods in parallel
 for POD in $PODS; do
   # Skip any pods that are not running
-  STATUS=$(kubectl get pod $POD -n $NAMESPACE -o jsonpath='{.status.phase}')
+  STATUS=$(kubectl get pod "$POD" -n $NAMESPACE -o jsonpath='{.status.phase}')
   if [ "$STATUS" = "Running" ]; then
-    echo $POD
+    echo "$POD"
     # Assuming all pods have the same container name 'opa-istio'
-    monitor_logs $POD opa-istio &
+    monitor_logs "$POD" opa-istio &
   else
     echo "Skipping pod $POD as it is not in Running state"
   fi

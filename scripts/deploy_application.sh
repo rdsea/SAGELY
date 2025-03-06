@@ -32,6 +32,7 @@ kubectl apply -f applications/object_classification/src/deployment/ensemble.yml
 kubectl apply -f applications/object_classification/src/deployment/MobileNetV2.yml
 kubectl apply -f applications/object_classification/src/deployment/EfficientNetB0.yml
 
+kubectl apply -f src/holistic_policy/k8s_deployment/policy_deployment/platform_context.yml
 kubectl apply -f src/holistic_policy/k8s_deployment/policy_deployment/service_discovery.yml
 kubectl apply -f src/holistic_policy/k8s_deployment/policy_deployment/context_management.yml
 
