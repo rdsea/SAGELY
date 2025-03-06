@@ -1,7 +1,8 @@
 import logging
 import os
 import sys
-
+import io
+from PIL import Image
 import numpy as np
 import yaml
 from datamodel import ImageClassificationModelEnum, InferenceServiceConfig
@@ -67,7 +68,6 @@ except Exception as e:
     sys.exit(1)
 logging.info(f"Inference configuration: {config}")
 
-0
 chosen_model = ImageClassificationModelEnum[chosen_model]
 
 model_config = config.model_config_dict[chosen_model]
