@@ -12,6 +12,9 @@ POLICY_2=$2
 RUN=$3
 SYNC_KUBELET=$4
 
+NUMBER_SERVICES=$5
+POLICY_SIZE=$6
+
 # Define the pattern to recognize the log updates
 LOG_IDENTIFIER="REMOVE"
 
@@ -28,7 +31,6 @@ monitor_logs() {
     LOG_ENTRY=$(kubectl logs -n "$NAMESPACE" -c "$CONTAINER_NAME" "$POD_NAME" --tail=5 | grep $LOG_IDENTIFIER | tail -n 1)
 
     NEW_LOG_ID=$(echo "$LOG_ENTRY" | awk -F'"' '{print $5}')
-
     echo "$NEW_LOG_ID"
     # Check if new log entry with different unique ID is found
     if [ "$NEW_LOG_ID" != "$CURRENT_LOG_ID" ]; then
@@ -37,7 +39,8 @@ monitor_logs() {
       #echo "Pod: $POD_NAME - Duration: $DURATION ms"
       #echo "Pod: $POD_NAME - Run: $RUN - Duration: $DURATION ms" | tee -a "${POD_NAME}_${SYNC_KUBELET}_results.csv"
 
-      echo "$DURATION" | tee -a "${POD_NAME}_${SYNC_KUBELET}_results.csv"
+      POD_PREFIX="${POD%%-*}"
+      echo "$DURATION" | tee -a "${POD_PREFIX}_${SYNC_KUBELET}_${NUMBER_SERVICES}_${POLICY_SIZE}_results.csv"
       #echo "Pod: $POD_NAME - Log entry received: $LOG_ENTRY"
       break
     fi
@@ -47,7 +50,7 @@ monitor_logs() {
   done
 }
 
-for i in {1..10}; do
+for ((i = 1; i <= RUN; i++)); do
 
   if [ $((i % 2)) -eq 0 ]; then
     POLICY=$POLICY_1
