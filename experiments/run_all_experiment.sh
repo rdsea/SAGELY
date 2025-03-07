@@ -1,7 +1,7 @@
 #!/bin/bash
 
 base="result"
-i=0
+i=1
 
 # Loop to find the next available directory name
 while [[ -d "${base}${i}" ]]; do
@@ -23,7 +23,7 @@ kubectl scale --replicas=1 -f ../applications/object_classification/src/deployme
 kubectl scale --replicas=1 -f ../applications/object_classification/src/deployment/MobileNetV2.yml
 kubectl scale --replicas=1 -f ../applications/object_classification/src/deployment/EfficientNetB0.yml
 
-sleep 120
+sleep 180
 python3 ./run_experiment.py ./policy/rego_3kb_1.rego ./policy/rego_3kb_2.rego 0.5 4 3
 sleep 30
 mkdir -p ./$RESULT_FOLDER/3kb_4_services
@@ -50,7 +50,7 @@ kubectl scale --replicas=3 -f ../applications/object_classification/src/deployme
 kubectl scale --replicas=3 -f ../applications/object_classification/src/deployment/MobileNetV2.yml
 kubectl scale --replicas=3 -f ../applications/object_classification/src/deployment/EfficientNetB0.yml
 
-sleep 120
+sleep 180
 python3 ./run_experiment.py ./policy/rego_3kb_1.rego ./policy/rego_3kb_2.rego 0.5 12 3
 sleep 30
 mkdir -p ./$RESULT_FOLDER/3kb_12_services
@@ -77,7 +77,7 @@ kubectl scale --replicas=10 -f ../applications/object_classification/src/deploym
 kubectl scale --replicas=10 -f ../applications/object_classification/src/deployment/MobileNetV2.yml
 kubectl scale --replicas=10 -f ../applications/object_classification/src/deployment/EfficientNetB0.yml
 
-sleep 120
+sleep 180
 python3 ./run_experiment.py ./policy/rego_3kb_1.rego ./policy/rego_3kb_2.rego 0.5 40 3
 sleep 30
 mkdir -p ./$RESULT_FOLDER/3kb_40_services
