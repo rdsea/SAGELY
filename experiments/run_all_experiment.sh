@@ -13,15 +13,16 @@ RESULT_FOLDER="${base}${i}"
 mkdir $RESULT_FOLDER
 
 # 4 Services
-kubectl rollout restart deployment preprocessing
-kubectl rollout restart deployment ensemble
-kubectl rollout restart deployment mobilenetv2
-kubectl rollout restart deployment efficientnetb0
-
 kubectl scale --replicas=1 -f ../applications/object_classification/src/deployment/preprocessing.yml
 kubectl scale --replicas=1 -f ../applications/object_classification/src/deployment/ensemble.yml
 kubectl scale --replicas=1 -f ../applications/object_classification/src/deployment/MobileNetV2.yml
 kubectl scale --replicas=1 -f ../applications/object_classification/src/deployment/EfficientNetB0.yml
+
+sleep 30
+kubectl rollout restart deployment preprocessing
+kubectl rollout restart deployment ensemble
+kubectl rollout restart deployment mobilenetv2
+kubectl rollout restart deployment efficientnetb0
 
 sleep 180
 python3 ./run_experiment.py ./policy/rego_3kb_1.rego ./policy/rego_3kb_2.rego 0.5 4 3
@@ -40,15 +41,16 @@ mkdir -p ./$RESULT_FOLDER/300kb_4_services
 mv ./*.csv ./$RESULT_FOLDER/300kb_4_services
 
 # 12 Services
-kubectl rollout restart deployment preprocessing
-kubectl rollout restart deployment ensemble
-kubectl rollout restart deployment mobilenetv2
-kubectl rollout restart deployment efficientnetb0
-
 kubectl scale --replicas=3 -f ../applications/object_classification/src/deployment/preprocessing.yml
 kubectl scale --replicas=3 -f ../applications/object_classification/src/deployment/ensemble.yml
 kubectl scale --replicas=3 -f ../applications/object_classification/src/deployment/MobileNetV2.yml
 kubectl scale --replicas=3 -f ../applications/object_classification/src/deployment/EfficientNetB0.yml
+sleep 30
+
+kubectl rollout restart deployment preprocessing
+kubectl rollout restart deployment ensemble
+kubectl rollout restart deployment mobilenetv2
+kubectl rollout restart deployment efficientnetb0
 
 sleep 180
 python3 ./run_experiment.py ./policy/rego_3kb_1.rego ./policy/rego_3kb_2.rego 0.5 12 3
@@ -67,15 +69,16 @@ mkdir -p ./$RESULT_FOLDER/300kb_12_services
 mv ./*.csv ./$RESULT_FOLDER/300kb_12_services
 
 # 40 Services
-kubectl rollout restart deployment preprocessing
-kubectl rollout restart deployment ensemble
-kubectl rollout restart deployment mobilenetv2
-kubectl rollout restart deployment efficientnetb0
-
 kubectl scale --replicas=10 -f ../applications/object_classification/src/deployment/preprocessing.yml
 kubectl scale --replicas=10 -f ../applications/object_classification/src/deployment/ensemble.yml
 kubectl scale --replicas=10 -f ../applications/object_classification/src/deployment/MobileNetV2.yml
 kubectl scale --replicas=10 -f ../applications/object_classification/src/deployment/EfficientNetB0.yml
+sleep 30
+
+kubectl rollout restart deployment preprocessing
+kubectl rollout restart deployment ensemble
+kubectl rollout restart deployment mobilenetv2
+kubectl rollout restart deployment efficientnetb0
 
 sleep 180
 python3 ./run_experiment.py ./policy/rego_3kb_1.rego ./policy/rego_3kb_2.rego 0.5 40 3
