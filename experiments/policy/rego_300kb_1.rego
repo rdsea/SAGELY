@@ -37,6 +37,7 @@ path_matches(request_path, policy_path) if {
 }
 
 user_roles := {
+    "-1": ["role-1"],
     "0": ["role0"],
     "1": ["role1"],
     "2": ["role2"],
@@ -3032,7 +3033,8 @@ user_roles := {
     "2992": ["role2"],
     "2993": ["role3"],
     "2994": ["role4"],
-    "2995": ["role5"],    "2996": ["role6"],
+    "2995": ["role5"],
+    "2996": ["role6"],
     "2997": ["role7"],
     "2998": ["role8"],
     "2999": ["role9"],
