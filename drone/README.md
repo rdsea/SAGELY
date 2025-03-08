@@ -207,11 +207,15 @@ Run the following commands in the PX4 console to forward messages:
 mavlink stop-all
 #mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
 
+# command to forward from 14550 to 14551 outside ROS2 machine to client
 mavlink start -u 14550 -o 14551 -t 130.233.195.202 -x -f
 
+# command to forward from 14560 outside to 14561 inside ROS2 machine
 mavlink start -u 14560 -o 14561 -t 127.0.0.1 -x -f
 ```
-This configuration forwards the port 14550 to 14551 (GCS port).
+This configuration forwards the port 14550 to 14551 (from ROS2 to GCS port).
+
+This configuration forwards the port 14560 to 14561 (from GCS port to ROS2).
 
 
 ```
