@@ -216,6 +216,10 @@ This configuration forwards the port 14550 to 14551 (GCS port).
 # copy receive_FTP to the client_drone
 scp receive_FTP.py  drone0:/root/drone/src/object_classification/client_drone
 
+# before running
+source /opt/ros/humble/setup.bash
+source /root/ws_sensor_combined/install/setup.bash
+
 # compile
 colcon build
 
