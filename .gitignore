@@ -22,7 +22,6 @@ src/holistic_policy/k8s_deployment/setting
 
 */image/*
 object_classification/src/artifact/dataset/*
-*.csv
 *.onnx
 *.JPEG
 
