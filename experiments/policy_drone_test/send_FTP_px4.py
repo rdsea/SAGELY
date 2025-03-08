@@ -2,11 +2,11 @@ from pymavlink import mavutil
 import time
 import struct
 
-list_uav = ["udpout:130.233.195.221:14560"]
+# list_uav = ["udpout:130.233.195.221:14560"]
 
-# list_uav = ["udpout:127.0.0.1:14560"]
+list_uav = ["udpout:127.0.0.1:14560"]
 
-file_policy = "./policy/policy.rego"
+file_policy = "./policy/policy-2.rego"
 # MAVLink connection (PX4 MAVLink FTP target)
 # conn = mavutil.mavlink_connection("udpout:127.0.0.1:14560")
 # noti_conn = mavutil.mavlink_connection("udp:0.0.0.0:14551")
@@ -41,12 +41,14 @@ def read_file(local_path, remote_path):
 
 
 def upload_file(conn, file_size, file_data):
+    send_ftp_command(conn, 10)
     chunk_size = 239  # MAVLink FTP max data size
     for offset in range(0, file_size, chunk_size):
         chunk = file_data[offset : offset + chunk_size]
         send_ftp_command(conn, 4, size=len(chunk), offset=offset, data=chunk)
         time.sleep(0.01)  # Avoid overloading PX4
 
+    send_ftp_command(conn, 5)
     print("Upload complete!")
 
 
@@ -56,6 +58,7 @@ for uav in list_uav:
     file_size, file_data = read_file(file_policy, "policy")
 
     conn = mavutil.mavlink_connection(uav)
+
     upload_file(conn, file_size, file_data)
 
     while True:

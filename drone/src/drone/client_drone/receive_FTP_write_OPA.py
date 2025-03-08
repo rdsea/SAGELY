@@ -34,15 +34,36 @@ class MAVLinkFTPReceiver(Node):
         if msg:
             payload = msg.payload
             opcode = payload[0]  # Extract opcode
-            data = bytes(payload[12:])  # Ensure data is in bytes
+            data_chunk = bytes(payload[12:])  # Ensure data is in bytes
 
             self.get_logger().info(f"Received FTP message: Opcode {opcode}")
 
+            self.get_logger().info(
+                f"📥 Received: Opcode {opcode}, Chunk Size: {len(data_chunk)} bytes"
+            )
+
+            if opcode == 10:  # Start of file transfer
+                self.logger.info("📂 File Transfer Started")
+                self.received_data = b""  # Reset buffer
+                self.transfer_active = True
+
+            elif opcode == 4 and self.transfer_active:  # Data chunk
+                self.received_data += data_chunk
+                self.get_logger().info(
+                    f"📦 Data received: {len(self.received_data)} bytes so far"
+                )
+
+            elif opcode == 5 and self.transfer_active:  # Transfer complete
+                self.get_logger().info(
+                    f"✅ File Transfer Completed! Total size: {len(self.received_data)} bytes"
+                )
+                self.transfer_active = False
+                self.send_file_to_opa(self.received_data)
             if opcode == 5:  # End of file transfer
                 self.get_logger().info("File Transfer Completed Successfully!")
 
                 self.uploaded_file_path = "/policy/policy.rego"  # Define full file path
-                self.received_data = data  # Store data as bytes
+                self.received_data = data_chunk  # Store data as bytes
 
                 # self.upload_file_to_opa(self.uploaded_file_path)
 
