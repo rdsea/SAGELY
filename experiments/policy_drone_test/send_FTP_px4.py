@@ -2,9 +2,9 @@ from pymavlink import mavutil
 import time
 import struct
 
-# list_uav = ["udpout:130.233.195.197:14560"]
+list_uav = ["udpout:130.233.195.221:14560"]
 
-list_uav = ["udpout:127.0.0.1:14560"]
+# list_uav = ["udpout:127.0.0.1:14560"]
 
 file_policy = "./policy/policy.rego"
 # MAVLink connection (PX4 MAVLink FTP target)
@@ -60,10 +60,15 @@ for uav in list_uav:
 
     while True:
         msg = noti_conn.recv_match(blocking=True)
+
+        msg_type = msg.get_type()
+        # print(f"Received MAVLink message: {msg_type}")
+
         if msg:
-            msg_type = msg.get_type()
+            # msg_type = msg.get_type()
             if msg_type == "NAMED_VALUE_FLOAT":
                 number_data = msg.value
                 print(f"Received Named Value Float: {msg.name} = {number_data}")
+                break
             # else:
             #     print(f"Received MAVLink message: {msg_type}")
