@@ -204,6 +204,7 @@ Run the following commands in the PX4 console to forward messages:
 # in the px4 shell
 mavlink stop-all
 mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
+mavlink start -u 14550 -o 14551 -t <host_IP> -x -f
 ```
 This configuration forwards the port 14550 to 14551 (GCS port).
 
@@ -234,6 +235,9 @@ while True:
             print(f"Received MAVLink message: {msg_type}")
 ```
 
+# GCS 
 
-
+```bash 
+pip install mavsdk
+```
 

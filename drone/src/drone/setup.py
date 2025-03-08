@@ -35,6 +35,7 @@ setup(
             "subscriber = client_drone.subscriber:main",
             "client = client_drone.client:main",
             "drone_data_sender = client_drone.drone_data_sender:main",
+            "receive_FTP = client_drone.receive_FTP:main",
         ],
     },
 )
