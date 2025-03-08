@@ -203,7 +203,7 @@ Run the following commands in the PX4 console to forward messages:
 ```bash
 # in the px4 shell
 mavlink stop-all
-mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
+#mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
 
 mavlink start -u 14550 -o 14551 -t 130.233.195.202 -x -f
 
