@@ -3,7 +3,6 @@ from rclpy.node import Node
 from pymavlink import mavutil
 from std_msgs.msg import String
 import requests
-import json
 
 from pymavlink.dialects.v20 import common as mavlink2
 
@@ -29,39 +28,6 @@ class MAVLinkFTPReceiver(Node):
 
         self.get_logger().info("MAVLink FTP Receiver started on UDP 14561")
         self.timer = self.create_timer(0.1, self.receive_mavftp)
-
-    # def receive_mavftp(self):
-    #     """Handles incoming MAVLink FTP messages"""
-    #     msg = self.mav_conn.recv_match(type="FILE_TRANSFER_PROTOCOL", blocking=False)
-    #
-    #     if msg:
-    #         payload = msg.payload
-    #
-    #         opcode = payload[0]  # Extract opcode
-    #
-    #         data_chunk = bytes(payload[12:]).strip()  # Extract data chunk
-    #
-    #         clean_policy = data_chunk.replace(b"\x00", b"").strip()
-    #
-    #         len_chunk = len(clean_policy)
-    #
-    #         self.get_logger().info(
-    #             f"📥 Received:Opcode {opcode},  Chunk Size: {len_chunk} bytes"
-    #         )
-    #
-    #         if len_chunk == 239:  # Start of file transfer
-    #             self.get_logger().info("📂 File Transfer")
-    #             self.received_data += data_chunk
-    #             self.get_logger().info(
-    #                 f"📦 Data received: {len(self.received_data)} bytes so far"
-    #             )
-    #
-    #         elif len_chunk < 239:  # Transfer complete
-    #             self.get_logger().info(
-    #                 f"✅ File Transfer Completed! Total size: {len(self.received_data)} bytes"
-    #             )
-    #             self.send_file_to_opa(self.received_data)
-    #             self.send_notification_to_gcs(1)
 
     def receive_mavftp(self):
         """Handles incoming MAVLink FTP messages"""
@@ -134,49 +100,6 @@ class MAVLinkFTPReceiver(Node):
         except Exception as e:
             self.get_logger().error(f"⚠️ Failed to save file: {str(e)}")
 
-    # def send_file_to_opa(self, file_path):
-    #     """Reads the uploaded file from PX4 and sends it to an OPA server."""
-    #
-    #     try:
-    #         # Read the file
-    #         with open(file_path, "rb") as file:
-    #             file_data = file.read()
-    #
-    #         # Send file to OPA
-    #
-    #         # self.get_logger().info(f"File ready to send to OPA {file_data}")
-    #
-    #         response = requests.put(self.opa_server, data=file_data)
-    #
-    #         self.get_logger().info(f"result from {response}")
-    #         if response.status_code == 200:
-    #             self.get_logger().info("File sent to OPA successfully")
-    #
-    #             verify_response = requests.get(self.opa_server)
-    #
-    #             if verify_response.status_code == 200:
-    #                 policy_data = (
-    #                     json.loads(verify_response.content)
-    #                     .get("result", {})
-    #                     .get("raw", "")
-    #                 )
-    #                 self.get_logger().info("Policy Uploaded Successfully...")
-    #                 self.send_notification_to_gcs("OPA Upload OK:")
-    #             else:
-    #                 self.get_logger().error(
-    #                     f"Verification failed: {verify_response.status_code}"
-    #                 )
-    #                 self.send_notification_to_gcs("OPA Upload Failed")
-    #
-    #         else:
-    #             self.get_logger().error(
-    #                 f"Failed to upload file to OPA: {response.status_code}"
-    #             )
-    #             self.send_notification_to_gcs("OPA Upload Failed")
-    #
-    #     except Exception as e:
-    #         self.get_logger().error(f"Error sending file to OPA: {str(e)}")
-    #         self.send_notification_to_gcs("OPA Upload Error")
     #
     def send_notification_to_gcs(self, message):
         """Sends a MAVLink STATUSTEXT message to notify the GCS."""

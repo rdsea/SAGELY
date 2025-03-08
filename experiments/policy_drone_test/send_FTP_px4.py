@@ -96,7 +96,7 @@ with open(
                         writer.writerow([latency])
                         file.flush()  # Ensure data is written immediately
                         break
-                if time.time() - start_time > 5:
+                if time.time() - start_time > 30:
                     writer.writerow(["inf"])
                     break
         time.sleep(1)

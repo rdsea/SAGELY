@@ -221,6 +221,7 @@ mavlink stop-all
 mavlink start -u 14550 -o 14551 -t 130.233.195.206 -x -f
 
 mavlink start -u 14560 -o 14561 -t 127.0.0.1 -x -f
+
 ```
 
 This configuration forwards the port 14550 to 14551 (GCS port).
