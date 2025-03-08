@@ -4,11 +4,11 @@ import struct
 import csv
 
 LIST_UAV = [
-    ("udpout:130.233.195.221:14560", "udp:127.0.0.1:14551"),
-    # ("udpout:130.233.195.195:14560", "udp:127.0.0.1:14552"),
-    # ("udpout:130.233.195.211:14560", "udp:127.0.0.1:14553"),
-    # ("udpout:130.233.195.212:14560", "udp:127.0.0.1:14554"),
-    # ("udpout:130.233.195.213:14560", "udp:127.0.0.1:14555"),
+    ("udpout:130.233.195.221:14560", "udp:0.0.0.0:14551"),
+    # ("udpout:130.233.195.195:14560", "udp:0.0.0.0:14552"),
+    # ("udpout:130.233.195.211:14560", "udp:0.0.0.0:14553"),
+    # ("udpout:130.233.195.212:14560", "udp:0.0.0.0:14554"),
+    # ("udpout:130.233.195.213:14560", "udp:0.0.0.0:14555"),
 ]
 
 TIME = 1000
@@ -93,7 +93,10 @@ with open(
                         latency = time.time() - start_time
                         print(f"Time taken {latency}")
 
-                        writer.writerow([uav, latency])
+                        writer.writerow([latency])
                         file.flush()  # Ensure data is written immediately
                         break
-    time.sleep(1)
+                if time.time() - start_time > 5:
+                    writer.writerow(["inf"])
+                    break
+        time.sleep(1)
