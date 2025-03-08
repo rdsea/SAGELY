@@ -1,10 +1,21 @@
 from pymavlink import mavutil
 import time
 import struct
+import csv
 
-# list_uav = ["udpout:130.233.195.221:14560"]
+LIST_UAV = [
+    ("udpout:130.233.195.221:14560", "udp:127.0.0.1:14551"),
+    # ("udpout:130.233.195.195:14560", "udp:127.0.0.1:14552"),
+    # ("udpout:130.233.195.211:14560", "udp:127.0.0.1:14553"),
+    # ("udpout:130.233.195.212:14560", "udp:127.0.0.1:14554"),
+    # ("udpout:130.233.195.213:14560", "udp:127.0.0.1:14555"),
+]
 
-list_uav = ["udpout:127.0.0.1:14560"]
+TIME = 1000
+ADDED_LATENCY = "0ms_0ms_variable"
+ADDED_PACKET_LOSS = "0%"
+
+# list_uav = ["udpout:127.0.0.1:14560"]
 
 file_policy = "./policy/policy-2.rego"
 # MAVLink connection (PX4 MAVLink FTP target)
@@ -53,25 +64,36 @@ def upload_file(conn, file_size, file_data):
 
 
 # Example: Upload "test.txt" to PX4 (microSD root)
-for uav in list_uav:
-    noti_conn = mavutil.mavlink_connection("udp:0.0.0.0:14551")
-    file_size, file_data = read_file(file_policy, "policy")
 
-    conn = mavutil.mavlink_connection(uav)
+with open(
+    f"./results/latency_{TIME}_{ADDED_LATENCY}_{ADDED_PACKET_LOSS}.csv",
+    mode="w",
+    newline="",
+) as file:
+    writer = csv.writer(file)
 
-    upload_file(conn, file_size, file_data)
+    for _ in range(0, TIME):
+        for uav, local_port in LIST_UAV:
+            noti_conn = mavutil.mavlink_connection(local_port)
+            file_size, file_data = read_file(file_policy, "policy")
 
-    while True:
-        msg = noti_conn.recv_match(blocking=True)
+            start_time = time.time()
+            conn = mavutil.mavlink_connection(uav)
 
-        msg_type = msg.get_type()
-        # print(f"Received MAVLink message: {msg_type}")
+            upload_file(conn, file_size, file_data)
 
-        if msg:
-            # msg_type = msg.get_type()
-            if msg_type == "NAMED_VALUE_FLOAT":
-                number_data = msg.value
-                print(f"Received Named Value Float: {msg.name} = {number_data}")
-                break
-            # else:
-            #     print(f"Received MAVLink message: {msg_type}")
+            while True:
+                msg = noti_conn.recv_match(blocking=True)
+                if msg:
+                    msg_type = msg.get_type()
+
+                    if msg_type == "NAMED_VALUE_FLOAT":
+                        number_data = msg.value
+                        print(f"Received Named Value Float: {msg.name} = {number_data}")
+                        latency = time.time() - start_time
+                        print(f"Time taken {latency}")
+
+                        writer.writerow([uav, latency])
+                        file.flush()  # Ensure data is written immediately
+                        break
+    time.sleep(1)

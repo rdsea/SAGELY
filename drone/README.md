@@ -81,6 +81,7 @@ export CLUSTER=${NAME_0}=http://${HOST_0}:2380,${NAME_1}=http://${HOST_1}:2381,$
   --initial-cluster-token token-01 &
 
 ```
+
 # MicroXRCEAgent, ROS2, PX4, and MAVLink Setup
 
 This guide outlines the steps to set up communication between a ROS2 node and PX4 using DDS (via Micro XRCE-DDS), and then forward the data to a GCS using MAVLink.
@@ -88,11 +89,13 @@ This guide outlines the steps to set up communication between a ROS2 node and PX
 ## Steps
 
 ### 2. Run ROS2 Publisher Node
+
 This node generates numerical data and publishes it via DDS:
 
 ```bash
 ros2 run clinet_drone publisher
 ```
+
 ```python
 
 import rclpy
@@ -131,11 +134,15 @@ def main(args=None):
 if __name__ == "__main__":
     main()
 ```
+
 ### 3. Run ROS2 DDS to MAVLink Forwarder Node
+
 This node subscribes to the DDS topic, converts the data to MAVLink format, and sends it to PX4 at udpout://127.0.0.1:14550:
+
 ```bash
 ros2 run client_drone subscriber
 ```
+
 ```python
 
 import rclpy
@@ -184,6 +191,7 @@ def main(args=None):
 if __name__ == "__main__":
     main()
 ```
+
 ### 1. Start Micro XRCE-DDS Agent
 
 Start the Micro XRCE-DDS Agent to handle DDS communication between ROS2 and PX4:
@@ -193,49 +201,58 @@ MicroXRCEAgent udp4 -p 8888
 ```
 
 ### 4. Run PX4 SITL
+
 Execute PX4 SITL to run its own PX4 device:
+
 ```bash
-cd <path-to-PX4>/buid/px4_sitl_default/bin
+cd <path-to-PX4>/build/px4_sitl_default/bin
 ./px4 # make px4_sitl_default gazebo
 ```
+
 ### 5. Configure PX4 to Forward MAVLink Messages
+
 Run the following commands in the PX4 console to forward messages:
+
 ```bash
 # in the px4 shell
 mavlink stop-all
 #mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
 
-mavlink start -u 14550 -o 14551 -t 130.233.195.202 -x -f
+mavlink start -u 14550 -o 14551 -t 130.233.195.206 -x -f
 
 mavlink start -u 14560 -o 14561 -t 127.0.0.1 -x -f
 ```
-This configuration forwards the port 14550 to 14551 (GCS port).
 
+This configuration forwards the port 14550 to 14551 (GCS port).
 
 ```
 # copy receive_FTP to the client_drone
 scp receive_FTP.py  drone0:/root/drone/src/object_classification/client_drone
 
+
+source /opt/ros/humble/setup.bash
+source /root/ws_sensor_combined/install/setup.bash
 # compile
 colcon build
 
-# source 
+# source
 source install/setup.bash
 
 # run
 ros2 run client_drone receive_FTP
 
-# send requets px4
+# send requests px4
 scp ./experiments/policy_drone_test/send_FTP_px4.py jet6:/home/aaltosea/
 ```
 
-
-
 ### 6. Run GCS Script
+
 This script listens on port 14551 and prints the received MAVLink messages:
+
 ```bash
 python3 gcs_setting2.py
 ```
+
 ```python
 
 from pymavlink import mavutil
@@ -258,9 +275,8 @@ while True:
             print(f"Received MAVLink message: {msg_type}")
 ```
 
-# GCS 
+# GCS
 
-```bash 
+```bash
 pip install mavsdk
 ```
-
