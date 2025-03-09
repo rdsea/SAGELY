@@ -1,4 +1,5 @@
 from pymavlink import mavutil
+from tqdm import tqdm
 import time
 import struct
 import csv
@@ -72,7 +73,7 @@ with open(
 ) as file:
     writer = csv.writer(file)
 
-    for _ in range(0, TIME):
+    for _ in tqdm(range(0, TIME)):
         for uav, local_port in LIST_UAV:
             noti_conn = mavutil.mavlink_connection(local_port)
             file_size, file_data = read_file(file_policy, "policy")

@@ -41,6 +41,7 @@ class MAVLinkFTPReceiver(Node):
             self.get_logger().info(f"Received FTP message: Opcode {opcode}")
             if opcode == 11:  # Start of file transfer
                 self.get_logger().info("📂 Start File Transfer")
+                self.received_data = b""
 
             if opcode == 5:
                 self.get_logger().info(
