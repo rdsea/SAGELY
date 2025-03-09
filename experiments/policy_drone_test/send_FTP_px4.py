@@ -1,27 +1,27 @@
-from pymavlink import mavutil
-from tqdm import tqdm
+import threading
 import time
 import struct
 import csv
+from pymavlink import mavutil
+from tqdm import tqdm
 
+# List of UAVs and their respective local ports
 LIST_UAV = [
-    ("udpout:130.233.195.221:14560", "udp:0.0.0.0:14551"),
-    # ("udpout:130.233.195.195:14560", "udp:0.0.0.0:14552"),
-    # ("udpout:130.233.195.211:14560", "udp:0.0.0.0:14553"),
-    # ("udpout:130.233.195.212:14560", "udp:0.0.0.0:14554"),
-    # ("udpout:130.233.195.213:14560", "udp:0.0.0.0:14555"),
+    ("hp", "udpout:130.233.195.221:14560", "udp:0.0.0.0:14551"),
+    # ("bee1", "udpout:130.233.195.214:14560", "udp:0.0.0.0:14551"),
+    # ("bee2", "udpout:130.233.195.211:14560", "udp:0.0.0.0:14552"),
+    # ("bee3", "udpout:130.233.195.212:14560", "udp:0.0.0.0:14553"),
 ]
 
-TIME = 1000
+# Experiment Parameters
+TIME = 100
 ADDED_LATENCY = "0ms_0ms_variable"
 ADDED_PACKET_LOSS = "0%"
-
-# list_uav = ["udpout:127.0.0.1:14560"]
-
 file_policy = "./policy/policy-2.rego"
-# MAVLink connection (PX4 MAVLink FTP target)
-# conn = mavutil.mavlink_connection("udpout:127.0.0.1:14560")
-# noti_conn = mavutil.mavlink_connection("udp:0.0.0.0:14551")
+RESULTS_FILE = f"./results/latency_{TIME}_{ADDED_LATENCY}_{ADDED_PACKET_LOSS}.csv"
+
+# Lock for thread-safe CSV writing
+csv_lock = threading.Lock()
 
 
 def send_ftp_command(conn, opcode, size=0, session=0, offset=0, data=b""):
@@ -35,70 +35,77 @@ def send_ftp_command(conn, opcode, size=0, session=0, offset=0, data=b""):
     )
 
 
-def read_file(local_path, remote_path):
-    """Upload a file to PX4 via MAVLink FTP"""
+def read_file(local_path):
+    """Read the file and return its contents"""
     with open(local_path, "rb") as file:
         file_data = file.read()
-
-    file_size = len(file_data)
-    print(f"Uploading {local_path} ({file_size} bytes) to {remote_path}")
-    return file_size, file_data
-    # print(file_data)
-
-    # Open file session
-    # send_ftp_command(10, size=len(remote_path) + 1, data=remote_path.encode() + b"\0")
-    # time.sleep(0.1)  # Wait for response
-
-    # Send file in chunks
+    return len(file_data), file_data
 
 
 def upload_file(conn, file_size, file_data):
-    send_ftp_command(conn, 10)
+    """Upload the file to the UAV via MAVLink FTP"""
+    send_ftp_command(conn, 10)  # Open file session
     chunk_size = 239  # MAVLink FTP max data size
     for offset in range(0, file_size, chunk_size):
         chunk = file_data[offset : offset + chunk_size]
         send_ftp_command(conn, 4, size=len(chunk), offset=offset, data=chunk)
         time.sleep(0.01)  # Avoid overloading PX4
-
-    send_ftp_command(conn, 5)
+    send_ftp_command(conn, 5)  # Close file session
     print("Upload complete!")
 
 
-# Example: Upload "test.txt" to PX4 (microSD root)
+def send_file_to_uav(uav_name, uav, local_port):
+    """Thread function to send a file to a UAV and log latency"""
+    noti_conn = mavutil.mavlink_connection(local_port)
+    conn = mavutil.mavlink_connection(uav)
 
-with open(
-    f"./results/latency_{TIME}_{ADDED_LATENCY}_{ADDED_PACKET_LOSS}.csv",
-    mode="w",
-    newline="",
-) as file:
-    writer = csv.writer(file)
+    file_size, file_data = read_file(file_policy)
+    start_time = time.time()
 
-    for _ in tqdm(range(0, TIME)):
-        for uav, local_port in LIST_UAV:
-            noti_conn = mavutil.mavlink_connection(local_port)
-            file_size, file_data = read_file(file_policy, "policy")
+    upload_file(conn, file_size, file_data)
 
-            start_time = time.time()
-            conn = mavutil.mavlink_connection(uav)
+    while True:
+        msg = noti_conn.recv_match(blocking=True)
+        if msg:
+            if msg.get_type() == "NAMED_VALUE_FLOAT":
+                latency = time.time() - start_time
+                print(f"[{uav}] Received Named Value Float: {msg.name} = {msg.value}")
+                print(f"[{uav}] Time taken: {latency:.4f} sec")
 
-            upload_file(conn, file_size, file_data)
+                with csv_lock:
+                    with open(RESULTS_FILE, mode="a", newline="") as file:
+                        writer = csv.writer(file)
+                        writer.writerow([uav_name, latency])
 
-            while True:
-                msg = noti_conn.recv_match(blocking=True)
-                if msg:
-                    msg_type = msg.get_type()
+                break
 
-                    if msg_type == "NAMED_VALUE_FLOAT":
-                        number_data = msg.value
-                        print(f"Received Named Value Float: {msg.name} = {number_data}")
-                        latency = time.time() - start_time
-                        print(f"Time taken {latency}")
+        if time.time() - start_time > 30:  # Timeout case
+            with csv_lock:
+                with open(RESULTS_FILE, mode="a", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow([uav_name, "inf"])
+            print(f"[{uav}] Timeout occurred!")
+            break
 
-                        writer.writerow([latency])
-                        file.flush()  # Ensure data is written immediately
-                        break
-                if time.time() - start_time > 30:
-                    writer.writerow(["inf"])
-                    file.flush()  # Ensure data is written immediately
-                    break
-        time.sleep(1)
+
+# Main execution loop
+if __name__ == "__main__":
+    # Initialize CSV file
+    with open(RESULTS_FILE, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Latency (seconds)"])
+
+    for _ in tqdm(range(TIME), desc="File Transfers"):
+        threads = []
+
+        for uav_name, uav, local_port in LIST_UAV:
+            thread = threading.Thread(
+                target=send_file_to_uav, args=(uav_name, uav, local_port)
+            )
+            thread.start()
+            threads.append(thread)
+
+        for thread in threads:
+            thread.join()  # Wait for all threads to finish before next iteration
+
+        time.sleep(1)  # Small delay before the next round

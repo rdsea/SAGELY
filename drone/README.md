@@ -221,7 +221,7 @@ mavlink stop-all
 #mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
 
 # command to forward from 14550 to 14551 outside ROS2 machine to client
-mavlink start -u 14550 -o 14551 -t 130.233.195.206 -x -f
+mavlink start -u 14550 -o 14553 -t 130.233.195.206 -x -f
 
 # command to forward from 14560 outside to 14561 inside ROS2 machine
 mavlink start -u 14560 -o 14561 -t 127.0.0.1 -x -f
