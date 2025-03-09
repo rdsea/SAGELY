@@ -28,10 +28,14 @@ class MAVLinkFTPReceiver(Node):
 
         self.get_logger().info("MAVLink FTP Receiver started on UDP 14561")
         self.timer = self.create_timer(0.1, self.receive_mavftp)
+        self.error_transit = 0
+        self.error_opa = 0
 
     def receive_mavftp(self):
         """Handles incoming MAVLink FTP messages"""
 
+        self.get_logger().info(f"Error transit {self.error_transit}")
+        self.get_logger().info(f"Error OPA {self.error_opa}")
         msg = self.mav_conn.recv_match(type="FILE_TRANSFER_PROTOCOL", blocking=False)
         if msg:
             payload = msg.payload
@@ -41,6 +45,8 @@ class MAVLinkFTPReceiver(Node):
             self.get_logger().info(f"Received FTP message: Opcode {opcode}")
             if opcode == 11:  # Start of file transfer
                 self.get_logger().info("📂 Start File Transfer")
+                if self.received_data != b"":
+                    self.error_transit += 1
                 self.received_data = b""
 
             if opcode == 5:
@@ -82,6 +88,7 @@ class MAVLinkFTPReceiver(Node):
             if response.status_code == 200:
                 self.get_logger().info("✅ File sent to OPA successfully")
             else:
+                self.error_opa += 1
                 self.get_logger().error(f"❌ OPA rejected file: {response.status_code}")
                 self.save_file_locally(policy_data)  # Save for debugging
 
