@@ -6,7 +6,7 @@ if len(sys.argv) != 2:
     print(f"Usage: {sys.argv[0]} <csv_file_path>")
     sys.exit(1)
 
-csv_file = sys.argv[1]  # Get the file path from the script argument
+csv_file = sys.argv[1]
 
 try:
     total_sum = 0
@@ -27,14 +27,14 @@ try:
                         count += 1
                     except ValueError:
                         print(f"Skipping invalid data: {row[0]}")
-                else:
+                elif row[0] == "inf":
                     error += 1
 
     # Calculate the average
     if count > 0:
         average_latency = total_sum / count
         print(f"Average Latency: {average_latency:.4f} seconds")
-        print(f"Error percentage:  {(error / count) * 100}%")
+        print(f"Error percentage:  {error}%")
     else:
         print("No valid latency values found.")
 
