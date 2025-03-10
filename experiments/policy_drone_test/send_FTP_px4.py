@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 # List of UAVs and their respective local ports
 LIST_UAV = [
-    ("hp", "udpout:130.233.195.221:14560", "udp:0.0.0.0:14551"),
+    ("hp", "udpout:130.233.195.221:14560", "udp:0.0.0.0:14554"),
     # ("bee1", "udpout:130.233.195.214:14560", "udp:0.0.0.0:14551"),
     # ("bee2", "udpout:130.233.195.211:14560", "udp:0.0.0.0:14552"),
     # ("bee3", "udpout:130.233.195.212:14560", "udp:0.0.0.0:14553"),
@@ -17,8 +17,11 @@ LIST_UAV = [
 TIME = 100
 ADDED_LATENCY = "0ms_0ms_variable"
 ADDED_PACKET_LOSS = "0%"
-file_policy = "./policy/policy-2.rego"
-RESULTS_FILE = f"./results/latency_{TIME}_{ADDED_LATENCY}_{ADDED_PACKET_LOSS}.csv"
+AVERAGE = 10
+FILE_POLICY = "./policy/policy-2.rego"
+RESULTS_FILE = (
+    f"./results/latency_{TIME}_{ADDED_LATENCY}_{ADDED_PACKET_LOSS}_{FILE_POLICY}.csv"
+)
 
 # Lock for thread-safe CSV writing
 csv_lock = threading.Lock()
@@ -59,13 +62,13 @@ def send_file_to_uav(uav_name, uav, local_port):
     noti_conn = mavutil.mavlink_connection(local_port)
     conn = mavutil.mavlink_connection(uav)
 
-    file_size, file_data = read_file(file_policy)
+    file_size, file_data = read_file(FILE_POLICY)
     start_time = time.time()
 
     upload_file(conn, file_size, file_data)
 
     while True:
-        msg = noti_conn.recv_match(blocking=True)
+        msg = noti_conn.recv_match(blocking=True, timeout=5)
         if msg:
             if msg.get_type() == "NAMED_VALUE_FLOAT":
                 latency = time.time() - start_time
@@ -75,7 +78,10 @@ def send_file_to_uav(uav_name, uav, local_port):
                 with csv_lock:
                     with open(RESULTS_FILE, mode="a", newline="") as file:
                         writer = csv.writer(file)
-                        writer.writerow([uav_name, latency])
+                        if time.time() - start_time < AVERAGE:
+                            writer.writerow([uav_name, "inf"])
+                        else:
+                            writer.writerow([uav_name, latency])
 
                 break
 
@@ -90,11 +96,6 @@ def send_file_to_uav(uav_name, uav, local_port):
 
 # Main execution loop
 if __name__ == "__main__":
-    # Initialize CSV file
-    with open(RESULTS_FILE, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Latency (seconds)"])
-
     for _ in tqdm(range(TIME), desc="File Transfers"):
         threads = []
 

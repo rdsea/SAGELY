@@ -1,0 +1,12 @@
+Normal:
+- Error transit 8
+- Error OPA 7
+1% package lost:
+- Error transit 33
+- Error OPA: 15
+5% package lost:
+- Error transit: 62
+- Error OPA: 4
+10% package lost:
+- Error transit: 64
+- Error OPA: 8

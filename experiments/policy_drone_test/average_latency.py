@@ -19,21 +19,21 @@ try:
 
         for row in reader:
             if row:  # Ensure the row is not empty
-                if row[0] != "inf":
+                if row[1] != "inf":
                     try:
                         total_sum += float(
-                            row[0]
+                            row[1]
                         )  # Assuming latency values are in the second column
                         count += 1
                     except ValueError:
-                        print(f"Skipping invalid data: {row[0]}")
-                elif row[0] == "inf":
+                        print(f"Skipping invalid data: {row[1]}")
+                elif row[1] == "inf":
                     error += 1
 
     # Calculate the average
     if count > 0:
         average_latency = total_sum / count
-        print(f"Average Latency: {average_latency:.4f} seconds")
+        print(f"Average Latency: {average_latency*1000:.4f} seconds")
         print(f"Error percentage:  {error}%")
     else:
         print("No valid latency values found.")

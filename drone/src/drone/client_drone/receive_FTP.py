@@ -9,6 +9,8 @@ from pymavlink.dialects.v20 import common as mavlink2
 # import time
 import os
 
+TIMER_PERIOD = 0.1
+
 
 class MAVLinkFTPReceiver(Node):
     def __init__(self):
@@ -27,7 +29,7 @@ class MAVLinkFTPReceiver(Node):
         # self.transfer_active = False  # Track if a file transfer is in progress
 
         self.get_logger().info("MAVLink FTP Receiver started on UDP 14561")
-        self.timer = self.create_timer(0.1, self.receive_mavftp)
+        self.timer = self.create_timer(TIMER_PERIOD, self.receive_mavftp)
         self.error_transit = 0
         self.error_opa = 0
 
