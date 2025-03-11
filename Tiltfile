@@ -1,9 +1,9 @@
-docker_build('service_discovery', 'src/holistic_policy', 
+docker_build('rdsea/service_discovery', 'src/holistic_policy', 
    dockerfile="src/holistic_policy/service_discovery/Dockerfile",
    only=["service_discovery"]
 )
 
-docker_build('context_management', 'src/holistic_policy', 
+docker_build('rdsea/context_management', 'src/holistic_policy', 
    dockerfile="src/holistic_policy/context_management/Dockerfile",
    only=["context_management"]
 )
@@ -66,11 +66,15 @@ local("kubectl label namespace default istio-injection=enabled")
 k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/jaeger_istio.yml')
 
 # OPA admission
-k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_controller_sidecar.yml')
+k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_controller.yml')
+k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_authz.yml')
+k8s_yaml('src/holistic_policy/k8s_deployment/istio-opa/opa_config.yml')
+
 
 # enable external provider: jaeger and OPA
-local("istioctl install -f src/holistic_policy/k8s_deployment/monitoring/external_provider_tracing_opa.yml --skip-confirmation")
+local("istioctl install -f src/holistic_policy/k8s_deployment/monitoring/external_provider.yml --skip-confirmation")
 k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/enable_tracing.yml') # enable tracing
+k8s_yaml('src/holistic_policy/k8s_deployment/monitoring/prometheus.yml') # enable tracing
 
 # enable opa sidecar
 local("kubectl label namespace default opa-istio-injection=enabled")
@@ -82,10 +86,22 @@ k8s_yaml('applications/object_classification/src/deployment/MobileNetV2.yml')
 k8s_yaml('applications/object_classification/src/deployment/EfficientNetB0.yml')
 
 # src
+
+# create new namespace for services without sidecar injection
+local("kubectl apply -f - <<EOF\n\
+apiVersion: v1\n\
+kind: Namespace\n\
+metadata:\n\
+  name: platform-context\n\
+EOF\n")
+
+local("kubectl label namespace platform-context istio-injection=enabled")
+
 k8s_yaml('src/holistic_policy/k8s_deployment/policy_deployment/service_discovery.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/policy_deployment/context_management.yml')
 
-#k8s_yaml('object_classification/src/deployment/jaeger.yml')
+#k8s_yaml('src/holistic_policy/src/k8s_deployment/monitoring/jaeger.yml')
+
 
 #istio routing and gateway
 k8s_yaml('src/holistic_policy/k8s_deployment/istio/application_gateway.yml')
@@ -93,3 +109,4 @@ k8s_yaml('src/holistic_policy/k8s_deployment/istio/virtual_services.yml')
 k8s_yaml('src/holistic_policy/k8s_deployment/istio/destination_rules.yml')
 
 k8s_resource('jaeger', port_forwards=16686)
+k8s_resource('prometheus', port_forwards=9090)

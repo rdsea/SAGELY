@@ -114,6 +114,23 @@ RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 # WORKDIR /root/drone/src/object_classification/client_drone
 #
 # ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+RUN chmod +x scripts/trigger_request.sh
+
+# policy
+# RUN mkdir policy
+#
+# WORKDIR /policy
+#
+# RUN curl -L -o opa https://openpolicyagent.org/downloads/v1.2.0/opa_linux_amd64_static
+#
+# RUN chmod 755 opa
+#
+#RUN ./opa run --server --addr=0.0.0.0:8181 --log-level=debug --diagnostic-addr=0.0.0.0:8282 --watch policy.rego 
+
+
+WORKDIR /root/drone/src/object_classification/client_drone
+
+ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
 
 # Define entry point

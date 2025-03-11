@@ -1,10 +1,10 @@
 drone_0:
   device_id: "0"
   group_id: "0"
-  #server_url: "http://192.168.49.2:80"
-  ds_path: "/root/drone/object_classification/data/val_images"
+  server_url: "http://192.168.49.2:80"
+  ds_path: "/root/drone/src/data/val_images"
   #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
-  rate: 0.1
+  rate: 1
   # gps_data:
   #   latitude: 37.7749
   #   longitude: -122.4194
@@ -14,10 +14,10 @@ drone_0:
 drone_1:
   device_id: "1"
   group_id: "1"
-  #server_url: "http://192.168.49.2:80"
-  ds_path: "../../data/val_images"
+  server_url: "http://192.168.49.2:80"
+  ds_path: "/root/drone/src/data/val_images"
   #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
-  rate: 0.1
+  rate: 1
   # gps_data:
   #   latitude: 37.7749
   #   longitude: -122.4194
@@ -27,10 +27,10 @@ drone_1:
 drone_2:
   device_id: "2"
   group_id: "0"
-  #server_url: "http://192.168.49.2:80"
-  ds_path: "../../data/val_images"
+  server_url: "http://192.168.49.2:80"
+  ds_path: "/root/drone/src/data/val_images"
   #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
-  rate: 0.1
+  rate: 1
   # gps_data:
   #   latitude: 37.7749
   #   longitude: -122.4194

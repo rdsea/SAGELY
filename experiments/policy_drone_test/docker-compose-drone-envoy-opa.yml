@@ -1,0 +1,36 @@
+services:
+  drone0:
+    image: drone_restapi
+    container_name: drone0
+    network_mode: host
+    stdin_open: true
+    tty: true
+    volumes:
+      - /u/42/nguyent141/unix/Public/git/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images
+    command: ["/bin/bash"]
+    #command: ["../scripts/entrypoint_etcd.sh 0"]
+
+  envoy:
+    image: envoyproxy/envoy:v1.23-latest
+    volumes:
+      - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "5200:8000"
+      - "5201:8001"
+
+  opa:
+    image: openpolicyagent/opa:latest-envoy
+    volumes:
+      - ./opa/policy.rego:/policy/policy.rego
+    command:
+      - run
+      - --server
+      - --log-level=debug
+      - --log-format=json-pretty
+      - --addr=0.0.0.0:8181
+      - --set=plugins.envoy_ext_authz_grpc.addr=:9191
+      - --set=decision_logs.console=true
+      - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+      - /policy/policy.rego
+    ports:
+      - "8181:8181"

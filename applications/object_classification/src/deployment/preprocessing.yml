@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: preprocessing
-          imagePullPolicy: "Never"
+          imagePullPolicy: "IfNotPresent"
           image: rdsea/preprocessing
           ports:
             - containerPort: 5010

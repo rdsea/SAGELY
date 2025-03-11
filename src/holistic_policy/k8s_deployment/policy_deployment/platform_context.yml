@@ -1,0 +1,9 @@
+apiversion: v1
+kind: Namespace
+metadata:
+  name: platform-context
+#
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: opa-istio

@@ -15,9 +15,9 @@ echo ""
 
 # Determine the platform based on the tag
 if [ "$TAG" == "cpu" ]; then
-  PLATFORM="linux/amd64,linux/arm64"
+  PLATFORM="linux/amd64"
 else
   PLATFORM="linux/arm64"
 fi
 
-docker build --platform $PLATFORM -t rdsea/onnx_inference:"$TAG" -f ./inference/Dockerfile."$TAG" .
+docker build --platform $PLATFORM -t rdsea/inference:"$TAG" -f ./inference/Dockerfile."$TAG" .

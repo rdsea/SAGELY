@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: ensemble
-          imagePullPolicy: "Never"
+          imagePullPolicy: "IfNotPresent"
           image: rdsea/ensemble
           ports:
             - containerPort: 5011
