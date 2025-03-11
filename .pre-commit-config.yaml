@@ -14,7 +14,14 @@ repos:
         additional_dependencies:
           - tomli
         files: ^.*\.(py|c|h|md|rst|yml)$
-        args: ["--interactive", "3"]
+        args:
+          [
+            "--write-changes",
+            "--interactive",
+            "3",
+            "-L",
+            "Commun,Sherif,SPEEDIN,speedin,connexion,SITL",
+          ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.5

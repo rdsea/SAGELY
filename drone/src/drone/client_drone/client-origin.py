@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32
+import requests
+import yaml
+import os
+from threading import Timer, Thread, Event
 import random
-
 import time
 import etcd3
 
@@ -17,7 +17,6 @@ EDGE_SERVER_HEARTBEAT_URL = ""
 EDGE_SERVER_UPDATE_COUNTER_URL = ""
 EDGE_SERVER_GET_COUNTER_URL = ""
 EDGE_SERVER_GET_COMMAND_URL = ""
-EDGE_SERVER_GET_LEADER_URL = ""
 GROUP_ID = ""
 NODE_ID = ""
 EDGE_SERVER_SEND_IMG = ""
@@ -29,18 +28,9 @@ HEADER = {}
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class SensorPublisher(Node):
-    def __init__(self):
-        super().__init__("sensor_publisher")
-        self.publisher_ = self.create_publisher(Float32, "sensor_data", 10)
-        timer_period = 1.0  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    def timer_callback(self):
-        msg = Float32()
-        msg.data = random.uniform(0.0, 100.0)
-        self.publisher_.publish(msg)
-        self.get_logger().info(f"Publishing: {msg.data}")
+class ClientNode(Node):
+    def __init__(self):
         super().__init__("client_node")
         self.declare_parameter("yaml_file", "client_config.yaml")  # Default YAML file
         self.declare_parameter("drone_id", "")
@@ -77,7 +67,6 @@ class SensorPublisher(Node):
             EDGE_SERVER_UPDATE_COUNTER_URL, \
             EDGE_SERVER_GET_COUNTER_URL, \
             EDGE_SERVER_GET_COMMAND_URL, \
-            EDGE_SERVER_GET_LEADER_URL, \
             etcd, \
             GROUP_ID, \
             NODE_ID, \
@@ -106,9 +95,8 @@ class SensorPublisher(Node):
                 EDGE_SERVER_HEARTBEAT_URL = self.server_url + "/heartbeat"
                 EDGE_SERVER_UPDATE_COUNTER_URL = self.server_url + "/update-counter"
                 EDGE_SERVER_GET_COUNTER_URL = self.server_url + "/get-counter"
-                EDGE_SERVER_GET_LEADER_URL = self.server_url + "/get-leader"
                 EDGE_SERVER_GET_COMMAND_URL = self.server_url + "/get-command"
-                EDGE_SERVER_SEND_IMG = self.server_url + "/preprocessing/"
+                EDGE_SERVER_SEND_IMG = self.server_url + "/preprocessing"
 
                 NODE_ID = self.device_id
                 GROUP_ID = self.group_id
@@ -183,38 +171,32 @@ def send_heartbeat(node_id, group_id, stop_event):
 
 def update_counter(node_id, group_id, stop_event):
     current_counter = get_counter(group_id)
-    current_leader = get_leader(group_id)
 
-    print(f"current leader: {current_leader} vs node id: {node_id}")
+    logger.info(f"Header: {HEADER}")
+    while not stop_event.is_set():
+        current_counter += COUNTER_INCREMENT
+        try:
+            # can edit to async
+            response = requests.post(
+                EDGE_SERVER_UPDATE_COUNTER_URL,
+                headers=HEADER,
+                json={
+                    "leader_id": node_id,
+                    "group_id": group_id,
+                    "counter": current_counter,
+                },
+            )
+            response.raise_for_status()
+            logger.info(
+                f"Counter updated to {current_counter} by leader {node_id} of group {group_id}"
+            )
 
-    if current_leader == node_id:
-        logger.info(f"Header: {HEADER}")
-        while not stop_event.is_set():
-            current_counter += COUNTER_INCREMENT
-            try:
-                # can edit to async
-                response = requests.post(
-                    EDGE_SERVER_UPDATE_COUNTER_URL,
-                    headers=HEADER,
-                    json={
-                        "leader_id": node_id,
-                        "group_id": group_id,
-                        "counter": current_counter,
-                    },
-                )
-                response.raise_for_status()
-                logger.info(
-                    f"Counter updated to {current_counter} by leader {node_id} of group {group_id}"
-                )
+            # main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
+            main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
 
-                # main_send_request(EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH)
-                main_send_request(
-                    EDGE_SERVER_SEND_IMG, GROUP_ID, NODE_ID, RATE, DS_PATH
-                )
-
-            except requests.RequestException as e:
-                logger.error(f"Failed to update counter: {e}")
-            stop_event.wait(5)  # Sleep for 5 seconds between counter updates
+        except requests.RequestException as e:
+            logger.error(f"Failed to update counter: {e}")
+        stop_event.wait(5)  # Sleep for 5 seconds between counter updates
 
 
 def get_counter(group_id):
@@ -223,37 +205,9 @@ def get_counter(group_id):
             EDGE_SERVER_GET_COUNTER_URL, headers=HEADER, params={"group_id": group_id}
         )
         response.raise_for_status()
-        json_response = response.json()
-        logger.info(f"Received counter response: {json_response}")
-
-        if isinstance(json_response, dict) and "counter" in json_response:
-            counter_value = json_response["counter"]
-            if isinstance(counter_value, list) and len(counter_value) == 1:
-                return counter_value[0]
-            return counter_value
-        # return response.json().get("counter", 0)
+        return response.json().get("counter", 0)
     except requests.RequestException as e:
         logger.error(f"Failed to get counter: {e}")
-        return 0
-
-
-def get_leader(group_id):
-    try:
-        response = requests.get(
-            EDGE_SERVER_GET_LEADER_URL, headers=HEADER, params={"group_id": group_id}
-        )
-        response.raise_for_status()
-        json_response = response.json()
-        logger.info(f"Received leader response: {json_response}")
-
-        if isinstance(json_response, dict) and "leader_id" in json_response:
-            counter_value = json_response["leader_id"]
-            if isinstance(counter_value, list) and len(counter_value) == 1:
-                return counter_value[0]
-            return counter_value
-        # return response.json().get("counter", 0)
-    except requests.RequestException as e:
-        logger.error(f"Failed to get leader_id: {e}")
         return 0
 
 
@@ -306,39 +260,26 @@ def poll_commands(stop_event):
                     headers=HEADER,
                 )
                 if response.status_code == 200:
-                    command_list = response.json().get("command")
-
-                    if (
-                        command_list
-                        and isinstance(command_list, list)
-                        and len(command_list) > 0
-                    ):
-                        command_value = command_list[
-                            0
-                        ]  # Extract the first command from the list
-
-                        if command_type == "change-group-or-id":
-                            command = ChangeGroupOrIDCommand.model_validate_json(
-                                command_value
+                    command_value = response.json().get("command")
+                    if command_type == "change-group-or-id":
+                        command = ChangeGroupOrIDCommand.model_validate_json(
+                            command_value
+                        )
+                        if command.new_group_id and GROUP_ID != command.new_group_id:
+                            change_group(command.new_group_id)
+                        if command.new_node_id and NODE_ID != command.new_node_id:
+                            change_node_id(command.new_node_id)
+                        delete_command(NODE_ID, command_type)
+                    elif command_type == "change-task-parameter":
+                        command = ChangeTaskParameterCommand.model_validate_json(
+                            command_value
+                        )
+                        if command.counter_increment is not None:
+                            logger.info(
+                                f"Command received, changing counter increment to {command.counter_increment}"
                             )
-                            if (
-                                command.new_group_id
-                                and GROUP_ID != command.new_group_id
-                            ):
-                                change_group(command.new_group_id)
-                            if command.new_node_id and NODE_ID != command.new_node_id:
-                                change_node_id(command.new_node_id)
-                            delete_command(NODE_ID, command_type)
-                        elif command_type == "change-task-parameter":
-                            command = ChangeTaskParameterCommand.model_validate_json(
-                                command_value
-                            )
-                            if command.counter_increment is not None:
-                                logger.info(
-                                    f"Command received, changing counter increment to {command.counter_increment}"
-                                )
-                                COUNTER_INCREMENT = command.counter_increment
-                            delete_command(NODE_ID, command_type)
+                            COUNTER_INCREMENT = command.counter_increment
+                        delete_command(NODE_ID, command_type)
                     formalize_HEADER()
         except Exception as e:
             logger.error(f"Failed to get command: {e}")
@@ -473,28 +414,10 @@ def send_request(url, requesting_interval, jpeg_images_list, ds_path):
     start_time = time.time()
     file = {"file": ("random_image", img_data, "image/jpeg")}
 
-    try:
-        response = requests.post(url, headers=HEADER, files=file)
-        response.raise_for_status()  # Raises HTTPError for bad responses (4XX or 5XX)
+    response = requests.post(url, headers=HEADER, files=file)
+    print(response.json(), synset_id, (time.time() - start_time) * 1000)
 
-        # Try to parse the response content as JSON
-        try:
-            response_json = response.json()
-        except ValueError:
-            logger.error("Response is not in JSON format")
-            response_json = None
-
-        # Print the JSON response, synset_id, and the request time
-        logger.info(
-            f"Response: {response_json}, Synset ID: {synset_id}, Time: {(time.time() - start_time) * 1000}"
-        )
-
-    except requests.RequestException as e:
-        logger.error(f"Request failed: {e}")
-    # response = requests.post(url, headers=HEADER, files=file)
-    # print(response.json(), synset_id, (time.time() - start_time) * 1000)
-    #
-    # response = requests.post(url, headers=HEADER, files=file)
+    response = requests.post(url, headers=HEADER, files=file)
 
 
 def main_send_request(url, group_id, node_id, req_rate, ds_path):
@@ -522,9 +445,11 @@ def main_send_request(url, group_id, node_id, req_rate, ds_path):
 
 def main(args=None):
     rclpy.init(args=args)
-    sensor_publisher = SensorPublisher()
-    rclpy.spin(sensor_publisher)
-    sensor_publisher.destroy_node()
+
+    client_node = ClientNode()
+    # client_node.main_send_request()
+    client_node.main()
+    client_node.destroy_node()
     rclpy.shutdown()
 
 
