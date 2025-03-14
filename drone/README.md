@@ -299,3 +299,19 @@ while True:
 ```bash
 pip install mavsdk
 ```
+
+# Gazebo vs multi-vehicles
+
+## Gazebo setting with PX4
+.
+├── PX4-Autopilot/Tool/simulation
+│   ├── models
+│   ├── world/default.sdf
+
+```bash
+# three devices in a gazebo
+PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i 1 
+PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL_POSE="0,1" PX4_GZ_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i 2
+PX4_SYS_AUTOSTART=4003 PX4_GZ_MODEL_POSE="0,2" PX4_GZ_MODEL=gz_rc_cesssna ./build/px4_sitl_default/bin/px4 -i 3
+```
+
