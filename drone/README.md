@@ -314,4 +314,17 @@ PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i 
 PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL_POSE="0,1" PX4_GZ_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i 2
 PX4_SYS_AUTOSTART=4003 PX4_GZ_MODEL_POSE="0,2" PX4_GZ_MODEL=gz_rc_cesssna ./build/px4_sitl_default/bin/px4 -i 3
 ```
+# Decouple PX4 and gazebo
+- GZ_RELAY is IP for the PX4 machine
+- GZ_IP is the IP for the gazebo machine
+```bash
+export GZ_PARTITION=relay
+export GZ_RELAY=192.168.0.2
+export GZ_IP=192.168.0.1
+export PX4_GZ_STANDALONE=1
+export PX4_SYS_AUTOSTART=4001
+export PX4_SIM_MODEL=gz_x500
+export PX4_GZ_WORLD=baylands
+./build/px4_sitl_default/bin/px4
+```
 
