@@ -117,5 +117,6 @@ RUN echo "export PATH=\$PATH:/root/.local/bin" >> /root/.bashrc
 COPY tmuxinator_control.yml /root/.config/tmuxinator/tmuxinator_control.yml
 # Define entry point
 CMD ["tmuxinator", "start", "tmuxinator_control.yml"]
+
 #ENTRYPOINT ["/bin/bash", "-c"]
 #CMD ["ros2 run client_drone client --ros-args -p yaml_file:=client_drone.yaml"]

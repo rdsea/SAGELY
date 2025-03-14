@@ -13,7 +13,7 @@ windows:
       root: /root/PX4-Autopilot
       layout: even-vertical
       panes:
-        - sleep 3 && PX4_SYS_AUTOSTART=4002 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_MODEL=x500_depth ./build/px4_sitl_default/bin/px4
+        - sleep 3 && PX4_SYS_AUTOSTART=4002 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_MODEL=x500_depth ./build/px4_sitl_default/bin/px4 -i
   # - ROS_GZ_Image_Bridge:
   #     root: /root/ws_sensor_combined
   #     layout: even-vertical
@@ -29,4 +29,3 @@ windows:
   #     layout: even-vertical
   #     panes:
   #       - sleep 6 && python3 keyboard-mavsdk-test.py
-
