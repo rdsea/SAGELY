@@ -40,5 +40,11 @@ pip install mavsdk
 GZ_PARTITION=<name_of_gaezbo> GZ_RELAY=<IP_of_gazebo> GZ_IP=<IP_of_currentPX4> PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i <id_of_currentPX4>
 
 # Example
+# Start a docker with the IP in the network we set 
+# docker run -it --rm --name=px4-drone1 --net px4net --ip 192.168.1.101 px4_graze /bin/bash
+
 GZ_PARTITION=relay GZ_RELAY=192.168.1.1 GZ_IP=192.168.1.101 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 PX4_GZ_WORLD=default_drone ./build/px4_sitl_default/bin/px4 -i 1
 ```
+add this line of code to the rcS
+- param set-default SENS_IMU_MODE 0
+

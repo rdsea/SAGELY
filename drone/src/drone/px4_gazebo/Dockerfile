@@ -5,6 +5,8 @@ FROM ros:humble-ros-core-jammy
 RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt-get update && apt-get install -y \
+  iputils-ping \
+  net-tools \
   tcpdump \ 
   vim \
   git \
@@ -34,10 +36,10 @@ WORKDIR /root
 
 # Install PX4
 RUN cd /root && \
-    git clone -b release/1.15 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
+    git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
     bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
     cd PX4-Autopilot && \
-    make px4_sitl
+    PX4_GZ_STANDALONE=1 make px4_sitl
 
 ENTRYPOINT ["/bin/bash", "-c"]
 #CMD ["ros2 run client_drone client --ros-args -p yaml_file:=client_drone.yaml"]
