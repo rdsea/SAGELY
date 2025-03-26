@@ -294,27 +294,3 @@ while True:
             print(f"Received MAVLink message: {msg_type}")
 ```
 
-# GCS
-```bash
-pip install mavsdk
-```
-# Gazebo vs multi-vehicles
-
-## Gazebo setting with PX4
-.
-├── PX4-Autopilot/Tool/simulation
-│   ├── models
-│   ├── world/default.sdf
-```bash
-# three devices in a gazebo
-PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i 1 
-PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL_POSE="0,1" PX4_GZ_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i 2
-PX4_SYS_AUTOSTART=4003 PX4_GZ_MODEL_POSE="0,2" PX4_GZ_MODEL=gz_rc_cesssna ./build/px4_sitl_default/bin/px4 -i 3
-```
-# Decouple PX4 and gazebo
-- GZ_RELAY is IP for the PX4 machine
-- GZ_IP is the IP for the gazebo machine
-```bash
-GZ_PARTITION=relay GZ_RELAY=127.0.0.1 GZ_IP=127.0.0.1 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 PX4_GZ_WORLD=default_drone ./build/px4_sitl_default/bin/px4
-```
-python /path/to/simulation-gazebo --gz_partition relay --gz_ip 127.0.0.1 --world default_drone
