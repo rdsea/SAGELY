@@ -1,6 +1,16 @@
 # A setting for a gezebo with multi-px4
 
-## Network setting for a single machine working via a docker network (that can improve to docker-compose or kubectl-based)
+The most errors from the connection between PX4 and Gazebo
+- PX4 1.5
+- Gazebo 7.9
+
+## Errors
+> ekf2 missing data is the conflict data from gazebo 7.9 and 8.9 between px4 and gazebo (on 2 machines)
+
+compass missing data is the issues from NavSat
+> <plugin name="gz::sim::systems::NavSat" filename="gz-sim-navsat-system"/>
+
+## Network setting for a single machine working via a docker network (that can improve to docker-compose or k8s-based)
 
 ```bash
 # create a network 192.168.1.0/24 called px4net
@@ -9,7 +19,7 @@ docker network create \                                                         
   --subnet=192.168.1.0/24 px4net
 ```
 ## GAZEBO and PX4
-Gazebo version 8 and PX4 version **1.15**
+Gazebo version 7.9 and PX4 version **1.15**
 
 May have a 
 ### GAZEBO
