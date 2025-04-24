@@ -1,0 +1,17 @@
+FROM osrf/ros:humble-desktop-full
+
+RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt-get update && apt-get install -y \
+
+RUN mkdir -p /root/simulation-gazebo
+
+WORKDIR /root/simulation-gazebo
+
+RUN wget -O /root/simulation-gazebo/ https://raw.githubusercontent.com/PX4/PX4-gazebo-models/main/simulation-gazebo
+
+RUN python simulation-gazebo --model_download_source --model_store /root/.simulation-gazebo
+
+COPY drones_world.sdf /root/.simulation-gazebo/worlds
+
+ENTRYPOINT ["/bin/bash", "-c"]

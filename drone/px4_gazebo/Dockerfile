@@ -1,5 +1,7 @@
-# Use the official ROS2 base image
-FROM ros:humble-ros-core-jammy
+# Use the official ROS2 base image base including developing tools
+FROM ros:humble-ros-base-jammy
+# desktop with GUI
+#FROM osrf/ros:humble-desktop-full
 
 # Install necessary packages
 RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -36,13 +38,13 @@ RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
 WORKDIR /root
 
 # edit the script starting 
-COPY ./px4_gazebo /root
+COPY . /root
 
 # Install PX4
 RUN cd /root && \
     git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
     bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
-    cp ./px4_gazebo/px4-rc.mavlink PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/
+    cp ./px4-rc.mavlink PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/ && \
     cd PX4-Autopilot && \
     PX4_GZ_STANDALONE=1 make px4_sitl
 
@@ -77,21 +79,22 @@ WORKDIR /root/drone/src/object_classification
 RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 
-RUN chmod +x scripts/trigger_request.sh
+# etcd3 -- skip from now
+#RUN chmod +x scripts/trigger_request.sh
 
 # generate a yml file to run
 WORKDIR /root/px4_gazebo
 
-# Make script executable
-RUN chmod +x generate_yaml.sh
-
-# Generate YAML at build time
-RUN ./generate_yaml.sh
+# # Make script executable
+# RUN chmod +x generate_yaml.sh
+#
+# # Generate YAML at build time
+# RUN ./generate_yaml.sh
 
 # Set up tmuxinator
 RUN echo "export PATH=\$PATH:/root/.local/bin" >> /root/.bashrc
 
 # Set default command to start tmuxinator
-CMD ["tmuxinator", "start", "ros2_px4_gazebo"]
+#CMD ["tmuxinator", "start", "ros2_px4_gazebo"]
 
-#ENTRYPOINT ["/bin/bash", "-c"]
+ENTRYPOINT ["/bin/bash", "-c"]

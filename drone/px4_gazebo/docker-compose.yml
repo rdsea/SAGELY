@@ -1,0 +1,66 @@
+version: '3.8'
+
+networks:
+  px4net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.132.0/24
+
+services:
+  drone_101:
+    image: hongtringuyen/gazbo_px4_ros2:v1 
+    container_name: drone_101
+    networks:
+      px4net:
+        ipv4_address: 192.168.132.101
+    volumes:
+      - ./configs/drone_101.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+
+  drone_102:
+    image: hongtringuyen/gazbo_px4_ros2:v1 
+    container_name: drone_102
+    networks:
+      px4net:
+        ipv4_address: 192.168.132.102
+    volumes:
+      - ./configs/drone_102.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+
+  drone_103:
+    image: hongtringuyen/gazbo_px4_ros2:v1 
+    container_name: drone_103
+    networks:
+      px4net:
+        ipv4_address: 192.168.132.103
+    volumes:
+      - ./configs/drone_103.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+
+  drone_104:
+    image: hongtringuyen/gazbo_px4_ros2:v1 
+    container_name: drone_104
+    networks:
+      px4net:
+        ipv4_address: 192.168.132.104
+    volumes:
+      - ./configs/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+
