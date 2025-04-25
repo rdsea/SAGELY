@@ -4,7 +4,7 @@
 GZ_PARTITION="relay"
 GZ_IP="192.168.132.1"
 DRONE_MODEL="gz_x500"
-GZ_CONTAINER=hongringuyen/gazebo:lastest
+GZ_CONTAINER=hongtringuyen/gazebo-simulation-swarm:latest
 
 # IP range
 START_IP=101
@@ -28,17 +28,19 @@ networks:
         - subnet: 192.168.132.0/24
 
 services:
-  gazebo:
-    image: ${GZ_CONTAINER}
-    container_name: gazebo_sim
-    networks:
-      px4net:
-        ipv4_address: ${GZ_IP}
-    environment:
-      GZ_PARTITION: "${GZ_PARTITION}"
-      GZ_IP: "${GZ_IP}"
-    command: ["/bin/bash", "-c", "python simulation-gazebo --gz_partition ${GZ_PARTITION} --gz_ip ${GZ_IP} --world drones_world"]
+
 EOF
+
+# gazebo:
+#   image: ${GZ_CONTAINER}
+#   container_name: gazebo_sim
+#   networks:
+#     px4net:
+#       ipv4_address: ${GZ_IP}
+#   environment:
+#     GZ_PARTITION: "${GZ_PARTITION}"
+#     GZ_IP: "${GZ_IP}"
+#   command: ["/bin/bash", "-c", "python simulation-gazebo --model_store /root/.simulation-gazebo --gz_partition ${GZ_PARTITION} --gz_ip ${GZ_IP} --world drones_world"]
 
 # Loop to generate drone containers
 for ((i = START_IP; i <= END_IP; i++)); do
