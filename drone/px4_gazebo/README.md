@@ -67,3 +67,7 @@ GZ_PARTITION=relay GZ_RELAY=192.168.1.1 GZ_IP=192.168.1.101 PX4_GZ_MODEL_POSE="2
 add this line of code to the rcS
 
 - param set-default SENS_IMU_MODE 0
+
+
+## Docker setting
+
