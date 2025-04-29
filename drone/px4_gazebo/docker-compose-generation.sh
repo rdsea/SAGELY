@@ -81,7 +81,7 @@ windows:
       root: /root/PX4-Autopilot
       layout: even-vertical
       panes:
-        - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} ./build/px4_sitl_default/bin/px4
+        - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} ./root/PX4-Autopilot/build/px4_sitl_default/bin/px4
   - ROS_GZ_Image_Bridge:
       root: /root/ws_sensor_combined
       layout: even-vertical
