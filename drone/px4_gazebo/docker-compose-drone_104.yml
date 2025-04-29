@@ -1,0 +1,69 @@
+
+networks:
+  drone_104_net:
+    external: true
+
+  swarm_net:
+    external: true
+
+services:
+  drone_104:
+    image: hongtringuyen/gazbo_px4_ros2:v1 
+    container_name: drone_104
+    networks:
+      swarm_net:
+        ipv4_address: 192.168.132.104
+      drone_104_net:
+        ipv4_address: 192.168.104.1
+    volumes:
+      - ./configs/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+
+  envoy:
+    image: envoyproxy/envoy:v1.23-latest
+    volumes:
+      - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "5200:8000"
+      - "5201:8001"
+    networks:
+      drone_104_net:
+        ipv4_address: 192.168.104.2
+
+  opa:
+    image: openpolicyagent/opa:latest-envoy
+    volumes:
+      - ./opa/policy.rego:/policy/policy.rego
+    command:
+      - run
+      - --server
+      - --log-level=debug
+      - --log-format=json-pretty
+      - --addr=0.0.0.0:8181
+      - --set=plugins.envoy_ext_authz_grpc.addr=:9191
+      - --set=decision_logs.console=true
+      - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+      - /policy/policy.rego
+    ports:
+      - "8181:8181"
+    networks:
+      drone_104_net:
+        ipv4_address: 192.168.104.3
+
+  swarm_104:
+    image: hello-world 
+    container_name: swarm_104
+    networks:
+      swarm_net:
+        ipv4_address: 192.168.132.104
+    volumes:
+      - ./configs/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
