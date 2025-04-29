@@ -73,3 +73,12 @@ add this line of code to the rcS
 
 ## Docker setting
 
+Create a virtual network
+
+```bash
+docker network create --subnet 192.168.132.0/24 px4_net
+```
+
+
+Run simulation
+

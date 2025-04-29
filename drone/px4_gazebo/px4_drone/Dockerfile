@@ -83,7 +83,7 @@ RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 #RUN chmod +x scripts/trigger_request.sh
 
 # generate a yml file to run
-WORKDIR /root/px4_gazebo
+WORKDIR /root/PX4-Autopilot
 
 # # Make script executable
 # RUN chmod +x generate_yaml.sh
