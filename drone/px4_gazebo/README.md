@@ -1,9 +1,11 @@
 # A setting for a gezebo with multi-px4
 
 The most errors from the connection between PX4 and Gazebo
-
+- Ubuntu 22.04
 - PX4 1.5
-- Gazebo 7.9
+- install gazebo via px4/tools/setup
+  - Gazebo 7.9
+  - gz sim (gazebo-garden)
 
 ## Errors
 >

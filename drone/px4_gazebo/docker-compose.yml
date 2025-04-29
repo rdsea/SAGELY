@@ -8,16 +8,6 @@ networks:
         - subnet: 192.168.132.0/24
 
 services:
-  gazebo:
-    image: hongtringuyen/gazebo-simulation-swarm:latest
-    container_name: gazebo_sim
-    networks:
-      px4net:
-        ipv4_address: 192.168.132.1
-    environment:
-      GZ_PARTITION: "relay"
-      GZ_IP: "192.168.132.1"
-    command: ["/bin/bash", "-c", "python simulation-gazebo --model_store /root/.simulation-gazebo --gz_partition relay --gz_ip 192.168.132.1 --world drones_world"]
 
   drone_101:
     image: hongtringuyen/gazbo_px4_ros2:v1 
