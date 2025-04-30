@@ -2,7 +2,7 @@
 
 # Define the base values
 GZ_PARTITION="relay"
-GZ_IP="192.168.132.1"
+GZ_IP="192.168.132.132"
 DRONE_MODEL="gz_x500"
 GZ_CONTAINER=hongtringuyen/gazebo-simulation-swarm:latest
 
