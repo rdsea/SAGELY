@@ -3,9 +3,8 @@ import pygame
 
 def init():
     pygame.init()
-    #win = pygame.display.set_mode((200, 200))
+    # win = pygame.display.set_mode((200, 200))
     pygame.display.set_mode((200, 200))
-
 
 
 def getKey(keyName):

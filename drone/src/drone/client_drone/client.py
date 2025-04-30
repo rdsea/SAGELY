@@ -17,6 +17,7 @@ import requests
 import Event
 import Thread
 import yaml
+
 EDGE_SERVER_NOTIFY_URL = ""
 EDGE_SERVER_HEARTBEAT_URL = ""
 EDGE_SERVER_UPDATE_COUNTER_URL = ""
