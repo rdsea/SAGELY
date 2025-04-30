@@ -42,7 +42,7 @@ services:
         ipv4_address: 192.168.103.3
 
   drone_103:
-    image: hongtringuyen/gazebo_sim_px4 
+    image: gazebo_sim_px4 
     container_name: drone_103
     networks:
       swarm_net:
@@ -55,8 +55,9 @@ services:
       GZ_PARTITION: "relay"
       GZ_IP: "192.168.132.1"
       PX4_MODEL: "gz_x500"
-    #command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
-    command: ["tmuxinator", "start", "px4_ros2_gazebo.yml"]
+    stdin_open: true  # Equivalent to -i in docker run
+    tty: true         # Equivalent to -t in docker run
+    command: ["tmuxinator", "start", "px4_ros2_gazebo"]
 
   swarm_103:
     image: hello-world 
@@ -70,7 +71,7 @@ services:
       GZ_PARTITION: "relay"
       GZ_IP: "192.168.132.1"
       PX4_MODEL: "gz_x500"
-    #command: ["/bin/bash", "-c"] # , "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+    #command: ["sleep", "infinity"]
 
   ros2_103:
     image: ros:humble-ros-base-jammy 
@@ -78,11 +79,11 @@ services:
     networks:
       drone_103_net:
         ipv4_address: 192.168.103.4
-    # volumes:
-    #   - ./configs/drone_103.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    volumes:
+      - ./configs/drone_103.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
     # environment:
     #   GZ_PARTITION: "relay"
     #   GZ_IP: "192.168.132.1"
     #   PX4_MODEL: "gz_x500"
-    command: ["/bin/bash", "-c"] # , "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+    command: ["tmuxinator", "start", "px4_ros2.yml"]
 

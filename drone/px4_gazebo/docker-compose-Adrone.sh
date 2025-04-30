@@ -1,5 +1,7 @@
 #!/bin/bash
-
+# Machine A (PX4 + Micro XRCE-DDS Client) — this runs the client part.
+# Machine B (ROS 2 + Micro XRCE-DDS Agent) — this runs the agent, which connects the XRCE world (PX4) to the DDS world (ROS 2).
+#
 # Base details
 GZ_PARTITION="relay"
 GZ_IP="192.168.132.1"
@@ -9,7 +11,7 @@ END_IP=104
 BASE_IP="192.168."
 SWARM_SUBNET=132
 
-CONTAINER=hongtringuyen/gazebo_sim_px4
+CONTAINER=gazebo_sim_px4
 
 SWARM_CONTAINER=hello-world
 # application services
@@ -115,8 +117,9 @@ services:
       GZ_PARTITION: "${GZ_PARTITION}"
       GZ_IP: "${GZ_IP}"
       PX4_MODEL: "${DRONE_MODEL}"
-    #command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
-    command: ["tmuxinator", "start", "px4_ros2_gazebo.yml"]
+    stdin_open: true  # Equivalent to -i in docker run
+    tty: true         # Equivalent to -t in docker run
+    command: ["tmuxinator", "start", "px4_ros2_gazebo"]
 
   ${SWARM_NAME}:
     image: ${SWARM_CONTAINER} 
@@ -130,7 +133,7 @@ services:
       GZ_PARTITION: "${GZ_PARTITION}"
       GZ_IP: "${GZ_IP}"
       PX4_MODEL: "${DRONE_MODEL}"
-    #command: ["/bin/bash", "-c"] # , "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+    #command: ["sleep", "infinity"]
 
   ${ROS2_NAME}:
     image: ${ROS2_CONTAINER} 
@@ -138,13 +141,13 @@ services:
     networks:
       ${DRONE_NAME}_net:
         ipv4_address: ${BASE_IP}${i}.4
-    # volumes:
-    #   - ./${CONFIG_FILE}:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    volumes:
+      - ./${CONFIG_FILE}:/root/.config/tmuxinator/px4_ros2_gazebo.yml
     # environment:
     #   GZ_PARTITION: "${GZ_PARTITION}"
     #   GZ_IP: "${GZ_IP}"
     #   PX4_MODEL: "${DRONE_MODEL}"
-    command: ["/bin/bash", "-c"] # , "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+    command: ["tmuxinator", "start", "px4_ros2.yml"]
 
 EOF
 
@@ -159,7 +162,7 @@ windows:
       root: /root/Micro-XRCE-DDS-Agent
       layout: even-vertical
       panes:
-        - MicroXRCEAgent udp4 -p 8888
+        - MicroXRCEAgent udp4 -p 8888 # add the ip of ROS2 as DDS agent
   - PX4_Autopilot:
       root: /root/PX4-Autopilot
       layout: even-vertical

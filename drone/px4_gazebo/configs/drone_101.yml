@@ -6,7 +6,7 @@ windows:
       root: /root/Micro-XRCE-DDS-Agent
       layout: even-vertical
       panes:
-        - MicroXRCEAgent udp4 -p 8888
+        - MicroXRCEAgent udp4 -p 8888 # add the ip of ROS2 as DDS agent
   - PX4_Autopilot:
       root: /root/PX4-Autopilot
       layout: even-vertical
