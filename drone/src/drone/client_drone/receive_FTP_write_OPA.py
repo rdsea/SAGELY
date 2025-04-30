@@ -3,7 +3,6 @@ from rclpy.node import Node
 from pymavlink import mavutil
 from std_msgs.msg import String
 import requests
-import json
 
 from pymavlink.dialects.v20 import common as mavlink2
 
@@ -328,11 +327,11 @@ class MAVLinkFTPReceiver(Node):
                 verify_response = requests.get(self.opa_server)
 
                 if verify_response.status_code == 200:
-                    policy_data = (
-                        json.loads(verify_response.content)
-                        .get("result", {})
-                        .get("raw", "")
-                    )
+                    # policy_data = (
+                    #     json.loads(verify_response.content)
+                    #     .get("result", {})
+                    #     .get("raw", "")
+                    # )
                     self.get_logger().info("Policy Uploaded Successfully...")
                     self.send_notification_to_gcs("OPA Upload OK:")
                 else:
