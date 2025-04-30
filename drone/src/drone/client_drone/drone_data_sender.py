@@ -18,6 +18,7 @@ class DroneDataSender(Node):
         self.subscription  # Prevent unused variable warning
 
     def listener_callback(self, msg):
+        server_url = "http://192.168.49.2/endpoint"  # Replace with actual endpoint
         self.get_logger().info(f"Received message: {msg.data}")
         self.send_data_to_server(msg.data, server_url)
 

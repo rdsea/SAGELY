@@ -1,6 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
 import requests
-from typing import List
 
 app = FastAPI()
 

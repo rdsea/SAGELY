@@ -11,6 +11,12 @@ import etcd3
 from pydantic import BaseModel
 from typing import Optional
 import logging
+import Timer
+import os
+import requests
+import Event
+import Thread
+import yaml
 
 EDGE_SERVER_NOTIFY_URL = ""
 EDGE_SERVER_HEARTBEAT_URL = ""
@@ -28,6 +34,7 @@ HEADER = {}
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class SensorPublisher(Node):
     def __init__(self):

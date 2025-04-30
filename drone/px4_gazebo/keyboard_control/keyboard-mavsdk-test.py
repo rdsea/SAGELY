@@ -1,5 +1,4 @@
 import asyncio
-import random
 from mavsdk import System
 import KeyPressModule as kp
 
@@ -65,7 +64,7 @@ async def run_drone():
     print("Waiting for drone to connect...")
     async for state in drone.core.connection_state():
         if state.is_connected:
-            print(f"-- Connected to drone!")
+            print("-- Connected to drone!")
             break
     # Checking if Global Position Estimate is ok
     async for health in drone.telemetry.health():

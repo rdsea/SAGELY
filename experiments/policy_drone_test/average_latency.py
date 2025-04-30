@@ -33,7 +33,7 @@ try:
     # Calculate the average
     if count > 0:
         average_latency = total_sum / count
-        print(f"Average Latency: {average_latency*1000:.4f} seconds")
+        print(f"Average Latency: {average_latency * 1000:.4f} seconds")
         print(f"Error percentage:  {error}%")
     else:
         print("No valid latency values found.")

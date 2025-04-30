@@ -49,11 +49,11 @@ user_roles := {
     num_perms = size_kb * 15  # Adjust based on testing
 
     for i in range(num_users):
-        user_roles_str += f'    "{i}": ["role{i%10}"],\n'
+        user_roles_str += f'    "{i}": ["role{i % 10}"],\n'
 
     for i in range(num_perms):
         role_perms_str += (
-            f'    "role{i%10}": [{{"method": "GET", "path": "/path{i}"}}],\n'
+            f'    "role{i % 10}": [{{"method": "GET", "path": "/path{i}"}}],\n'
         )
 
     role_perms_str += "}\n"

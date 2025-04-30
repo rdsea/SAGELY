@@ -5,17 +5,12 @@
 #
 import rclpy
 from rclpy.node import Node
-from px4_msgs.msg import VehicleCommand
-from pymavlink import mavutil
-from pymavlink.dialects.v20 import common as mavlink2
 
 # import rclpy
 # from rclpy.node import Node
 # from pymavlink import mavutil
 # from pymavlink.dialects.v20 import common as mavlink2
 
-import rclpy
-from rclpy.node import Node
 from std_msgs.msg import Float64
 import random
 
