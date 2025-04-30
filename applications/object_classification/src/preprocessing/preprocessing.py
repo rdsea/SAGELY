@@ -117,7 +117,7 @@ async def processing_image(file: UploadFile, request: Request):
     ensemble_service_url = "http://ensemble-service:5011/ensemble_service/"
     # ensemble_service_url = "http://ensemble-service:5011"
 
-    logging.info(f"{(time.time() - start_time)*1000}")
+    logging.info(f"{(time.time() - start_time) * 1000}")
     image_bytes = processed_image.tobytes()
     request_id = str(uuid4())
     # with tracer.start_as_current_span("preprocessing") as _:

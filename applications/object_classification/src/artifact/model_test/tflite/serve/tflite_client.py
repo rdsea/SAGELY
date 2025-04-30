@@ -19,4 +19,4 @@ if __name__ == "__main__":
             print("Prediction:", response.json())
         else:
             print("Error:", response.json())
-    print(f"Latency: {(avg_time)/N*1000} ms")
+    print(f"Latency: {(avg_time) / N * 1000} ms")
