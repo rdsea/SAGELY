@@ -2,10 +2,8 @@ import asyncio
 import threading
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional
 import aiohttp
 from pymavlink import mavutil
-from threading import Event, Thread, Timer
 
 app = FastAPI()
 

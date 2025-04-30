@@ -1,6 +1,4 @@
 from pymavlink import mavutil
-import time
-import struct
 
 list_uav = ["udpout:130.233.195.221:14560"]
 
