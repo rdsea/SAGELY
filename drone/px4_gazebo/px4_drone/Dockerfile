@@ -99,6 +99,7 @@ WORKDIR /root/PX4-Autopilot
 # Set up tmuxinator
 RUN echo "export PATH=\$PATH:/root/.local/bin" >> /root/.bashrc
 
+RUN mkdir -p /root/.config/tmuxinator/
 # Set default command to start tmuxinator
 #CMD ["tmuxinator", "start", "ros2_px4_gazebo"]
 

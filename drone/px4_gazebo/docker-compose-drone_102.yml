@@ -7,26 +7,12 @@ networks:
     external: true
 
 services:
-  drone_102:
-    image: hongtringuyen/gazbo_px4_ros2:v1 
-    container_name: drone_102
-    networks:
-      swarm_net:
-        ipv4_address: 192.168.132.102
-      drone_102_net:
-        ipv4_address: 192.168.102.1
-    volumes:
-      - ./configs/drone_102.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
-    environment:
-      GZ_PARTITION: "relay"
-      GZ_IP: "192.168.132.1"
-      PX4_MODEL: "gz_x500"
-    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
 
-  envoy:
+  envoy_102:
     image: envoyproxy/envoy:v1.23-latest
+    container_name: envoy_102
     volumes:
-      - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+      - ./envoy/drone_102.yml:/etc/envoy/envoy.yaml
     ports:
       - "5200:8000"
       - "5201:8001"
@@ -34,8 +20,9 @@ services:
       drone_102_net:
         ipv4_address: 192.168.102.2
 
-  opa:
+  opa_102:
     image: openpolicyagent/opa:latest-envoy
+    container_name: opa_102
     volumes:
       - ./opa/policy.rego:/policy/policy.rego
     command:
@@ -54,16 +41,48 @@ services:
       drone_102_net:
         ipv4_address: 192.168.102.3
 
-  swarm_102:
-    image: hello-world 
-    container_name: swarm_102
+  drone_102:
+    image: hongtringuyen/gazebo_sim_px4 
+    container_name: drone_102
     networks:
       swarm_net:
         ipv4_address: 192.168.132.102
+      drone_102_net:
+        ipv4_address: 192.168.102.102
     volumes:
       - ./configs/drone_102.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
     environment:
       GZ_PARTITION: "relay"
       GZ_IP: "192.168.132.1"
       PX4_MODEL: "gz_x500"
-    command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+    #command: ["/bin/bash", "-c", "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+    command: ["tmuxinator", "start", "px4_ros2_gazebo.yml"]
+
+  swarm_102:
+    image: hello-world 
+    container_name: swarm_102
+    networks:
+      swarm_net:
+        ipv4_address: 192.168.132.112
+    volumes:
+      - ./configs/drone_102.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    #command: ["/bin/bash", "-c"] # , "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+
+  ros2_102:
+    image: ros:humble-ros-base-jammy 
+    container_name: ros2_102
+    networks:
+      drone_102_net:
+        ipv4_address: 192.168.102.4
+    # volumes:
+    #   - ./configs/drone_102.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    # environment:
+    #   GZ_PARTITION: "relay"
+    #   GZ_IP: "192.168.132.1"
+    #   PX4_MODEL: "gz_x500"
+    command: ["/bin/bash", "-c"] # , "tmuxinator start -p /root/.config/tmuxinator/px4_ros2_gazebo.yml"]
+
