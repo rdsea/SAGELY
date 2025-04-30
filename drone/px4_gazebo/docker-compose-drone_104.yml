@@ -13,9 +13,9 @@ services:
     container_name: envoy_104
     volumes:
       - ./envoy/drone_104.yml:/etc/envoy/envoy.yaml
-    ports:
-      - "5200:8000"
-      - "5201:8001"
+    # ports:
+    #   - "5200:8000"
+    #   - "5201:8001"
     networks:
       drone_104_net:
         ipv4_address: 192.168.104.2
@@ -35,8 +35,8 @@ services:
       - --set=decision_logs.console=true
       - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
       - /policy/policy.rego
-    ports:
-      - "8181:8181"
+    # ports:
+    #   - "8181:8181"
     networks:
       drone_104_net:
         ipv4_address: 192.168.104.3
