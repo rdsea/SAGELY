@@ -2,9 +2,9 @@
 
 # Define the base values
 GZ_PARTITION="relay"
-GZ_IP="192.168.132.1"
+GZ_IP="192.168.132.132"
 DRONE_MODEL="gz_x500"
-GZ_CONTAINER=hongringuyen/gazebo:lastest
+GZ_CONTAINER=hongtringuyen/gazebo-simulation-swarm:latest
 
 # IP range
 START_IP=101
@@ -28,17 +28,19 @@ networks:
         - subnet: 192.168.132.0/24
 
 services:
-  gazebo:
-    image: ${GZ_CONTAINER}
-    container_name: gazebo_sim
-    networks:
-      px4net:
-        ipv4_address: ${GZ_IP}
-    environment:
-      GZ_PARTITION: "${GZ_PARTITION}"
-      GZ_IP: "${GZ_IP}"
-    command: ["/bin/bash", "-c", "python simulation-gazebo --gz_partition ${GZ_PARTITION} --gz_ip ${GZ_IP} --world drones_world"]
+
 EOF
+
+# gazebo:
+#   image: ${GZ_CONTAINER}
+#   container_name: gazebo_sim
+#   networks:
+#     px4net:
+#       ipv4_address: ${GZ_IP}
+#   environment:
+#     GZ_PARTITION: "${GZ_PARTITION}"
+#     GZ_IP: "${GZ_IP}"
+#   command: ["/bin/bash", "-c", "python simulation-gazebo --model_store /root/.simulation-gazebo --gz_partition ${GZ_PARTITION} --gz_ip ${GZ_IP} --world drones_world"]
 
 # Loop to generate drone containers
 for ((i = START_IP; i <= END_IP; i++)); do
@@ -79,7 +81,7 @@ windows:
       root: /root/PX4-Autopilot
       layout: even-vertical
       panes:
-        - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} ./build/px4_sitl_default/bin/px4
+        - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4
   - ROS_GZ_Image_Bridge:
       root: /root/ws_sensor_combined
       layout: even-vertical

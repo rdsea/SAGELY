@@ -1,9 +1,11 @@
 # A setting for a gezebo with multi-px4
 
 The most errors from the connection between PX4 and Gazebo
-
+- Ubuntu 22.04
 - PX4 1.5
-- Gazebo 7.9
+- install gazebo via px4/tools/setup
+  - Gazebo 7.9
+  - gz sim (gazebo-garden)
 
 ## Errors
 >
@@ -67,3 +69,16 @@ GZ_PARTITION=relay GZ_RELAY=192.168.1.1 GZ_IP=192.168.1.101 PX4_GZ_MODEL_POSE="2
 add this line of code to the rcS
 
 - param set-default SENS_IMU_MODE 0
+
+
+## Docker setting
+
+Create a virtual network
+
+```bash
+docker network create --subnet 192.168.132.0/24 px4_net
+```
+
+
+Run simulation
+

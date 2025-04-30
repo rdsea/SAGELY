@@ -60,7 +60,7 @@ async def manual_control_drone(my_drone):
 
 async def run_drone():
     asyncio.ensure_future(getKeyboardInput(drone))
-    await drone.connect(system_address="udp://:14540")
+    await drone.connect(system_address="udp://:14550")
     # This waits till a mavlink based drone is connected
     print("Waiting for drone to connect...")
     async for state in drone.core.connection_state():

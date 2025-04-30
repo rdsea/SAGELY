@@ -65,6 +65,14 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
     git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
     /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_sensor_combined && colcon build"
 
+
+# RUN pip install requests etcd3 pydantic
+# Build the workspace
+# RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
+# RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
+RUN echo "source /root/ws_sensor_combined/install/setup.bash" >> /root/.bashrc && \
+    echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc 
+
 # ROS2 tasks --  Create and build workspace
 RUN mkdir -p /root/drone/src/data
 
@@ -74,16 +82,13 @@ COPY . /root/drone/src/object_classification
 # # Set the working directory
 WORKDIR /root/drone/src/object_classification
 
-# RUN pip install requests etcd3 pydantic
-# Build the workspace
-RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
-RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
+RUN colcon build
 
 # etcd3 -- skip from now
 #RUN chmod +x scripts/trigger_request.sh
 
 # generate a yml file to run
-WORKDIR /root/px4_gazebo
+WORKDIR /root/PX4-Autopilot
 
 # # Make script executable
 # RUN chmod +x generate_yaml.sh
@@ -94,7 +99,8 @@ WORKDIR /root/px4_gazebo
 # Set up tmuxinator
 RUN echo "export PATH=\$PATH:/root/.local/bin" >> /root/.bashrc
 
+RUN mkdir -p /root/.config/tmuxinator/
 # Set default command to start tmuxinator
-#CMD ["tmuxinator", "start", "ros2_px4_gazebo"]
+CMD ["tmuxinator", "start", "ros2_px4_gazebo"]
 
-ENTRYPOINT ["/bin/bash", "-c"]
+#ENTRYPOINT ["/bin/bash", "-c"]

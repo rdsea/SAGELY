@@ -1,0 +1,89 @@
+
+networks:
+  drone_101_net:
+    external: true
+
+  swarm_net:
+    external: true
+
+services:
+
+  envoy_101:
+    image: envoyproxy/envoy:v1.23-latest
+    container_name: envoy_101
+    volumes:
+      - ./envoy/drone_101.yml:/etc/envoy/envoy.yaml
+    # ports:
+    #   - "5200:8000"
+    #   - "5201:8001"
+    networks:
+      drone_101_net:
+        ipv4_address: 192.168.101.2
+
+  opa_101:
+    image: openpolicyagent/opa:latest-envoy
+    container_name: opa_101
+    volumes:
+      - ./opa/policy.rego:/policy/policy.rego
+    command:
+      - run
+      - --server
+      - --log-level=debug
+      - --log-format=json-pretty
+      - --addr=0.0.0.0:8181
+      - --set=plugins.envoy_ext_authz_grpc.addr=:9191
+      - --set=decision_logs.console=true
+      - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+      - /policy/policy.rego
+    # ports:
+    #   - "8181:8181"
+    networks:
+      drone_101_net:
+        ipv4_address: 192.168.101.3
+
+  drone_101:
+    image: gazebo_sim_px4 
+    container_name: drone_101
+    networks:
+      swarm_net:
+        ipv4_address: 192.168.132.101
+      drone_101_net:
+        ipv4_address: 192.168.101.101
+    volumes:
+      - ./configs/drone_101.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    stdin_open: true  # Equivalent to -i in docker run
+    tty: true         # Equivalent to -t in docker run
+    command: ["tmuxinator", "start", "px4_ros2_gazebo"]
+
+  swarm_101:
+    image: hello-world 
+    container_name: swarm_101
+    networks:
+      swarm_net:
+        ipv4_address: 192.168.132.111
+    volumes:
+      - ./configs/drone_101.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    environment:
+      GZ_PARTITION: "relay"
+      GZ_IP: "192.168.132.1"
+      PX4_MODEL: "gz_x500"
+    #command: ["sleep", "infinity"]
+
+  ros2_101:
+    image: ros:humble-ros-base-jammy 
+    container_name: ros2_101
+    networks:
+      drone_101_net:
+        ipv4_address: 192.168.101.4
+    volumes:
+      - ./configs/drone_101.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+    # environment:
+    #   GZ_PARTITION: "relay"
+    #   GZ_IP: "192.168.132.1"
+    #   PX4_MODEL: "gz_x500"
+    command: ["tmuxinator", "start", "px4_ros2.yml"]
+

@@ -6,12 +6,12 @@ windows:
       root: /root/Micro-XRCE-DDS-Agent
       layout: even-vertical
       panes:
-        - MicroXRCEAgent udp4 -p 8888
+        - MicroXRCEAgent udp4 -p 8888 # add the ip of ROS2 as DDS agent
   - PX4_Autopilot:
       root: /root/PX4-Autopilot
       layout: even-vertical
       panes:
-        - sleep 3 && GZ_PARTITION=relay GZ_RELAY=192.168.132.1 GZ_IP=192.168.132.101 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4
+      - sleep 3 && GZ_PARTITION=relay GZ_RELAY=192.168.132.1 GZ_IP=192.168.132.101 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i 1
   - ROS_GZ_Image_Bridge:
       root: /root/ws_sensor_combined
       layout: even-vertical
