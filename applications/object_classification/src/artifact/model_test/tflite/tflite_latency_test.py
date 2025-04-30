@@ -30,4 +30,4 @@ for dir in dir_list:
         output_data = interpreter.get_tensor(output_details[0]["index"])
         avg_time += time.time() - start_time
 
-    print(f"{dir} runtime: {(avg_time / N)*1000}ms")
+    print(f"{dir} runtime: {(avg_time / N) * 1000}ms")
