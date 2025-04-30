@@ -294,8 +294,3 @@ while True:
             print(f"Received MAVLink message: {msg_type}")
 ```
 
-# GCS
-
-```bash
-pip install mavsdk
-```

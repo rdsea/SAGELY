@@ -1,0 +1,7 @@
+gz_partition_name: relay
+gz_ip: 192.168.132.1
+drone_ip: 192.168.132.101 - 192.168.132.104
+drone_model: gz_x500
+world_model: drones_world
+# GZ_PARTITION=relay GZ_RELAY=192.168.1.1 GZ_IP=192.168.1.101 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 PX4_GZ_WORLD=default_drone ./build/px4_sitl_default/bin/px4 -i 1
+
