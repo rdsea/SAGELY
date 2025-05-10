@@ -12,7 +12,7 @@ services:
     image: envoyproxy/envoy:v1.23-latest
     container_name: envoy_104
     volumes:
-      - ./envoy/drone_104.yml:/etc/envoy/envoy.yaml
+      - ./envoy_config/drone_104.yml:/etc/envoy/envoy.yaml
     # ports:
     #   - "5200:8000"
     #   - "5201:8001"
@@ -42,7 +42,7 @@ services:
         ipv4_address: 192.168.104.3
 
   drone_104:
-    image: gazebo_sim_px4 
+    image: gazebo_sim_px4_ros2 
     container_name: drone_104
     networks:
       swarm_net:
@@ -50,7 +50,7 @@ services:
       drone_104_net:
         ipv4_address: 192.168.104.104
     volumes:
-      - ./configs/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+      - ./tmuxinator_config/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
     environment:
       GZ_PARTITION: "relay"
       GZ_IP: "192.168.132.1"
@@ -66,7 +66,7 @@ services:
       swarm_net:
         ipv4_address: 192.168.132.114
     volumes:
-      - ./configs/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+      - ./tmuxinator_config/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
     environment:
       GZ_PARTITION: "relay"
       GZ_IP: "192.168.132.1"
@@ -80,7 +80,7 @@ services:
       drone_104_net:
         ipv4_address: 192.168.104.4
     volumes:
-      - ./configs/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+      - ./tmuxinator_config/drone_104.yml:/root/.config/tmuxinator/px4_ros2_gazebo.yml
     # environment:
     #   GZ_PARTITION: "relay"
     #   GZ_IP: "192.168.132.1"

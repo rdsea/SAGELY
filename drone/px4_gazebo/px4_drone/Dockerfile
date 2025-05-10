@@ -73,32 +73,23 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
 RUN echo "source /root/ws_sensor_combined/install/setup.bash" >> /root/.bashrc && \
     echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc 
 
+RUN echo "export PATH=\$PATH:/root/.local/bin" >> /root/.bashrc
+
 # ROS2 tasks --  Create and build workspace
 RUN mkdir -p /root/drone/src/data
 
 # # Copy the package into the workspace
-COPY . /root/drone/src/object_classification
+#COPY . /root/drone/src/ros2
 
 # # Set the working directory
-WORKDIR /root/drone/src/object_classification
+WORKDIR /root/ros2
 
 RUN colcon build
 
 # etcd3 -- skip from now
 #RUN chmod +x scripts/trigger_request.sh
 
-# generate a yml file to run
-WORKDIR /root/PX4-Autopilot
-
-# # Make script executable
-# RUN chmod +x generate_yaml.sh
-#
-# # Generate YAML at build time
-# RUN ./generate_yaml.sh
-
-# Set up tmuxinator
-RUN echo "export PATH=\$PATH:/root/.local/bin" >> /root/.bashrc
-
+# setup tmuxinator
 RUN mkdir -p /root/.config/tmuxinator/
 # Set default command to start tmuxinator
 CMD ["tmuxinator", "start", "ros2_px4_gazebo"]

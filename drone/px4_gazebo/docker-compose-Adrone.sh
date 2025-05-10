@@ -8,10 +8,11 @@ GZ_IP="192.168.132.1"
 DRONE_MODEL="gz_x500"
 START_IP=101
 END_IP=104
+
 BASE_IP="192.168."
 SWARM_SUBNET=132
 
-CONTAINER=gazebo_sim_px4
+CONTAINER=gazebo_sim_px4_ros2
 
 SWARM_CONTAINER=hello-world
 # application services
@@ -41,14 +42,30 @@ for ((i = START_IP; i <= END_IP; i++)); do
   SWARM_NAME="swarm_${i}"
   ROS2_NAME="ros2_${i}"
 
+  offset=$((i - START_IP))
+  #echo "$offset"
+  # x=$(echo "268.08 + $offset * 2" | awk '{printf "%.2f", $1}')
+  # y=$(echo "-128.22 + $offset * 2" | awk '{printf "%.2f", $1}')
+  # Let awk do the math directly
+  x=$(awk -v o="$offset" 'BEGIN { printf "%.2f", 268.08 + (o * 2) }')
+  y=$(awk -v o="$offset" 'BEGIN { printf "%.2f", -128.22 + (o * 2) }')
+
+  z=3.86
+  roll=0.00
+  pitch=0
+  yaw=-0.7
+
+  PX4_GZ_MODEL_POSE="$x,$y,$z,$roll,$pitch,$yaw"
+  #PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7"
+
   DRONE_IP="${BASE_IP}${SWARM_SUBNET}.${i}"
   SWARM_IP="${BASE_IP}${SWARM_SUBNET}.$((i + 10))"
 
   COMPOSE_FILE="docker-compose-${DRONE_NAME}.yml"
-  CONFIG_FILE="configs/${DRONE_NAME}.yml"
+  CONFIG_FILE="tmuxinator_config/${DRONE_NAME}.yml"
 
-  ENVOY_FILE="./envoy/${DRONE_NAME}.yml"
-  ENVOY_CONFIG="./envoy/config.yaml"
+  ENVOY_FILE="./envoy_config/${DRONE_NAME}.yml"
+  ENVOY_CONFIG="./envoy_config/config.yaml"
 
   echo "docker network create --driver bridge --subnet \"${BASE_IP}${i}.0/24\" \"${DRONE_NAME}_net\""
 
@@ -157,7 +174,7 @@ services:
 EOF
 
   # Generate unique config files for each drone
-  mkdir -p configs
+  mkdir -p tmuxinator_config
   cat <<EOF >${CONFIG_FILE}
 name: px4_ros2_gazebo
 root: /root
@@ -182,7 +199,7 @@ EOF
 
   echo "Generated ${COMPOSE_FILE} and ${CONFIG_FILE}"
 
-  mkdir -p envoy
+  mkdir -p envoy_config
   cat <<EOF >${ENVOY_FILE}
 static_resources:
   listeners:
@@ -321,4 +338,4 @@ layered_runtime:
 EOF
 done
 
-echo "Generated all docker-compose files and configuration files in ./configs/"
+echo "Generated all docker-compose files and configuration files in ./tmuxinator_config/"
