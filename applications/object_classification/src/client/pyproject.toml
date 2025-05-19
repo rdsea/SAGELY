@@ -5,6 +5,7 @@ dependencies = [
     "pillow>=11.0.0",
     "PyYAML",
     "aiohttp>=3.11.11",
+    "locust>=2.33.0",
 ]
 name = "client"
 version = "0.1.0"

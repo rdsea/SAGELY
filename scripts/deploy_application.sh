@@ -14,6 +14,8 @@ git clone git@github.com:rdsea/holisticPolicy.git
 
 cd holisticPolicy || exit
 
+git checkout experiments
+
 # deploy JAEGER
 kubectl apply -f src/holistic_policy/k8s_deployment/monitoring/jaeger_istio.yml
 
