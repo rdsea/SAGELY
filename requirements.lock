@@ -340,7 +340,6 @@ pytest-rerunfailures==15.0
 python-dateutil==2.9.0.post0
     # via catkin-pkg
     # via kubernetes
-    # via pandas
 python-dotenv==1.0.1
     # via uvicorn
 python-multipart==0.0.20

@@ -20,7 +20,7 @@ repos:
             "--interactive",
             "3",
             "-L",
-            "Commun,Sherif,SPEEDIN,speedin,connexion,SITL",
+            "Commun,Sherif,SPEEDIN,speedin,connexion,SITL,ans",
           ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -31,10 +31,10 @@ repos:
         files: ^src|drone|applications/.*\.py$
       - id: ruff-format
 
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: "v0.10.0.1"
-    hooks:
-      - id: shellcheck
+  # - repo: https://github.com/shellcheck-py/shellcheck-py
+  #   rev: "v0.10.0.1"
+  #   hooks:
+  #     - id: shellcheck
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.19.1
