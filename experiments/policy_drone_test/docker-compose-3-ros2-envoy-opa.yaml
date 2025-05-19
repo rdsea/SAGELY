@@ -1,0 +1,208 @@
+services:
+  drone0:
+    image: hongtringuyen/drone_ros2
+    container_name: drone0
+    network_mode: host
+    stdin_open: true
+    tty: true
+    #volumes:
+    # - /u/42/nguyent141/unix/Public/git/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images
+    command: ["/bin/bash"]
+    #command: ["../scripts/entrypoint_etcd.sh 0"]
+    ports:
+      - "14560:14560/udp"
+      - "14551:14551/udp"
+      #- "14550:14550/udp"
+
+  envoy0:
+    image: envoyproxy/envoy:v1.23-latest
+    container_name: envoy0
+    volumes:
+      - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "5200:8000"
+      - "5201:8001"
+
+  opa0:
+    image: openpolicyagent/opa:latest-envoy
+    container_name: opa0
+    volumes:
+      - ./opa/policy.rego:/policy/policy.rego
+    command:
+      - run
+      - --server
+      - --log-level=debug
+      - --log-format=json-pretty
+      - --addr=0.0.0.0:8181
+      - --set=plugins.envoy_ext_authz_grpc.addr=:9191
+      - --set=decision_logs.console=true
+      - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+      - /policy/policy.rego
+    ports:
+      - "8181:8181"
+
+  drone1:
+    image: hongtringuyen/drone_ros2
+    container_name: drone1
+    network_mode: host
+    stdin_open: true
+    tty: true
+    #volumes:
+    # - /u/42/nguyent141/unix/Public/git/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images
+    command: ["/bin/bash"]
+    #command: ["../scripts/entrypoint_etcd.sh 1"]
+    ports:
+      - "14561:14561/udp"
+      - "14570:14570/udp"
+
+  envoy1:
+    image: envoyproxy/envoy:v1.23-latest
+    container_name: envoy1
+    volumes:
+      - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "5202:8000"
+      - "5203:8001"
+
+  opa1:
+    image: openpolicyagent/opa:latest-envoy
+    container_name: opa1
+    volumes:
+      - ./opa/policy.rego:/policy/policy.rego
+    command:
+      - run
+      - --server
+      - --log-level=debug
+      - --log-format=json-pretty
+      - --addr=0.0.0.0:8182
+      - --set=plugins.envoy_ext_authz_grpc.addr=:9192
+      - --set=decision_logs.console=true
+      - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+      - /policy/policy.rego
+    ports:
+      - "8182:8181"
+
+  drone2:
+    image: hongtringuyen/drone_ros2
+    container_name: drone2
+    network_mode: host
+    stdin_open: true
+    tty: true
+    #volumes:
+    # - /u/42/nguyent141/unix/Public/git/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images
+    command: ["/bin/bash"]
+    #command: ["../scripts/entrypoint_etcd.sh 2"]
+    ports:
+      - "14571:14571/udp"
+      - "14580:14580/udp"
+
+  envoy2:
+    image: envoyproxy/envoy:v1.23-latest
+    container_name: envoy2
+    volumes:
+      - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "5204:8000"
+      - "5205:8001"
+
+  opa2:
+    image: openpolicyagent/opa:latest-envoy
+    container_name: opa2
+    volumes:
+      - ./opa/policy.rego:/policy/policy.rego
+    command:
+      - run
+      - --server
+      - --log-level=debug
+      - --log-format=json-pretty
+      - --addr=0.0.0.0:8183
+      - --set=plugins.envoy_ext_authz_grpc.addr=:9193
+      - --set=decision_logs.console=true
+      - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+      - /policy/policy.rego
+    ports:
+      - "8183:8181"
+
+  # drone3:
+  #   image: hongtringuyen/drone_ros2
+  #   container_name: drone3
+  #   network_mode: host
+  #   stdin_open: true
+  #   tty: true
+  #   #volumes:
+  #   # - /u/42/nguyent141/unix/Public/git/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images
+  #   command: ["/bin/bash"]
+  #   #command: ["../scripts/entrypoint_etcd.sh 3"]
+  #   ports:
+  #     - "14563:14560/udp"
+  #     - "14554:14551/udp"
+  #     - "14553:14550/udp"
+  #
+  # envoy3:
+  #   image: envoyproxy/envoy:v1.23-latest
+  #   container_name: envoy3
+  #   volumes:
+  #     - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+  #   ports:
+  #     - "5206:8000"
+  #     - "5207:8001"
+  #
+  # opa3:
+  #   image: openpolicyagent/opa:latest-envoy
+  #   container_name: opa3
+  #   volumes:
+  #     - ./opa/policy.rego:/policy/policy.rego
+  #   command:
+  #     - run
+  #     - --server
+  #     - --log-level=debug
+  #     - --log-format=json-pretty
+  #     - --addr=0.0.0.0:8184
+  #     - --set=plugins.envoy_ext_authz_grpc.addr=:9194
+  #     - --set=decision_logs.console=true
+  #     - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+  #     - /policy/policy.rego
+  #   ports:
+  #     - "8184:8181"
+  #
+  # drone4:
+  #   image: hongtringuyen/drone_ros2
+  #   container_name: drone4
+  #   network_mode: host
+  #   stdin_open: true
+  #   tty: true
+  #   #volumes:
+  #   # - /u/42/nguyent141/unix/Public/git/holisticPolicy/object_classification/src/artifact/dataset/imagenet/data/val_images:/root/drone/src/data/val_images
+  #   command: ["/bin/bash"]
+  #   #command: ["../scripts/entrypoint_etcd.sh 4"]
+  #   ports:
+  #     - "14564:14560/udp"
+  #     - "14555:14551/udp"
+  #     - "14554:14550/udp"
+  #
+  # envoy4:
+  #   image: envoyproxy/envoy:v1.23-latest
+  #   container_name: envoy4
+  #   volumes:
+  #     - ./envoy/config.yaml:/etc/envoy/envoy.yaml
+  #   ports:
+  #     - "5208:8000"
+  #     - "5209:8001"
+  #
+  # opa4:
+  #   image: openpolicyagent/opa:latest-envoy
+  #   container_name: opa4
+  #   volumes:
+  #     - ./opa/policy.rego:/policy/policy.rego
+  #   command:
+  #     - run
+  #     - --server
+  #     - --log-level=debug
+  #     - --log-format=json-pretty
+  #     - --addr=0.0.0.0:8185
+  #     - --set=plugins.envoy_ext_authz_grpc.addr=:9195
+  #     - --set=decision_logs.console=true
+  #     - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+  #     - /policy/policy.rego
+  #   ports:
+  #     - "8185:8181"

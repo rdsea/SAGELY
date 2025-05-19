@@ -1,16 +1,22 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-import requests
-import yaml
-import os
-from threading import Timer, Thread, Event
+from std_msgs.msg import Float32
 import random
+
 import time
 import etcd3
 
 from pydantic import BaseModel
 from typing import Optional
 import logging
+import Timer
+import os
+import requests
+import Event
+import Thread
+import yaml
 
 EDGE_SERVER_NOTIFY_URL = ""
 EDGE_SERVER_HEARTBEAT_URL = ""
@@ -30,8 +36,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class ClientNode(Node):
+class SensorPublisher(Node):
     def __init__(self):
+        super().__init__("sensor_publisher")
+        self.publisher_ = self.create_publisher(Float32, "sensor_data", 10)
+        timer_period = 1.0  # seconds
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+
+    def timer_callback(self):
+        msg = Float32()
+        msg.data = random.uniform(0.0, 100.0)
+        self.publisher_.publish(msg)
+        self.get_logger().info(f"Publishing: {msg.data}")
         super().__init__("client_node")
         self.declare_parameter("yaml_file", "client_config.yaml")  # Default YAML file
         self.declare_parameter("drone_id", "")
@@ -513,12 +529,9 @@ def main_send_request(url, group_id, node_id, req_rate, ds_path):
 
 def main(args=None):
     rclpy.init(args=args)
-
-    client_node = ClientNode()
-    # client_node.main_send_request()
-    client_node.main()
-
-    client_node.destroy_node()
+    sensor_publisher = SensorPublisher()
+    rclpy.spin(sensor_publisher)
+    sensor_publisher.destroy_node()
     rclpy.shutdown()
 
 

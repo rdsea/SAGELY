@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ..
+
 cd ./applications/object_classification/src/ensemble/ || exit
 ./docker_build.sh
 cd ../../../..

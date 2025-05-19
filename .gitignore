@@ -2,6 +2,7 @@ ROS_sim/server_testing
 
 *.pyc
 *.lock
+*.csv
 
 ROS_sim/src/py_srvcli2/*
 ROS_sim/build/*
@@ -19,10 +20,10 @@ policy_update/istio-opa/draft/*
 policy_update/rego_git/*
 
 src/holistic_policy/k8s_deployment/setting
+src/holistic_policy/applications/object_classification/artifact/*
 
 */image/*
 object_classification/src/artifact/dataset/*
-*.csv
 *.onnx
 *.JPEG
 
