@@ -41,11 +41,16 @@ WORKDIR /root
 COPY . /root
 
 # Install PX4
-RUN cd /root && \
-  git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
-  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
-  cp ./px4-rc.mavlink PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/ && \
-  cd PX4-Autopilot && \
+WORKDIR /root
+RUN git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive
+
+COPY px4-rc.mavlink /root/PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/
+
+WORKDIR /root/PX4-Autopilot
+
+RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  bash ./Tools/setup/ubuntu.sh && \
   PX4_GZ_STANDALONE=1 make px4_sitl
 
 # Setup Micro XRCE-DDS Agent & Client
