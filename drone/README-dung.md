@@ -77,3 +77,13 @@ bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
 ```bash
 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 make px4_sitl gz_x500
 ```
+
+## Drone show
+
+1. Create drone in each docker instance with `startup_sitl.sh`
+
+- Change `MAV_SYS_ID`
+
+- Set position with respect to `config.csv`
+
+2. Coordination using `coordination.py`
