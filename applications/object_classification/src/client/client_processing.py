@@ -50,7 +50,7 @@ async def send_request(url, jpeg_images_list, requesting_interval, device_id):
                 async with session.post(
                     url, data=form_data, headers=headers, timeout=300
                 ) as response:
-                    json_response = await response.json()
+                    json_response = await response.json(content_type=None)
                     if response.status == 200:
                         print(
                             json_response, synset_id, (time.time() - start_time) * 1000
@@ -90,7 +90,7 @@ async def main():
         help="Request URL",
         # default="http://localhost:5010/preprocessing",
         # default="http://192.168.49.2/preprocessing-gateway",  # with istio working
-        default="http://192.168.49.2:80/preprocessing",  # with istio working
+        default="http://172.18.255.200:80/preprocessing/",  # with istio working
     )
 
     args = parser.parse_args()

@@ -109,7 +109,7 @@ async def process_image_task(image_data: bytes, request_id: str, headers):
                 results.append(await task)
             # print(results)
             # NOTE: this doesn't return yet
-            print(chosen_ensemble_function(results, request_id))
+            # print(chosen_ensemble_function(results, request_id))
 
     else:
         raise RuntimeError("No inference service url")

@@ -147,7 +147,7 @@ async def processing_image(file: UploadFile, request: Request):
 
     try:
         async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=60)
+            timeout=aiohttp.ClientTimeout(total=10)
         ) as session:
             logging.info(ensemble_service_url)
             async with session.post(
