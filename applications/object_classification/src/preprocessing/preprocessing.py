@@ -96,7 +96,7 @@ def validate_image_type(content_type: Union[str, None]):
         )
 
 
-@app.post("/preprocessing/")
+@app.post("/preprocessing")
 async def processing_image(file: UploadFile, request: Request):
     logging.info(request.headers)
     print("from preprocessing")
@@ -114,36 +114,18 @@ async def processing_image(file: UploadFile, request: Request):
         processed_image = image
 
     start_time = time.time()
-    ensemble_service_url = "http://ensemble-service:5011/ensemble_service/"
-    # ensemble_service_url = "http://ensemble-service:5011"
+    ensemble_service_url = (
+        "http://ensemble-service.default.svc.cluster.local:5011/ensemble_service"
+    )
 
     logging.info(f"{(time.time() - start_time) * 1000}")
     image_bytes = processed_image.tobytes()
     request_id = str(uuid4())
-    # with tracer.start_as_current_span("preprocessing") as _:
-    #     ctx = baggage.set_baggage("request_id", request_id)
-    #
-    #     headers = {}
-    #     W3CBaggagePropagator().inject(headers, ctx)
-    #     TraceContextTextMapPropagator().inject(headers, ctx)
 
-    # response_time = meter.create_counter(
-    #     "work.counter", unit="1", description="Counts the amount of work done"
-    # )
-    # async with aiohttp.ClientSession() as session:
-    #     logging.info(ensemble_service_url)
-    #
-    #     async with session.post(
-    #         ensemble_service_url,
-    #         data=image_bytes,
-    #         params={"request_id": request_id},
-    #     ) as response:
-    #         if response.status != 200:
-    #             raise HTTPException(
-    #                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #                 detail=f"Failed to send image to ensemble service. Status code: {response.status}",
-    #             )
-    #         _ = await response.json()
+    headers = {
+        "Content-Type": "application/octet-stream",
+        "Content-Length": str(len(image_bytes)),
+    }
 
     try:
         async with aiohttp.ClientSession(
@@ -151,7 +133,7 @@ async def processing_image(file: UploadFile, request: Request):
         ) as session:
             logging.info(ensemble_service_url)
             async with session.post(
-                headers=request.headers,
+                headers=headers,
                 url=ensemble_service_url,
                 data=image_bytes,
                 params={"request_id": request_id},
@@ -181,7 +163,6 @@ async def processing_image(file: UploadFile, request: Request):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred.",
         )
-    return "File accepted"
 
 
 if os.environ.get("MANUAL_DEBUG"):
