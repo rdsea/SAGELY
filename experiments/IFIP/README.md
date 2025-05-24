@@ -2,6 +2,12 @@
 
 ## Cilium
 
+- If using k3s, remember to set up cilium with this as k3s default podCIDR is 10.42.0.0/16
+
+```bash
+cilium install --version 1.17.4 --set=ipam.operator.clusterPoolIPv4PodCIDRList="10.42.0.0/16"
+```
+
 - Remember to set up the gateway API for the k8s cluster first [source](https://gateway-api.sigs.k8s.io/guides/):
 
 ```bash

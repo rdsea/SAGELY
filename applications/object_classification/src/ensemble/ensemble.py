@@ -51,6 +51,21 @@ app = FastAPI()
 app.state.config = config
 
 
+def get_inference_service_url(ensemble_chosen: list[str]):
+    return [f"http://{item.lower()}-service:5012/inference" for item in ensemble_chosen]
+
+
+def get_inference_service_url_docker(ensemble_chosen: list[str]):
+    return [f"http://{item.lower()}:5012/inference" for item in ensemble_chosen]
+
+
+INFERENCE_SERVICE_URLS = get_inference_service_url(app.state.config["ensemble"])
+if os.environ.get("DOCKER"):
+    INFERENCE_SERVICE_URLS = get_inference_service_url_docker(
+        app.state.config["ensemble"]
+    )
+
+
 async def send_post_request(
     session: aiohttp.ClientSession, url: str, image_data: bytes, headers
 ):
@@ -75,31 +90,25 @@ async def send_post_request(
     #     )
 
 
-def get_inference_service_url(ensemble_chosen: list[str]):
-    return [f"http://{item.lower()}-service:5012/inference" for item in ensemble_chosen]
-
-
 async def process_image_task(image_data: bytes, request_id: str, headers):
     # Combine headers with the 'Accept' header
     # headers = dict(headers)
     # headers['Accept'] = 'application/json'
 
     # current_span = trace.get_current_span()
-    ensemble = app.state.config["ensemble"]
     # chosen_ensemble_function = getattr(
     #     ensemble_function,
     #     app.state.config["aggregating"]["aggregating_func"]["func_name"],
     # )
-    list_service_url = get_inference_service_url(ensemble)
-    logging.info(f"List service url: {list_service_url}")
+    logging.info(f"List service url: {INFERENCE_SERVICE_URLS}")
 
-    if list_service_url:
+    if INFERENCE_SERVICE_URLS:
         async with aiohttp.ClientSession(trust_env=True) as session:
             tasks = [
                 asyncio.create_task(
                     send_post_request(session, url, image_data, headers)
                 )
-                for url in list_service_url
+                for url in INFERENCE_SERVICE_URLS
             ]
             done, _ = await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
 
@@ -138,6 +147,10 @@ async def change_requirement(configuration: Annotated[dict, Form()]):
     try:
         async with config_lock:
             app.state.config = configuration
+            global INFERENCE_SERVICE_URLS
+            INFERENCE_SERVICE_URLS = get_inference_service_url(
+                app.state.config["ensemble"]
+            )
             response = f"Change ensemble to: {configuration} successfully"
             return JSONResponse(content={"response": response}, status_code=200)
     except Exception as e:

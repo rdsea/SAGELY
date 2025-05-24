@@ -38,6 +38,11 @@ if os.environ.get("MANUAL_DEBUG"):
 
     tracer = trace.get_tracer(__name__)
 
+ENSEMBLE_SERVICE_URL = (
+    "http://ensemble-service.default.svc.cluster.local:5011/ensemble_service"
+)
+if os.environ.get("DOCKER"):
+    ENSEMBLE_SERVICE_URL = "http://ensemble:5011/ensemble_service"
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 util_directory = os.path.join(current_directory, "..", "util")
@@ -114,9 +119,6 @@ async def processing_image(file: UploadFile, request: Request):
         processed_image = image
 
     start_time = time.time()
-    ensemble_service_url = (
-        "http://ensemble-service.default.svc.cluster.local:5011/ensemble_service"
-    )
 
     logging.info(f"{(time.time() - start_time) * 1000}")
     image_bytes = processed_image.tobytes()
@@ -131,10 +133,10 @@ async def processing_image(file: UploadFile, request: Request):
         async with aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=10)
         ) as session:
-            logging.info(ensemble_service_url)
+            logging.info(ENSEMBLE_SERVICE_URL)
             async with session.post(
                 headers=headers,
-                url=ensemble_service_url,
+                url=ENSEMBLE_SERVICE_URL,
                 data=image_bytes,
                 params={"request_id": request_id},
             ) as response:

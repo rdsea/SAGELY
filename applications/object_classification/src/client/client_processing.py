@@ -14,10 +14,7 @@ group_id = "0"
 credentials = f"{username}:{group_id}"
 # encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
-headers = {
-    "Host": "object-classification.test.com",
-    "Authorization": f"Basic {credentials}",
-}
+headers = {}
 
 
 async def send_request(url, jpeg_images_list, requesting_interval, device_id):
@@ -47,9 +44,7 @@ async def send_request(url, jpeg_images_list, requesting_interval, device_id):
                 # form_data.add_field("device_id", device_id)
                 # headers = {"Host": "object-classification.test.com"}
                 print(f"Sending request at {start_time}")
-                async with session.post(
-                    url, data=form_data, headers=headers, timeout=300
-                ) as response:
+                async with session.post(url, data=form_data, timeout=300) as response:
                     json_response = await response.json(content_type=None)
                     if response.status == 200:
                         print(
@@ -90,7 +85,7 @@ async def main():
         help="Request URL",
         # default="http://localhost:5010/preprocessing",
         # default="http://192.168.49.2/preprocessing-gateway",  # with istio working
-        default="http://172.18.255.200:80/preprocessing/",  # with istio working
+        default="http://localhost:5010/preprocessing",  # with istio working
     )
 
     args = parser.parse_args()
