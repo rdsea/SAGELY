@@ -1,21 +1,23 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import sys
 from typing import Annotated
 
+import aio_pika
 import aiohttp
 from fastapi import BackgroundTasks, FastAPI, Form, Request
 from fastapi.responses import JSONResponse
 
+import ensemble_function
+
 if os.environ.get("MANUAL_TRACING"):
     from opentelemetry import trace
-
     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
-
     from opentelemetry.sdk.resources import SERVICE_NAME, Resource
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -91,36 +93,49 @@ async def send_post_request(
 
 
 async def process_image_task(image_data: bytes, request_id: str, headers):
-    # Combine headers with the 'Accept' header
-    # headers = dict(headers)
-    # headers['Accept'] = 'application/json'
-
-    # current_span = trace.get_current_span()
-    # chosen_ensemble_function = getattr(
-    #     ensemble_function,
-    #     app.state.config["aggregating"]["aggregating_func"]["func_name"],
-    # )
+    chosen_ensemble_function = getattr(
+        ensemble_function,
+        app.state.config["aggregating"]["aggregating_func"]["func_name"],
+    )
     logging.info(f"List service url: {INFERENCE_SERVICE_URLS}")
 
-    if INFERENCE_SERVICE_URLS:
-        async with aiohttp.ClientSession(trust_env=True) as session:
-            tasks = [
-                asyncio.create_task(
-                    send_post_request(session, url, image_data, headers)
-                )
-                for url in INFERENCE_SERVICE_URLS
-            ]
-            done, _ = await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
-
-            results = []
-            for task in done:
-                results.append(await task)
-            # print(results)
-            # NOTE: this doesn't return yet
-            # print(chosen_ensemble_function(results, request_id))
-
-    else:
+    if not INFERENCE_SERVICE_URLS:
         raise RuntimeError("No inference service url")
+
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        tasks = [
+            asyncio.create_task(send_post_request(session, url, image_data, headers))
+            for url in INFERENCE_SERVICE_URLS
+        ]
+        done, _ = await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
+
+        results = []
+        for task in done:
+            results.append(await task)
+
+        # Run ensemble function on the results
+        final_result = chosen_ensemble_function(results, request_id)
+        logging.info(f"Ensembled result: {final_result}")
+
+        # Connect to RabbitMQ and send the final result
+        rabbitmq_url = app.state.config["rabbitmq"]["url"]  # Example config
+        queue_name = app.state.config["rabbitmq"]["queue_name"]
+
+        connection = await aio_pika.connect_robust(rabbitmq_url)
+        async with connection:
+            channel = await connection.channel()
+            _ = await channel.declare_queue(queue_name, durable=True)
+
+            message_body = json.dumps(
+                {
+                    "request_id": request_id,
+                    "result": final_result,
+                }
+            ).encode()
+
+            message = aio_pika.Message(body=message_body)
+            await channel.default_exchange.publish(message, routing_key=queue_name)
+            logging.info(f"Sent result to RabbitMQ queue {queue_name}")
 
 
 @app.post("/ensemble_service")
