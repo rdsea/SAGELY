@@ -83,9 +83,10 @@ async def main():
         "--url",
         type=str,
         help="Request URL",
-        # default="http://localhost:5010/preprocessing",
+        default="http://localhost:5010/preprocessing",
         # default="http://192.168.49.2/preprocessing-gateway",  # with istio working
         default="http://localhost:5010/preprocessing",  # with istio working
+
     )
 
     args = parser.parse_args()
