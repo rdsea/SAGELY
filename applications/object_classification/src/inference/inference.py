@@ -1,8 +1,6 @@
 import logging
 import os
 import sys
-import io
-from PIL import Image
 import numpy as np
 import yaml
 from datamodel import ImageClassificationModelEnum, InferenceServiceConfig
@@ -10,26 +8,26 @@ from fastapi import FastAPI, Request
 from image_classification_agent import ImageClassificationAgent
 
 chosen_model = os.environ["CHOSEN_MODEL"]
-# if os.environ.get("MANUAL_DEBUG"):
-#     from opentelemetry import trace
-#
-#     # from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
-#     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-#
-#     # from opentelemetry.sdk.metrics import MeterProvider
-#     from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-#     from opentelemetry.sdk.trace import TracerProvider
-#     from opentelemetry.sdk.trace.export import BatchSpanProcessor
-#
-#     resource = Resource(attributes={SERVICE_NAME: f"inference_{chosen_model}"})
-#
-#     traceProvider = TracerProvider(resource=resource)
-#     processor = BatchSpanProcessor(
-#         OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
-#     )
-#     traceProvider.add_span_processor(processor)
-#     trace.set_tracer_provider(traceProvider)
-#     tracer = trace.get_tracer(__name__)
+if os.environ.get("MANUAL_DEBUG"):
+    from opentelemetry import trace
+
+    # from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+    # from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    resource = Resource(attributes={SERVICE_NAME: f"inference_{chosen_model}"})
+
+    traceProvider = TracerProvider(resource=resource)
+    processor = BatchSpanProcessor(
+        OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces")
+    )
+    traceProvider.add_span_processor(processor)
+    trace.set_tracer_provider(traceProvider)
+    tracer = trace.get_tracer(__name__)
 #
 
 # reader = PeriodicExportingMetricReader(
@@ -90,24 +88,10 @@ async def inference(request: Request):
     # print(f"Received context2: {ctx2}")
     # logging.info(image_bytes)
     # with tracer.start_span("inference"):
-    # image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
     # # NOTE: Here we assume that the processing service has reshape the input image to size 224,224,3
-    # reconstructed_image = image_array.reshape((224, 224, 3))
-    # return ml_agent.predict(reconstructed_image)
-    try:
-        image = Image.open(io.BytesIO(image_bytes))
-        image = image.resize((224, 224))  # Ensure correct size
-        reconstructed_image = np.array(image)
-
-        if reconstructed_image.shape != (224, 224, 3):
-            raise ValueError(
-                f"Image shape {reconstructed_image.shape} doesn't match expected shape (224, 224, 3)."
-            )
-
-        return ml_agent.predict(reconstructed_image)
-
-    except Exception as e:
-        return {"error": str(e)}
+    reconstructed_image = image_array.reshape((224, 224, 3))
+    return ml_agent.predict(reconstructed_image)
 
 
 if os.environ.get("MANUAL_DEBUG"):

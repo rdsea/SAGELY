@@ -66,7 +66,7 @@ for ((i = START_IP; i <= END_IP; i++)); do
   CONFIG_FILE="configs/${DRONE_NAME}.yml"
 
   ENVOY_FILE="./envoy/${DRONE_NAME}.yml"
-  ENVOY_CONFIG="./envoy/config.yaml"
+  export ENVOY_CONFIG="./envoy/config.yaml"
 
   echo "docker network create --driver bridge --subnet \"${BASE_IP}${i}.0/24\" \"${DRONE_NAME}_net\""
 

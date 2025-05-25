@@ -41,29 +41,34 @@ WORKDIR /root
 COPY . /root
 
 # Install PX4
-RUN cd /root && \
-    git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
-    bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
-    cp ./px4-rc.mavlink PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/ && \
-    cd PX4-Autopilot && \
-    PX4_GZ_STANDALONE=1 make px4_sitl
+WORKDIR /root
+RUN git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive
+
+COPY px4-rc.mavlink /root/PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/
+
+WORKDIR /root/PX4-Autopilot
+
+RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  bash ./Tools/setup/ubuntu.sh && \
+  PX4_GZ_STANDALONE=1 make px4_sitl
 
 # Setup Micro XRCE-DDS Agent & Client
 RUN cd /root && \
-    git clone --depth 1 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && \
-    cd Micro-XRCE-DDS-Agent && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make && \
-    make install && \
-    ldconfig /usr/local/lib/
+  git clone --depth 1 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && \
+  cd Micro-XRCE-DDS-Agent && \
+  mkdir build && \
+  cd build && \
+  cmake .. && \
+  make -j 10 && \
+  make install && \
+  ldconfig /usr/local/lib/
 
 RUN mkdir -p /root/ws_sensor_combined/src && \
-    cd /root/ws_sensor_combined/src && \
-    git clone --depth 1 https://github.com/PX4/px4_msgs.git && \
-    git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
-    /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_sensor_combined && colcon build"
+  cd /root/ws_sensor_combined/src && \
+  git clone --depth 1 https://github.com/PX4/px4_msgs.git && \
+  git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
+  /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_sensor_combined && colcon build"
 
 
 # RUN pip install requests etcd3 pydantic
@@ -71,7 +76,7 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
 # RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
 # RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 RUN echo "source /root/ws_sensor_combined/install/setup.bash" >> /root/.bashrc && \
-    echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc 
+  echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc 
 
 # ROS2 tasks --  Create and build workspace
 RUN mkdir -p /root/drone/src/data
