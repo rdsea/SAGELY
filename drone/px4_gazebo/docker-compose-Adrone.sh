@@ -9,15 +9,15 @@ DRONE_MODEL="gz_x500"
 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7"
 
 START_IP=101
-END_IP=104
+END_IP=110
 BASE_IP="192.168."
 SWARM_SUBNET=132
 
-CONTAINER=gazebo_sim_px4
+IMAGE_NAME=px4_gazebo
 
 SWARM_CONTAINER=hello-world
 # application services
-ROS2_CONTAINER=ros:humble-ros-base-jammy
+ROS2_CONTAINER=yolov5_ros2:latest
 
 NETWORK_NAME=swarm_net
 
@@ -127,7 +127,7 @@ services:
         ipv4_address: ${BASE_IP}${i}.3
 
   ${DRONE_NAME}:
-    image: ${CONTAINER} 
+    image: ${IMAGE_NAME} 
     container_name: ${DRONE_NAME}
     networks:
       ${NETWORK_NAME}:
