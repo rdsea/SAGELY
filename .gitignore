@@ -39,3 +39,7 @@ test/*
 
 drone/src/drone/scripts/etcd
 drone/src/drone/scripts/etcdctl
+
+drone/px4_gazebo/envoy/drone_*
+drone/px4_gazebo/configs/drone_*
+docker-compose-drone*
