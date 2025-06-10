@@ -15,9 +15,9 @@ SWARM_SUBNET=132
 
 IMAGE_NAME=px4_gazebo
 
-SWARM_CONTAINER=hello-world
+SWARM_IMAGE_NAME=hello-world
 # application services
-ROS2_CONTAINER=yolov5_ros2:latest
+ROS2_IMAGE_NAME=yolov5_ros2:latest
 
 NETWORK_NAME=swarm_net
 
@@ -145,7 +145,7 @@ services:
     command: ["tmuxinator", "start", "px4_ros2_gazebo"]
 
   ${SWARM_NAME}:
-    image: ${SWARM_CONTAINER} 
+    image: ${SWARM_IMAGE_NAME} 
     container_name: ${SWARM_NAME}
     networks:
       ${NETWORK_NAME}:
@@ -159,7 +159,7 @@ services:
     #command: ["sleep", "infinity"]
 
   ${ROS2_NAME}:
-    image: ${ROS2_CONTAINER} 
+    image: ${ROS2_IMAGE_NAME} 
     container_name: ${ROS2_NAME}
     networks:
       ${DRONE_NAME}_net:
