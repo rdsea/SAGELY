@@ -1,42 +1,55 @@
 # A setting for a gezebo with multi-px4
 
-The most errors from the connection between PX4 and Gazebo
-- Ubuntu 22.04
-- PX4 1.5
-- install gazebo via px4/tools/setup
-  - Gazebo 7.9
-  - gz sim (gazebo-garden)
+# How to build Docker container
 
-## Errors
->
-> ekf2 missing data is the conflict data from gazebo 7.9 and 8.9 between px4 and gazebo (on 2 machines)
+## 1. Config the Dockerfile according to your needs.
 
-compass missing data is the issues from NavSat
-> <plugin name="gz::sim::systems::NavSat" filename="gz-sim-navsat-system"/>
+You need to have a correlative version between ROS, Ubuntu, Gazebo, PX4. 
+The default right now is
+| Software    | Version |
+| -------- | ------- |
+| ROS2  | Jazzy   |
+| Ubuntu | Noble     |
+| PX4    | 1.16    |
+| Gazebo simulation    | 8.9.0 |
 
-## Network setting for a single machine working via a docker network (that can improve to docker-compose or k8s-based)
+- For ROS2 and ubuntu since the version are tied together, you need to change the first line of the [Dockerfile](../px4_gazebo/px4_drone/Dockerfile) to match your ROS2 and Ubuntu version.
+`` FROM ros:jazzy-ros-base-noble `` ex. for jammmy (ROS2) and jammy(Ubuntu 22.04) you can use ``FROM ros:humble-ros-base-jammy``
+you also need to change ROS version in the following places
+`` /bin/bash -c "source /opt/ros/${YOUR_ROS_VERSION}/setup.bash && cd /root/ws_sensor_combined && colcon build" ``
+`` echo "source /opt/ros/${YOUR_ROS_VERSION}/setup.bash" >> /root/.bashrc ``
+
+- For PX4, you need to change the PX4 version in the [Dockerfile](../px4_gazebo/px4_drone/Dockerfile) to match your PX4 version. The default is 1.16, so you can change it to 1.15 by changing ``git clone -b ${YOUR_PX4_VERSION} --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && ``
+
+- For Gazebo simulation, you need to have the right version of Gazebo installed. You can see what version of Gazebo you have installed by running the following command: ``gz sim --versions``
+
+Then you can build the docker image with the following command:
 
 ```bash
-# create a network 192.168.1.0/24 called px4net
-docker network create \                                                                                                                      ─╯
-  --driver=bridge \
-  --subnet=192.168.132.0/24 px4net
+docker build -t px4_gazebo:latest .
 ```
 
-## GAZEBO and PX4
+#### or you can download the pre-built docker image from Docker Hub
 
-Gazebo version 7.9 and PX4 version **1.15**
+```bash
+docker pull korawitrupanya/px4_gazebo_ros2_yolo8:latest
+```
 
-May have a
+### 2. Run the Gazebo simulation server
 
-### GAZEBO
+There are two ways to run the Gazebo simulation server, either by using the PX4-Autopilot/Tool/simulation or by using the simulation-gazebo script.
+1. To use PX4-Autopilot/Tool/simulation. Assuming you have already cloned the PX4-Autopilot repository(``git clone -b ${YOUR_PX4_VERSION} --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && ``) You will have to go to the following path in the PX4-Autopilot
 
-.
-├── ~/.simulation-gazebo/ OR PX4-Autopilot/Tool/simulation
-│   ├─ Models
-│   ├─ world/default.sdf
+```
+PX4-Autopilot
+├── Tool
+│   ├── simulation
+│       ├──gz
+│         ├──simulation-gazebo
 
-> git clone <https://github.com/PX4/PX4-gazebo-models.git>
+```
+
+ you can run the following command:
 
 ```bash
 python simulation-gazebo --overwrite # to download models and worlds
@@ -46,36 +59,16 @@ python simulation-gazebo --gz_partition <name_of_gaezbo> --gz_ip <IP_of_gazebo> 
 python /path/to/simulation-gazebo --gz_partition relay --gz_ip 192.168.1.1 --world default_drone
 ```
 
-### PX4
+2. To use the simulation-gazebo script, you will need to clone the px4 gazebo repository and run the following command:
+``git clone https://github.com/PX4/PX4-gazebo-models`` and you can run the similar command as above or just follow the README instructions of the repository.
 
-```bash
-# setting px4 1.15
-git clone -b release/1.15 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
-bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
-cd PX4-Autopilot && \
-make px4_sitl
+## 3. Config number of Drones you want to use
+You will need to adjust `` END_IP `` number in [generate-drone-docker.sh](../px4_gazebo/generate-drone-docker.sh) to the number of drones you want to use. The default is 4 drones, so for example you can change it to 10 drones by changing `` END_IP=104 `` and `` START_IP=101 `` to `` END_IP=110 `` and `` START_IP=101 ``.
 
-pip install mavsdk
-
-GZ_PARTITION=<name_of_gaezbo> GZ_RELAY=<IP_of_gazebo> GZ_IP=<IP_of_currentPX4> PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i <id_of_currentPX4>
-
-# Example
-# Start a docker with the IP in the network we set 
-# docker run -it --rm --name=px4-drone1 --net px4net --ip 192.168.1.101 px4_graze /bin/bash
-
-GZ_PARTITION=relay GZ_RELAY=192.168.1.1 GZ_IP=192.168.1.101 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 PX4_GZ_WORLD=default_drone ./build/px4_sitl_default/bin/px4 -i 1
-```
-
-add this line of code to the rcS
-
-- param set-default SENS_IMU_MODE 0
-
-
-## Docker setting
-
-Create a virtual network and setting with drones 
-- edit docker-compose-Adrone.sh
+## Example of configuration of script file
+- edit [generate-drone-docker.sh](../px4_gazebo/generate-drone-docker.sh)
 - output is docker-compose-drone-xxx.yml where xxx is drone name 
+
 ```bash
 # Base details
 GZ_PARTITION="relay"
@@ -113,3 +106,11 @@ Clean all everything
 ```bash
 ./cleaning.sh
 ```
+
+Then you should be able to run the script to generate the docker-compose files for each drone.
+
+## Errors
+> ekf2 missing data is the conflict data from gazebo 7.9 and 8.9 between px4 and gazebo (on 2 machines)
+
+compass missing data is the issues from NavSat
+`` <plugin name="gz::sim::systems::NavSat" filename="gz-sim-navsat-system"/> ``
