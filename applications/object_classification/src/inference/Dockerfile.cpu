@@ -1,10 +1,6 @@
-FROM debian:stable-slim
+FROM rdsea/debian-slim-opencv:latest
 
 WORKDIR /object_classification
-
-# Missing package for opencv
-RUN apt-get update
-RUN apt-get install -y ffmpeg libsm6 libxext6
 
 COPY ./inference/onnx_model/ ./inference/onnx_model/
 

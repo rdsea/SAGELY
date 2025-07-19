@@ -4,6 +4,7 @@ import time
 import random
 import asyncio
 import aiohttp
+import logging
 from aiohttp.client_exceptions import ClientError
 
 
@@ -13,10 +14,7 @@ group_id = "0"
 credentials = f"{username}:{group_id}"
 # encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
-headers = {
-    "Host": "object-classification.test.com",
-    "Authorization": f"Basic {credentials}",
-}
+headers = {}
 
 
 async def send_request(url, jpeg_images_list, requesting_interval, device_id):
@@ -45,21 +43,22 @@ async def send_request(url, jpeg_images_list, requesting_interval, device_id):
 
                 # form_data.add_field("device_id", device_id)
                 # headers = {"Host": "object-classification.test.com"}
-                async with session.post(
-                    url, data=form_data, headers=headers
-                ) as response:
+                print(f"Sending request at {start_time}")
+                async with session.post(url, data=form_data, timeout=300) as response:
+                    json_response = await response.json(content_type=None)
                     if response.status == 200:
-                        json_response = await response.json()
                         print(
                             json_response, synset_id, (time.time() - start_time) * 1000
                         )
                     else:
-                        print(f"Request failed with status {response.status}")
+                        print(
+                            f"Request failed with status {response.status}\n {json_response}"
+                        )
 
         except ClientError as e:
-            print(f"HTTP Request failed: {e}")
+            logging.error(f"HTTP Request failed: {e}")
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            logging.exception(f"Unexpected error: {e}")
 
         await asyncio.sleep(requesting_interval)
 
@@ -84,9 +83,10 @@ async def main():
         "--url",
         type=str,
         help="Request URL",
-        # default="http://localhost:5010/preprocessing",
+        default="http://localhost:5010/preprocessing",
         # default="http://192.168.49.2/preprocessing-gateway",  # with istio working
-        default="http://192.168.49.2:80/preprocessing/",  # with istio working
+        default="http://localhost:5010/preprocessing",  # with istio working
+
     )
 
     args = parser.parse_args()

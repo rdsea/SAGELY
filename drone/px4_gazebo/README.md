@@ -1,6 +1,7 @@
 # A setting for a gezebo with multi-px4
 
 The most errors from the connection between PX4 and Gazebo
+
 - Ubuntu 22.04
 - PX4 1.5
 - install gazebo via px4/tools/setup
@@ -8,10 +9,11 @@ The most errors from the connection between PX4 and Gazebo
   - gz sim (gazebo-garden)
 
 ## Errors
->
+
 > ekf2 missing data is the conflict data from gazebo 7.9 and 8.9 between px4 and gazebo (on 2 machines)
 
 compass missing data is the issues from NavSat
+
 > <plugin name="gz::sim::systems::NavSat" filename="gz-sim-navsat-system"/>
 
 ## Network setting for a single machine working via a docker network (that can improve to docker-compose or k8s-based)
@@ -60,16 +62,17 @@ pip install mavsdk
 GZ_PARTITION=<name_of_gaezbo> GZ_RELAY=<IP_of_gazebo> GZ_IP=<IP_of_currentPX4> PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 ./build/px4_sitl_default/bin/px4 -i <id_of_currentPX4>
 
 # Example
-# Start a docker with the IP in the network we set 
+# Start a docker with the IP in the network we set
 # docker run -it --rm --name=px4-drone1 --net px4net --ip 192.168.1.101 px4_graze /bin/bash
 
 GZ_PARTITION=relay GZ_RELAY=192.168.1.1 GZ_IP=192.168.1.101 PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=gz_x500 PX4_GZ_WORLD=default_drone ./build/px4_sitl_default/bin/px4 -i 1
+
+ ./build/px4_sitl_default/bin/px4 -i 1
 ```
 
 add this line of code to the rcS
 
 - param set-default SENS_IMU_MODE 0
-
 
 ## Docker setting
 
@@ -79,6 +82,4 @@ Create a virtual network
 docker network create --subnet 192.168.132.0/24 px4_net
 ```
 
-
 Run simulation
-

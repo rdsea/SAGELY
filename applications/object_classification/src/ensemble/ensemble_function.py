@@ -22,22 +22,22 @@ def average_probability(predictions: list, request_id: str) -> Union[dict, None]
 
     class_probabilities = {}
 
-    # for class_id, probability in predictions:
-    #     if class_id not in class_probabilities:
-    #         class_probabilities[class_id] = []
-    #     class_probabilities[class_id].append(probability)
-    for prediction_dict in predictions:
-        prediction_list = prediction_dict.get("prediction")
-        if not prediction_list or len(prediction_list) != 2:
-            print(
-                "Invalid prediction format: each prediction must be a list of [class, probability]"
-            )
-            return None
-
-        class_id, probability = prediction_list
+    for class_id, probability in predictions:
         if class_id not in class_probabilities:
             class_probabilities[class_id] = []
         class_probabilities[class_id].append(probability)
+    # for prediction_dict in predictions:
+    #     prediction_list = prediction_dict.get("prediction")
+    #     if not prediction_list or len(prediction_list) != 2:
+    #         print(
+    #             "Invalid prediction format: each prediction must be a list of [class, probability]"
+    #         )
+    #         return None
+    #
+    #     class_id, probability = prediction_list
+    #     if class_id not in class_probabilities:
+    #         class_probabilities[class_id] = []
+    #     class_probabilities[class_id].append(probability)
     aggregated_predictions = []
 
     for class_id, probabilities in class_probabilities.items():

@@ -1,10 +1,6 @@
-FROM debian:stable-slim
+FROM rdsea/debian-slim-opencv:latest
 
 WORKDIR /image_preprocessing/preprocessing
-
-# Missing package for opencv, takes around 500mb
-RUN apt-get update
-RUN apt-get install -y ffmpeg libsm6 libxext6
 
 COPY --from=ghcr.io/astral-sh/uv:0.4.3 /uv /bin/uv
 

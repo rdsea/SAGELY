@@ -6,6 +6,8 @@
 GZ_PARTITION="relay"
 GZ_IP="192.168.132.1"
 DRONE_MODEL="gz_x500"
+PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7"
+
 START_IP=101
 END_IP=104
 
@@ -41,6 +43,22 @@ for ((i = START_IP; i <= END_IP; i++)); do
   DRONE_NAME="drone_${i}"
   SWARM_NAME="swarm_${i}"
   ROS2_NAME="ros2_${i}"
+  #x=$(echo "scale=2; 268.08 + ($i - START_IP))")
+  offset=$((i - START_IP))
+  echo "$offset"
+  # x=$(echo "268.08 + $offset * 2" | awk '{printf "%.2f", $1}')
+  # y=$(echo "-128.22 + $offset * 2" | awk '{printf "%.2f", $1}')
+  # Let awk do the math directly
+  x=$(awk -v o="$offset" 'BEGIN { printf "%.2f", 268.08 + (o * 2) }')
+  y=$(awk -v o="$offset" 'BEGIN { printf "%.2f", -128.22 + (o * 2) }')
+
+  z=3.86
+  roll=0.00
+  pitch=0
+  yaw=-0.7
+
+  PX4_GZ_MODEL_POSE="$x,$y,$z,$roll,$pitch,$yaw"
+  #PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7"
 
   offset=$((i - START_IP))
   #echo "$offset"
@@ -189,7 +207,7 @@ windows:
       root: /root/PX4-Autopilot
       layout: even-vertical
       panes:
-      - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $((i - 100))
+      - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="${PX4_GZ_MODEL_POSE}" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $((i - $START_IP))
   - ROS_GZ_Image_Bridge:
       root: /root/ws_sensor_combined
       layout: even-vertical
