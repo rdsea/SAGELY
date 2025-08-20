@@ -76,10 +76,43 @@ add this line of code to the rcS
 
 ## Docker setting
 
-Create a virtual network
-
+Create a virtual network and setting with drones 
+- edit docker-compose-Adrone.sh
+- output is docker-compose-drone-xxx.yml where xxx is drone name 
 ```bash
-docker network create --subnet 192.168.132.0/24 px4_net
+# Base details
+GZ_PARTITION="relay"
+GZ_IP="192.168.132.1" # IP gazebo server
+DRONE_MODEL="gz_x500" # drone model
+PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" # position of drones in the world
+
+START_IP=101 # start and end of drone IP and their network
+END_IP=104
+BASE_IP="192.168."
+SWARM_SUBNET=132 # swarm network conenct to gazebo network
+
+CONTAINER=hongtringuyen/gazebo_sim_px4 # container gazebo client, PX4 to allow connecting with gazebo server
+
+SWARM_CONTAINER=hello-world # container working among drone swarm
+# application services
+ROS2_CONTAINER=ros:humble-ros-base-jammy # ros2 service run on top of the setting
+
+NETWORK_NAME=swarm_net # network name for the swarm
+
+OPA_POLICY="./opa/policy.rego" # directory of the policy for loading
 ```
 
-Run simulation
+Run simulation gazebo server
+```bash
+python ./gazebo_service/simulation-gazebo --gz_partition relay --gz_ip 192.168.132.1 --world drones_world
+```
+
+Run keyboard to control the drone (only one drone), can use [QGroundControl](https://qgroundcontrol.com/) to control more drones
+```bash
+python ./keyboard_control/keyboard-mavsdk-test.py 
+```
+
+Clean all everything
+```bash
+./cleaning.sh
+```
