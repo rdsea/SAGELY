@@ -1,0 +1,3 @@
+[submodule "applications/object_classification"]
+	path = applications/object_classification
+	url = git@github.com:rdsea/object_classification_v2.git
