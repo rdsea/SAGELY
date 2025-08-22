@@ -89,7 +89,7 @@ PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7" # position of drones in the 
 START_IP=101 # start and end of drone IP and their network
 END_IP=104
 BASE_IP="192.168."
-SWARM_SUBNET=132 # swarm network conenct to gazebo network
+SWARM_SUBNET=132 # swarm network connect to gazebo network
 
 CONTAINER=hongtringuyen/gazebo_sim_px4 # container gazebo client, PX4 to allow connecting with gazebo server
 
