@@ -83,7 +83,7 @@ done
 
 Navigate to the `experiments/ICWS` directory and run the experiment script with the desired policy and configuration.
 
-The policy files used in the experiment (e.g., `rego_3kb_1.rego`, `rego_30kb_1.rego`, `rego_300kb_1.rego`) are provided in the `policy` directory. You can also generate your own policy files using the `generate_policy.py` script in the `policy` directory.
+The policy files used in the experiment (e.g., `rego_3kb_1.rego`, `rego_30kb_1.rego`, `rego_300kb_1.rego`) are provided in the `policy` directory. You can also generate your own policy files using the [generate_policy.py](./experiments/ICWS/policy/generate_policy.py)
 
 For example, to run the experiment with a 3kb policy and 4 services:
 
