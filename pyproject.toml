@@ -1,5 +1,5 @@
 [project]
-name = "holistic_policy"
+name = "sagely"
 version = "0.1.0"
 description = "Add your description here"
 authors = [{ name = "hong3nguyen", email = "tringuyennht@gmail.com" }]
@@ -17,8 +17,8 @@ allow-direct-references = true
 
 [tool.rye.workspace]
 members = [
-  "src/holistic_policy/*",
-  "src/holistic_policy/policy_controlplane/*",
+  "src/sagely/*",
+  "src/sagely/policy_controlplane/*",
   # "drone",
 
 ]
