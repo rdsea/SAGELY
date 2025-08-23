@@ -41,3 +41,6 @@ drone/src/drone/scripts/etcd
 drone/src/drone/scripts/etcdctl
 
 *.csv
+
+*.local.md
+
