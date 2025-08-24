@@ -118,6 +118,10 @@ RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 # WORKDIR /root/drone/src/object_classification/client_drone
 #
 # ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+
+COPY scripts/trigger_request.sh /root/drone/src/object_classification/scripts
+COPY scripts/entrypoint_etcd.sh /root/drone/src/object_classification/scripts
+
 RUN chmod +x scripts/trigger_request.sh
 
 RUN chmod +x scripts/entrypoint_etcd.sh
