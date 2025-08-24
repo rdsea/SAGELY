@@ -43,5 +43,5 @@ drone/src/drone/scripts/etcdctl
 *.csv
 
 *.local.md
-*.logs/
+logs/*
 *.local.*
