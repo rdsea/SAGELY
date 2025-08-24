@@ -11,11 +11,14 @@ import etcd3
 from pydantic import BaseModel
 from typing import Optional
 import logging
-import Timer
+
+# import Timer
 import os
 import requests
-import Event
-import Thread
+
+# import Event
+# import Thread
+from threading import Timer, Thread, Event
 import yaml
 
 EDGE_SERVER_NOTIFY_URL = ""
