@@ -1,6 +1,7 @@
 # Use the official ROS2 base image
 # ubuntu 22.04
-FROM osrf/ros:humble-desktop-full
+#FROM osrf/ros:humble-desktop-full
+FROM osrf/ros:humble-desktop
 
 # Install necessary packages
 # RUN apt-get update && apt-get install -y jq \
@@ -49,27 +50,27 @@ WORKDIR /root
 
 # Install PX4
 RUN cd /root && \
-    git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
-    bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
-    cd PX4-Autopilot && \
-    make px4_sitl
+  git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
+  bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
+  cd PX4-Autopilot && \
+  make px4_sitl
 
 # Setup Micro XRCE-DDS Agent & Client
 RUN cd /root && \
-    git clone --depth 1 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && \
-    cd Micro-XRCE-DDS-Agent && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make && \
-    make install && \
-    ldconfig /usr/local/lib/
+  git clone --depth 1 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && \
+  cd Micro-XRCE-DDS-Agent && \
+  mkdir build && \
+  cd build && \
+  cmake .. && \
+  make && \
+  make install && \
+  ldconfig /usr/local/lib/
 
 RUN mkdir -p /root/ws_sensor_combined/src && \
-    cd /root/ws_sensor_combined/src && \
-    git clone --depth 1 https://github.com/PX4/px4_msgs.git && \
-    git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
-    /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_sensor_combined && colcon build"
+  cd /root/ws_sensor_combined/src && \
+  git clone --depth 1 https://github.com/PX4/px4_msgs.git && \
+  git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
+  /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_sensor_combined && colcon build"
 
 # Build ROS 2 Workspace ws_offboard_control
 # RUN mkdir -p /root/ws_offboard_control/src && \
@@ -93,13 +94,15 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
 # Create and build workspace
 RUN mkdir -p /root/drone/src/data
 
+RUN mkdir -p /root/logs
+
 # # Copy the package into the workspace
 COPY . /root/drone/src/object_classification
 
 # # Set the working directory
 WORKDIR /root/drone/src/object_classification
 
-# RUN pip install requests etcd3 pydantic
+RUN pip install requests etcd3 pydantic
 # Build the workspace
 RUN /bin/bash -c "source /root/ws_sensor_combined/install/setup.bash"
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
@@ -117,6 +120,11 @@ RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 # ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 RUN chmod +x scripts/trigger_request.sh
 
+RUN chmod +x scripts/entrypoint_etcd.sh
+
+RUN wget -O /tmp/etcd.tar.gz https://github.com/etcd-io/etcd/releases/download/v3.6.0/etcd-v3.6.0-linux-amd64.tar.gz && \
+  tar -xzvf /tmp/etcd.tar.gz -C scripts/ --strip-components=1 && \
+  rm /tmp/etcd.tar.gz
 # policy
 # RUN mkdir policy
 #
@@ -132,7 +140,6 @@ RUN chmod +x scripts/trigger_request.sh
 WORKDIR /root/drone/src/object_classification/client_drone
 
 ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
-
 
 # Define entry point
 #CMD ["tmuxinator", "start", "px4_ros2_gazebo_gcs"]
