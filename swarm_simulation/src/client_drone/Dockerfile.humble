@@ -97,7 +97,7 @@ RUN mkdir -p /root/drone/src/data
 RUN mkdir -p /root/logs
 
 # # Copy the package into the workspace
-COPY . /root/drone/src/object_classification
+COPY src/client_drone/  /root/drone/src/object_classification/
 
 # # Set the working directory
 WORKDIR /root/drone/src/object_classification
@@ -119,8 +119,8 @@ RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
 #
 # ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
-COPY scripts/trigger_request.sh /root/drone/src/object_classification/scripts
-COPY scripts/entrypoint_etcd.sh /root/drone/src/object_classification/scripts
+COPY scripts/trigger_request.sh /root/drone/src/object_classification/scripts/trigger_request.sh
+COPY scripts/entrypoint_etcd.sh /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
 
 RUN chmod +x scripts/trigger_request.sh
 
