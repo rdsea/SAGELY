@@ -1,5 +1,5 @@
 drone_0:
-  device_id: "0"
+  device_id: "drone_0"
   group_id: "0"
   server_url: "http://192.168.49.2:80"
   ds_path: "/root/drone/src/data/val_images"
@@ -12,7 +12,7 @@ drone_0:
   etcd_host: 0.0.0.0:2379
 
 drone_1:
-  device_id: "1"
+  device_id: "drone_1"
   group_id: "1"
   server_url: "http://192.168.49.2:80"
   ds_path: "/root/drone/src/data/val_images"
@@ -25,7 +25,7 @@ drone_1:
   etcd_host: 0.0.0.0:2378
 
 drone_2:
-  device_id: "2"
+  device_id: "drone_2"
   group_id: "0"
   server_url: "http://192.168.49.2:80"
   ds_path: "/root/drone/src/data/val_images"
