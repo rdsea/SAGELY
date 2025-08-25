@@ -15,13 +15,16 @@ services:
     #network_mode: "host"
     networks: [minikube]
     volumes:
-      - ../../../applications/object_classification/src/client/image/:/root/drone/src/data/val_images
+      #- ../../../applications/object_classification/src/client/image/:/root/drone/src/data/val_images
+      - ./image/:/root/drone/src/data/val_images
       - ../../config/client_config.yaml:/root/drone/src/object_classification/client_drone/client_config.yaml
       - ./logs:/root/drone/logs
     entrypoint: /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
     command: ["drone_0", "drone_0=http://0.0.0.0:2380"]
     stdin_open: true
     tty: true
+    # extra_hosts:
+    #   - "object-classification.test.com:192.168.49.2"
 
   # === Drone 1 Service ===
   client_drone1:
@@ -30,13 +33,15 @@ services:
     #network_mode: "host"
     networks: [minikube]
     volumes:
-      - ../../../applications/object_classification/src/client/image/:/root/drone/src/data/val_images
+      - ./image/:/root/drone/src/data/val_images
       - ../../config/client_config.yaml:/root/drone/src/object_classification/client_drone/client_config.yaml
       - ./logs:/root/drone/logs
     entrypoint: /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
     command: ["drone_1", "drone_1=http://0.0.0.0:2380"]
     stdin_open: true
     tty: true
+    # extra_hosts:
+    #   - "object-classification.test.com:192.168.49.2"
 
   # === Drone 2 Service ===
   client_drone2:
@@ -45,10 +50,12 @@ services:
     #network_mode: "host"
     networks: [minikube]
     volumes:
-      - ../../../applications/object_classification/src/client/image/:/root/drone/src/data/val_images
+      - ./image/:/root/drone/src/data/val_images
       - ../../config/client_config.yaml:/root/drone/src/object_classification/client_drone/client_config.yaml
       - ./logs:/root/drone/logs
     entrypoint: /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
     command: ["drone_2", "drone_2=http://0.0.0.0:2380"]
     stdin_open: true
     tty: true
+    # extra_hosts:
+    #   - "object-classification.test.com:192.168.49.2"
