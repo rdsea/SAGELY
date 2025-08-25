@@ -256,7 +256,7 @@ class ChangeTaskParameterCommand(BaseModel):
 def formalize_HEADER():
     global HEADER
     HEADER = {
-        "Host": "object-classification.test.com",
+        # "Host": "object-classification.test.com",
         "Authorization": f"Basic {NODE_ID}:{GROUP_ID}",
     }
 
@@ -628,29 +628,31 @@ def monitor_leader():
         time.sleep(5)
 
 
-# def change_group(new_group_id):
-#     global GROUP_ID, stop_event
-#     logger.info(f"Changing group ID from {GROUP_ID} to {new_group_id}")
-#     etcd.delete(f"/election/{GROUP_ID}/leader")
-#
-#     heartbeat_key = f"/election/{GROUP_ID}/heartbeat"
-#     etcd.delete(heartbeat_key)
-#     GROUP_ID = new_group_id
-#     etcd.put(f"/nodes/{NODE_ID}/group", GROUP_ID)
-#     stop_event.set()  # Stop the current threads
-#     stop_event = Event()  # Create a new stop_event for the new threads
-#     monitor_leader()  # Restart the process with the new group
 def change_group(new_group_id):
     global GROUP_ID, stop_event
     logger.info(f"Changing group ID from {GROUP_ID} to {new_group_id}")
-    # clear old epoch data
     etcd.delete(f"/election/{GROUP_ID}/leader")
-    etcd.delete(f"/election/{GROUP_ID}/heartbeat")
+
+    heartbeat_key = f"/election/{GROUP_ID}/heartbeat"
+    etcd.delete(heartbeat_key)
     GROUP_ID = new_group_id
     etcd.put(f"/nodes/{NODE_ID}/group", GROUP_ID)
-    # end current epoch; the long-running monitor thread will start a new one
-    stop_event.set()
-    # DO NOT call monitor_leader() here
+    stop_event.set()  # Stop the current threads
+    stop_event = Event()  # Create a new stop_event for the new threads
+    monitor_leader()  # Restart the process with the new group
+
+
+# def change_group(new_group_id):
+#     global GROUP_ID, stop_event
+#     logger.info(f"Changing group ID from {GROUP_ID} to {new_group_id}")
+#     # clear old epoch data
+#     etcd.delete(f"/election/{GROUP_ID}/leader")
+#     etcd.delete(f"/election/{GROUP_ID}/heartbeat")
+#     GROUP_ID = new_group_id
+#     etcd.put(f"/nodes/{NODE_ID}/group", GROUP_ID)
+#     # end current epoch; the long-running monitor thread will start a new one
+#     stop_event.set()
+#     # DO NOT call monitor_leader() here
 
 
 def change_node_id(new_node_id):
