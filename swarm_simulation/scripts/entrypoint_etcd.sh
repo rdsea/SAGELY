@@ -19,18 +19,17 @@
 THIS_NAME=$1
 # The full cluster string, passed as the second argument
 INITIAL_CLUSTER=$2
-
 echo $THIS_NAME
 echo $INITIAL_CLUSTER
 
-LOG_FILE="/root/drone/logs/drone_${THIS_NAME}.log"
+LOG_FILE="/root/drone/logs/${THIS_NAME}.log"
 mkdir -p "$(dirname "$LOG_FILE")"
 : >"$LOG_FILE" # Truncate the log file (empties it)
 # Redirect stdout and stderr
 #exec > >(tee -a "$LOG_FILE") 2>&1
 exec > >(while IFS= read -r line; do echo "$(date '+%Y-%m-%d %H:%M:%S') $line"; done >>"$LOG_FILE") 2>&1
 
-# Validate that both required arguments are provided
+#Validate that both required arguments are provided
 if [ -z "$THIS_NAME" ] || [ -z "$INITIAL_CLUSTER" ]; then
   echo "Error: Missing required arguments."
   echo "Usage: $0 <NODE_NAME> <INITIAL_CLUSTER_STRING>"
@@ -44,13 +43,13 @@ CLUSTER_STATE="new"
 PEER_PORT=2380
 CLIENT_PORT=2379
 THIS_IP="0.0.0.0"
-
+#
 echo "Starting Etcd instance: ${THIS_NAME}"
 echo "Peer URL: http://${THIS_IP}:${PEER_PORT}"
 echo "Client URL: http://${THIS_IP}:${CLIENT_PORT}"
 echo "Initial Cluster: ${INITIAL_CLUSTER}"
 echo "Initial Cluster State: ${CLUSTER_STATE}"
-
+#
 # Start the Etcd instance in the background
 ../scripts/etcd --data-dir="/data/${THIS_NAME}" --name "${THIS_NAME}" \
   --initial-advertise-peer-urls http://${THIS_IP}:${PEER_PORT} \
@@ -63,7 +62,7 @@ echo "Initial Cluster State: ${CLUSTER_STATE}"
 
 # Define the endpoint for etcdctl, using the internal client port
 ETCD_ENDPOINT="http://${THIS_IP}:${CLIENT_PORT}"
-
+#
 # Trigger request logic for the leader
 trigger_request() {
   echo "Executing trigger_request for leader: ${THIS_NAME}"
