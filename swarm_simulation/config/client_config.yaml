@@ -3,11 +3,7 @@ drone_0:
   group_id: "0"
   server_url: "http://192.168.49.2:80"
   ds_path: "/root/drone/src/data/val_images"
-  #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
   rate: 1
-  # gps_data:
-  #   latitude: 37.7749
-  #   longitude: -122.4194
   image_paths: "folder_0"
   etcd_host: 0.0.0.0:2379
 
@@ -16,11 +12,7 @@ drone_1:
   group_id: "1"
   server_url: "http://192.168.49.2:80"
   ds_path: "/root/drone/src/data/val_images"
-  #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
   rate: 1
-  # gps_data:
-  #   latitude: 37.7749
-  #   longitude: -122.4194
   image_paths: "folder_1"
   etcd_host: 0.0.0.0:2379
 
@@ -29,10 +21,6 @@ drone_2:
   group_id: "0"
   server_url: "http://192.168.49.2:80"
   ds_path: "/root/drone/src/data/val_images"
-  #ds_path: "../../../../object_classification/src/artifact/dataset/imagenet/data/val_images"
   rate: 1
-  # gps_data:
-  #   latitude: 37.7749
-  #   longitude: -122.4194
   image_paths: "folder_2"
   etcd_host: 0.0.0.0:2379
