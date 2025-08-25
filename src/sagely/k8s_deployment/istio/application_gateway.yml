@@ -62,14 +62,14 @@ spec:
             port:
               number: 1338
     - match:
-        - uri:
-            prefix: /preprocessing/
+        - uri: { exact: /preprocessing }
+        #- uri: { prefix: /preprocessing/ }
       route:
         - destination:
-            host: preprocessing-service
+            host: preprocessing-service.default.svc.cluster.local
             port:
               number: 5010
-            subset: v1
+            #subset: v1
     # - match:
     #     - uri:
     #         prefix: /predict

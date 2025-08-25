@@ -71,9 +71,9 @@ path_matches(request_path, policy_path) if {
 
 #Define user-role mapping
 user_roles := {
-	"0": ["admin"],
-	"1": ["admin"],
-	"2": ["admin"],
+	"drone_0": ["admin"],
+	"drone_1": ["admin"],
+	"drone_2": ["admin"],
 	"3": ["user"],
 	"4": ["user"],
 	"5": ["user"],

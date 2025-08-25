@@ -100,6 +100,64 @@ To run all experiments, you can use the provided shell script:
 
 This will create a new directory named `resultX` (where X is a number) and store the CSV results of the experiment in it.
 
+
+# Basic example
+## Infrastructure
+### Minikube
+- for a simple testing with minikube
+  - infrastructure/
+> tilt -f Tiltfile  up
+
+### UAV swarm
+
+#### Etcd-based UAV swarm
+- An example for UAV swarm with docker containers
+  - swarm_simulation/src/client_drone/
+
+> docker build -t <TAG> -f Dockerfile.humble ../.. # E.g., docker build -t hongtringuyen/ros2_humble_drone  -f Dockerfile.humble ../.. 
+
+- Create a docker-compose file or use an example from that directory
+  - edit <TAG> for container name
+  - image path for [object classification](/applications/object_classification/README.md)
+    - carefully check **HEADER of requests**
+  - check swarm_simulation/config/client_config.yaml
+> docker compose -f docker-compose.yml up
+
+- logs/ collects logs from drones
+
+## Change policy for the cluster
+- Apply a new rego policy to the cluster 
+  - at src/sagely/policy_controlplane/policy_enforcer/
+> edge_policy_enforcer.py [-h] [--configmap CONFIGMAP] [--key KEY] rego_path 
+
+- Example
+> python edge_policy_enforcer.py -- ../policy_templates/new_policy.rego
+
+### Gazebo with UAV swarm
+- Start Gazebo
+> python simulation-gazebo --gz_partition relay --gz_ip 192.168.132.1 --world drones_world 
+
+- Fill in basic setting in docker-compose-Adrone.sh
+```bash
+GZ_PARTITION="relay"
+GZ_IP="192.168.132.1"
+DRONE_MODEL="gz_x500"
+PX4_GZ_MODEL_POSE="268.08,-128.22,3.86,0.00,0,-0.7"
+START_IP=101
+END_IP=104
+BASE_IP="192.168."
+SWARM_SUBNET=132
+CONTAINER=gazebo_sim_px4_ros2
+SWARM_CONTAINER=<TAG>
+ROS2_CONTAINER=ros:humble-ros-base-jammy
+NETWORK_NAME=swarm_net # docker-based network
+OPA_POLICY="./opa/policy.rego"
+```
+
+#TODO: need to check opa and envoy plugin
+> ./docker-compose-Adrone.sh
+
+
 ## Citation
 
 ```bibtex
