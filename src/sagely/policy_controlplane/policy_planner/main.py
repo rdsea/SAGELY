@@ -81,3 +81,8 @@ def api_print(handler: PolicyPlanner = Depends(get_handler)):
 @app.post("/trigger_planner")
 def api_trigger_planner(handler: PolicyPlanner = Depends(get_handler)):
     return handler.trigger_planner()
+
+
+@app.post("/abnormal")
+def abnormal_detection():
+    print("Abnormal detected")
