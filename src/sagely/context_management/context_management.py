@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS commands (
 
 
 @app.post("/notify-context")
+# @app.post("/notify-leader")
 async def notify_leader_context(message: LeaderMessage):
     try:
         # current_leaders[message.group_id] = message.leader_id
@@ -192,18 +193,26 @@ async def send_change_task_parameter_command(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# @app.get("/get-command/{leader_id}/{command_type}")
+# async def get_node_command(leader_id: str, command_type: str):
+#     # command = commands.get(node_id, {}).get(command_type, None)
+#     command = conn.execute(
+#         "SELECT command_data FROM commands WHERE leader_id = ? AND command_type = ?",
+#         (leader_id, command_type),
+#     ).fetchone()
+#
+#     if command:
+#         return {"command": command}
+#     else:
+#         raise HTTPException(status_code=404, detail="Command not found")
 @app.get("/get-command/{leader_id}/{command_type}")
 async def get_node_command(leader_id: str, command_type: str):
-    # command = commands.get(node_id, {}).get(command_type, None)
-    command = conn.execute(
+    rows = conn.execute(
         "SELECT command_data FROM commands WHERE leader_id = ? AND command_type = ?",
         (leader_id, command_type),
-    ).fetchone()
-
-    if command:
-        return {"command": command}
-    else:
-        raise HTTPException(status_code=404, detail="Command not found")
+    ).fetchall()
+    # Return a list of strings; client already knows how to consume this shape
+    return {"command": [r[0] for r in rows]}
 
 
 @app.delete("/get-command/{leader_id}/{command_type}")
@@ -226,9 +235,18 @@ async def delete_node_command(leader_id: str, command_type: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def get_group_with_max_counter() -> str:
+    row = conn.execute(
+        "SELECT group_id FROM counters ORDER BY counter_value DESC LIMIT 1"
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="No group found")
+    return row[0]
+
+
 @app.post("/abnormal")
 async def abnormal_detection(target_leader_id: str, group_id: str):
-    new_group_id = str(get_leader_with_max_counter())
+    new_group_id = get_group_with_max_counter()
 
     new_command = ChangeGroupOrIDCommand(
         new_group_id=new_group_id, new_node_id=target_leader_id
@@ -237,38 +255,60 @@ async def abnormal_detection(target_leader_id: str, group_id: str):
         target_node_id=target_leader_id, command=new_command
     )
 
-    # request change policy
-    #
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Basic admin:admin",
-    }
+    headers = {"Content-Type": "application/json", "Authorization": "Basic admin:admin"}
     payload = {"new_group_id": new_group_id, "leader_id": target_leader_id}
-
     async with aiohttp.ClientSession() as session:
         async with session.post(
             URL_POLICY_PLANNER, data=json.dumps(payload), headers=headers
-        ) as response:
-            if response.status == 200:
-                print(
-                    f"Sent policy-planner change from {target_leader_id} to {group_id}"
-                )
-            else:
-                print(
-                    f"Failed to send crash notification {group_id}. Status code: {response.status}"
-                )
+        ) as resp:
+            if resp.status != 200:
+                logger.warning("policy-planner returned %s", resp.status)
+    return {"message": "abnormal handled"}
 
 
-# select the fastest one
-async def get_leader_with_max_counter():
-    try:
-        result = conn.execute(
-            "SELECT leader_id FROM counters ORDER BY counter_value DESC LIMIT 1"
-        )
-        if result:
-            return {"leader_id": result}
-        else:
-            raise HTTPException(status_code=404, detail="No leader found")
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @app.post("/abnormal")
+# async def abnormal_detection(target_leader_id: str, group_id: str):
+#     new_group_id = str(get_leader_with_max_counter())
+#
+#     new_command = ChangeGroupOrIDCommand(
+#         new_group_id=new_group_id, new_node_id=target_leader_id
+#     )
+#     await send_change_group_or_id_command(
+#         target_node_id=target_leader_id, command=new_command
+#     )
+#
+#     # request change policy
+#     #
+#     headers = {
+#         "Content-Type": "application/json",
+#         "Authorization": "Basic admin:admin",
+#     }
+#     payload = {"new_group_id": new_group_id, "leader_id": target_leader_id}
+#
+#     async with aiohttp.ClientSession() as session:
+#         async with session.post(
+#             URL_POLICY_PLANNER, data=json.dumps(payload), headers=headers
+#         ) as response:
+#             if response.status == 200:
+#                 print(
+#                     f"Sent policy-planner change from {target_leader_id} to {group_id}"
+#                 )
+#             else:
+#                 print(
+#                     f"Failed to send crash notification {group_id}. Status code: {response.status}"
+#                 )
+#
+#
+# # select the fastest one
+# async def get_leader_with_max_counter():
+#     try:
+#         result = conn.execute(
+#             "SELECT leader_id FROM counters ORDER BY counter_value DESC LIMIT 1"
+#         )
+#         if result:
+#             return {"leader_id": result}
+#         else:
+#             raise HTTPException(status_code=404, detail="No leader found")
+#
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
