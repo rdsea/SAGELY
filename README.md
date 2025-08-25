@@ -161,17 +161,12 @@ OPA_POLICY="./opa/policy.rego"
 ## Citation
 
 ```bibtex
-@inproceedings{tri2025sagely,
+@inproceedings{nguyen_2025_sagely,
 title = "SAGELY - Context-aware Holistic Service Policy Enforcement across Swarm-Edge Continuum",
 keywords = "Continuum service-based application, Service-oriented computing, Policy-as-code, Policy enforcement, Swarm-edge-cloud computing",
-author = "Hong-Tri Nguyen and Liang Yuan and Anh-Dung Nguyen and {Ali Babar}, Muhammad and Linh Truong",
-year = "2025",
-month = may,
-day = "15",
-language = "English",
+author = "Hong-Tri Nguyen and Liang Yuan and Anh-Dung Nguyen and M. Ali Babar and Linh Truong",
 booktitle = "IEEE International Conference on Web Services (ICWS 2025)",
 publisher = "IEEE",
-address = "United States",
 note = "IEEE International Conference on Web Services, ICWS ; Conference date: 07-07-2025 Through 12-07-2025",
 }
 ```
