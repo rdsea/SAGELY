@@ -60,7 +60,6 @@ CREATE TABLE IF NOT EXISTS commands (
 
 @app.post("/notify-context")
 async def notify_leader_context(message: LeaderMessage):
-    print("what happen here")
     try:
         # current_leaders[message.group_id] = message.leader_id
         conn.execute(
