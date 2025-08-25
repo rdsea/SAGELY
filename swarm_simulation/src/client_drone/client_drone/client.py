@@ -1,8 +1,14 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32
-import random, time, os, yaml, requests, etcd3, logging
-from threading import Timer, Thread, Event
+import random
+import time
+import os
+import yaml
+import requests
+import etcd3
+import logging
+from threading import Thread, Event
 from pydantic import BaseModel
 from typing import Optional
 
