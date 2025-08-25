@@ -41,7 +41,7 @@ required_roles[r] if {
 user_name := parsed if {
 	[_, encoded] := split(http_request.headers.authorization, " ")
 	[parsed, _] := split(encoded, ":")
-	print("username: hihop", parsed, "\n")
+	print("username: ", parsed, "\n")
 }
 
 # simplify password with group_id
@@ -68,6 +68,9 @@ user_roles := {
 	"5": ["user"],
 	"6": ["guest"],
 	"7": ["guest"],
+	"drone_0": ["admin"],
+	"drone_1": ["admin"],
+	"drone_2": ["admin"],
 }
 
 # Define role-permission mapping
@@ -81,7 +84,8 @@ role_perms := {
 		{"method": "GET", "path": "/get-command"},
 		# application
 		{"method": "POST", "path": "/preprocessing/"}, # Include the preprocessing endpoint
-		{"method": "POST", "path": "/ensemble_service/"}, # Include the preprocessing endpoint
+		{"method": "POST", "path": "/preprocessing"}, # Include the preprocessing endpoint
+		{"method": "POST", "path": "/ensemble_service"}, # Include the preprocessing endpoint
 		{"method": "POST", "path": "/inference"}, # Include the preprocessing endpoint
 	],
 	"guest": [
