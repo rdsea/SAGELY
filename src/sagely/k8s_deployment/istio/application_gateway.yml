@@ -63,7 +63,7 @@ spec:
               number: 1338
     - match:
         - uri: { exact: /preprocessing }
-        - uri: { prefix: /preprocessing/ }
+        #- uri: { prefix: /preprocessing/ }
       route:
         - destination:
             host: preprocessing-service.default.svc.cluster.local
