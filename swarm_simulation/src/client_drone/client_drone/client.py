@@ -760,7 +760,9 @@ def send_request_loop(url: str, req_rate: float, jpeg_images_list, ds_path: str)
 
             start_time = time.time()
             # explicit connect/read timeouts
-            r = session.post(url, headers=HEADER, files=files, timeout=(2, 15))
+            headers = dict(HEADER)  # copy
+            headers["Timestamp"] = str(int(start_time * 1000))
+            r = session.post(url, headers=headers, files=files, timeout=(2, 15))
             r.raise_for_status()
             try:
                 response_json = r.json()
