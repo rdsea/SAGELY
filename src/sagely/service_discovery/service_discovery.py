@@ -82,9 +82,9 @@ async def heartbeat(message: LeaderMessage):
         return {"message": "Heartbeat received"}
     else:
         print(
-            f"Received heartbeat from non-leader or unknown leader {message.leader_id} of group {message.group_id}"
+            f"Received heartbeat from non-leader {message.leader_id} of group {message.group_id}"
         )
-        raise HTTPException(status_code=400, detail="Unknown leader or leader mismatch")
+        raise HTTPException(status_code=200, detail="Unknown leader or leader mismatch")
 
 
 async def monitor_heartbeat(group_id: str):
