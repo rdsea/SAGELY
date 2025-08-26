@@ -131,7 +131,7 @@ This will create a new directory named `resultX` (where X is a number) and store
 > edge_policy_enforcer.py [-h] [--configmap CONFIGMAP] [--key KEY] rego_path 
 
 - Example
-> python edge_policy_enforcer.py -- ../policy_templates/new_policy.rego
+> python edge_policy_enforcer.py ../policy_templates/new_policy.rego
 
 ### Gazebo with UAV swarm
 - Start Gazebo
