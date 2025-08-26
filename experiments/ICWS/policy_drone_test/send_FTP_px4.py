@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 # List of UAVs and their respective local ports
 LIST_UAV = [
-    ("hp", "udpout:130.233.195.221:14560", "udp:0.0.0.0:14554"),
+    ("hp", "udpout:<DRONE_IP>:14560", "udp:0.0.0.0:14554"),
     # ("bee1", "udpout:130.233.195.214:14560", "udp:0.0.0.0:14551"),
     # ("bee2", "udpout:130.233.195.211:14560", "udp:0.0.0.0:14552"),
     # ("bee3", "udpout:130.233.195.212:14560", "udp:0.0.0.0:14553"),

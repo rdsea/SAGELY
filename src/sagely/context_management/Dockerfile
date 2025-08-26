@@ -2,7 +2,6 @@ FROM debian:stable-slim
 
 WORKDIR /context_management
 
-# Missing package for opencv, takes around 500mb
 RUN apt-get update
 
 COPY --from=ghcr.io/astral-sh/uv:0.4.3 /uv /bin/uv
