@@ -46,14 +46,14 @@ class MAVLinkFTPReceiver(Node):
 
             self.get_logger().info(f"Received FTP message: Opcode {opcode}")
             if opcode == 11:  # Start of file transfer
-                self.get_logger().info("📂 Start File Transfer")
+                self.get_logger().info("Start File Transfer")
                 if self.received_data != b"":
                     self.error_transit += 1
                 self.received_data = b""
 
             if opcode == 5:
                 self.get_logger().info(
-                    f"📦 Data received: {len(self.received_data)} bytes so far"
+                    f" Data received: {len(self.received_data)} bytes so far"
                 )
                 self.received_data += data
 
@@ -88,14 +88,14 @@ class MAVLinkFTPReceiver(Node):
             response = requests.put(self.opa_server, data=clean_policy)
 
             if response.status_code == 200:
-                self.get_logger().info("✅ File sent to OPA successfully")
+                self.get_logger().info(" File sent to OPA successfully")
             else:
                 self.error_opa += 1
-                self.get_logger().error(f"❌ OPA rejected file: {response.status_code}")
+                self.get_logger().error(f" OPA rejected file: {response.status_code}")
                 self.save_file_locally(policy_data)  # Save for debugging
 
         except Exception as e:
-            self.get_logger().error(f"⚠️ Error sending file to OPA: {str(e)}")
+            self.get_logger().error(f" Error sending file to OPA: {str(e)}")
             self.save_file_locally(policy_data)  # Save on unexpected errors
 
     def save_file_locally(self, data):
@@ -104,11 +104,9 @@ class MAVLinkFTPReceiver(Node):
             os.makedirs(os.path.dirname(self.uploaded_file_path), exist_ok=True)
             with open(self.uploaded_file_path, "wb") as file:
                 file.write(data)
-            self.get_logger().info(
-                f"🔄 File saved locally at {self.uploaded_file_path}"
-            )
+            self.get_logger().info(f" File saved locally at {self.uploaded_file_path}")
         except Exception as e:
-            self.get_logger().error(f"⚠️ Failed to save file: {str(e)}")
+            self.get_logger().error(f" Failed to save file: {str(e)}")
 
     #
     def send_notification_to_gcs(self, message):
