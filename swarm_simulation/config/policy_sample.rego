@@ -96,7 +96,7 @@ role_perms := {
 		{"method": "GET", "path": "^/get-command/[0-9]+/.+/?$"},
 		{"method": "DELETE", "path": "^/get-command/[0-9]+/.+/?$"},
 		# application
-		{"method": "POST", "path": "/preprocessing/"}, # Include the preprocessing endpoint
+		{"method": "POST", "path": "/preprocessing"}, # Include the preprocessing endpoint
 		{"method": "POST", "path": "/ensemble_service/"}, # Include the preprocessing endpoint
 		{"method": "POST", "path": "/inference"}, # Include the preprocessing endpoint
 	],
