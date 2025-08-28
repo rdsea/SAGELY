@@ -1,4 +1,4 @@
-import uvicorn
+# import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import List

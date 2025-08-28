@@ -6,7 +6,6 @@ from typing import Optional
 import duckdb
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import json
 import logging
 
 import httpx

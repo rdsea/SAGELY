@@ -1,8 +1,9 @@
-import uvicorn
+# import uvicorn
 import httpx
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException  # , Depends
 from pydantic import BaseModel, Field
-from typing import List
+
+# from typing import List
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
