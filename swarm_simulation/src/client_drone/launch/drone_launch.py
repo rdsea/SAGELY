@@ -59,7 +59,7 @@ def generate_launch_description():
 
     ftp_opa = Node(
         package="client_drone",
-        executable="receive_FTP_OPA",
+        executable="receive_ftp_write_opa",
         name="mavlink_ftp_receiver",
         output="screen",
     )
