@@ -853,14 +853,14 @@ def send_request_loop(url: str, req_rate: float, jpeg_images_list, ds_path: str)
 #     timer.start()
 
 
-# def wait_edge_alive(url):
-#     while True:
-#         try:
-#             r = requests.get(url, timeout=(2, 5))
-#             r.raise_for_status()
-#             return
-#         except requests.RequestException:
-#             time.sleep(2)
+def wait_edge_alive(url):
+    while True:
+        try:
+            r = requests.get(url, timeout=(2, 5))
+            r.raise_for_status()
+            return
+        except requests.RequestException:
+            time.sleep(2)
 
 
 def main(args=None):
