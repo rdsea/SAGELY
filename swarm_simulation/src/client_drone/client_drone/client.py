@@ -154,7 +154,7 @@ class ClientNode(Node):
         super().__init__("client_node")
 
         # declare + read parameters once
-        self.declare_parameter("yaml_file", "client_config.yaml")
+        self.declare_parameter("yaml_file", "../config/client_config.yaml")
         self.declare_parameter("drone_id", "")
         self.declare_parameter("group_id", "")
         self.declare_parameter("etcd_host", "")

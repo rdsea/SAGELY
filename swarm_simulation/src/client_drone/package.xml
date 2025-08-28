@@ -3,12 +3,24 @@
 <package format="3">
   <name>client_drone</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <!-- <description>TODO: Package description</description> -->
+  <description>ROS 2 client and MAVLink FTP->OPA uploader</description>
   <maintainer email="tringuyennht@gmail.com">nguyent141</maintainer>
   <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
   <depend>example_interfaces</depend>
+
+  <!-- runtime ROS deps -->
+  <!-- <exec_depend>rclpy</exec_depend> -->
+  <exec_depend>std_msgs</exec_depend>
+
+  <!-- for launch files -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <!-- ament index helper -->
+  <exec_depend>ament_index_python</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

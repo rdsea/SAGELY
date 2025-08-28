@@ -1,20 +1,22 @@
 # from fastapi import FastAPI, HTTPException
 # import asyncio
 from typing import Optional
-import aiohttp
+
+# import aiohttp
 import duckdb
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import json
 import logging
+
+import httpx
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-URL_POLICY_PLANNER = "http://192.168.49.2/policy-planner"
-
+# URL_POLICY_PLANNER = "http://192.168.49.2/policy-planner"
+URL_POLICY_PLANNER = "http://policy-planner:8000/policy-planner"
 # Connect to DuckDB database or create it if it does not exist
 conn = duckdb.connect("context-management.db")
 
@@ -245,25 +247,37 @@ def get_group_with_max_counter() -> str:
 
 
 @app.post("/abnormal")
-async def abnormal_detection(target_leader_id: str, group_id: str):
-    new_group_id = get_group_with_max_counter()
+async def abnormal_detection(group_id: str, reason: str = "Abnormal event detected"):
+    """
+    Detects an anomaly, packages it as context, and sends it to the policy_planner service.
+    """
+    logger.info(f"Abnormal event detected for group '{group_id}'. Reason: {reason}")
 
-    new_command = ChangeGroupOrIDCommand(
-        new_group_id=new_group_id, new_node_id=target_leader_id
-    )
-    await send_change_group_or_id_command(
-        target_node_id=target_leader_id, command=new_command
-    )
+    # Define the context payload for the planner
+    anomaly_context = {
+        "anomaly_type": "Abnormal Counter Behavior",
+        "source": "context-management-service",
+        "details": {"group_id": group_id, "trigger_reason": reason},
+    }
 
-    headers = {"Content-Type": "application/json", "Authorization": "Basic admin:admin"}
-    payload = {"new_group_id": new_group_id, "leader_id": target_leader_id}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            URL_POLICY_PLANNER, data=json.dumps(payload), headers=headers
-        ) as resp:
-            if resp.status != 200:
-                logger.warning("policy-planner returned %s", resp.status)
-    return {"message": "abnormal handled"}
+    # Send the context to the policy planner
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(URL_POLICY_PLANNER, json=anomaly_context)
+            response.raise_for_status()  # Raise an exception for 4xx/5xx responses
+            logger.info(
+                f"Successfully forwarded abnormal context to policy-planner. Response: {response.json()}"
+            )
+            return {
+                "status": "success",
+                "message": "Anomaly reported to planner successfully.",
+            }
+    except httpx.RequestError as e:
+        logger.error(f"Failed to send abnormal context to policy-planner: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Could not connect to downstream policy-planner service: {e}",
+        )
 
 
 # @app.post("/abnormal")
