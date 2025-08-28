@@ -6,7 +6,7 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple, Iterable, Optional
+from typing import List, Tuple
 
 from pymavlink import mavutil
 from tqdm import tqdm
