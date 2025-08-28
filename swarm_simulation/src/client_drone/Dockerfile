@@ -64,7 +64,7 @@ RUN cd /root && \
   #git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
   git clone --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
   bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
-  cp ./px4-rc.mavlink PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/ && \
+  cp .config/px4-rc.mavlink PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/ && \
   cd PX4-Autopilot && \
   PX4_GZ_STANDALONE=1 make px4_sitl
 
