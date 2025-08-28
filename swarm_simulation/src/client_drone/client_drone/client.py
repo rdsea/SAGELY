@@ -67,46 +67,86 @@ def extract_synset_id(image_path: str) -> str | None:
 
 def update_counter(node_id, group_id, stop_event):
     global sender_started, sender_stop, _request_timer_started
-    current_counter = get_counter(group_id)
-    current_leader = get_leader(group_id)
-    print(f"current leader: {current_leader} vs node id: {node_id}")
+    # Loop for the whole epoch; don't die just because the edge is down now
+    while not stop_event.is_set():
+        if get_current_leader(group_id) == node_id:
+            # Start image sender exactly once per epoch
+            if not _request_timer_started:
+                _request_timer_started = True
+                try:
+                    wait_edge_alive(EDGE_SERVER_GET_LEADER_URL)  # optional but nice
+                    start_image_sender(EDGE_SERVER_SEND_IMG, RATE, DS_PATH)
+                except Exception as e:
+                    logger.error(f"Failed to start image sender: {e}")
 
-    if current_leader == node_id:
-        logger.info(f"Header: {HEADER}")
-        # start the image sender ONCE
-        if not _request_timer_started:
-            _request_timer_started = True
+            # Keep updating the counter; failed HTTP is not fatal
             try:
-                HEADER["Timestamp"] = str(int(time.time() * 1000))
-                start_image_sender(EDGE_SERVER_SEND_IMG, RATE, DS_PATH)
-            except Exception as e:
-                logger.error(f"Failed to start image sender: {e}")
-
-        while not stop_event.is_set():
-            current_counter += COUNTER_INCREMENT
-            try:
+                cur = get_counter(group_id)  # also HTTP; may fail, default to 0
                 response = requests.post(
                     EDGE_SERVER_UPDATE_COUNTER_URL,
                     headers=HEADER,
                     json={
                         "leader_id": node_id,
                         "group_id": group_id,
-                        "counter": current_counter,
+                        "counter": cur + COUNTER_INCREMENT,
                     },
                     timeout=(2, 10),
                 )
                 response.raise_for_status()
-                logger.info(
-                    f"Counter updated to {current_counter} by leader {node_id} of group {group_id}"
-                )
+                logger.info("Counter updated")
             except requests.RequestException as e:
-                logger.error(f"Failed to update counter: {e}")
-            stop_event.wait(5)
+                logger.warning(f"update_counter() will retry: {e}")
+        else:
+            # Lost leadership → stop the sender for this epoch
+            sender_stop.set()
+            sender_started = False
+            _request_timer_started = False
 
-    # when we exit the loop (leadership over), stop sender and allow it to be restarted later
-    sender_stop.set()
-    sender_started = False
-    _request_timer_started = False
+        stop_event.wait(5)
+
+
+# def update_counter(node_id, group_id, stop_event):
+#     global sender_started, sender_stop, _request_timer_started
+#     current_counter = get_counter(group_id)
+#     current_leader = get_leader(group_id)
+#     print(f"current leader: {current_leader} vs node id: {node_id}")
+#
+#     if current_leader == node_id:
+#         logger.info(f"Header: {HEADER}")
+#         # start the image sender ONCE
+#         if not _request_timer_started:
+#             _request_timer_started = True
+#             try:
+#                 HEADER["Timestamp"] = str(int(time.time() * 1000))
+#                 start_image_sender(EDGE_SERVER_SEND_IMG, RATE, DS_PATH)
+#             except Exception as e:
+#                 logger.error(f"Failed to start image sender: {e}")
+#
+#         while not stop_event.is_set():
+#             current_counter += COUNTER_INCREMENT
+#             try:
+#                 response = requests.post(
+#                     EDGE_SERVER_UPDATE_COUNTER_URL,
+#                     headers=HEADER,
+#                     json={
+#                         "leader_id": node_id,
+#                         "group_id": group_id,
+#                         "counter": current_counter,
+#                     },
+#                     timeout=(2, 10),
+#                 )
+#                 response.raise_for_status()
+#                 logger.info(
+#                     f"Counter updated to {current_counter} by leader {node_id} of group {group_id}"
+#                 )
+#             except requests.RequestException as e:
+#                 logger.error(f"Failed to update counter: {e}")
+#             stop_event.wait(5)
+#
+#     # when we exit the loop (leadership over), stop sender and allow it to be restarted later
+#     sender_stop.set()
+#     sender_started = False
+#     _request_timer_started = False
 
 
 # def update_counter(node_id, group_id, stop_event):
@@ -811,6 +851,16 @@ def send_request_loop(url: str, req_rate: float, jpeg_images_list, ds_path: str)
 #         ),
 #     )
 #     timer.start()
+
+
+# def wait_edge_alive(url):
+#     while True:
+#         try:
+#             r = requests.get(url, timeout=(2, 5))
+#             r.raise_for_status()
+#             return
+#         except requests.RequestException:
+#             time.sleep(2)
 
 
 def main(args=None):
