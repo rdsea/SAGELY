@@ -57,6 +57,10 @@
 #   access_log_path: /tmp/admin_access.log
 #   address: { socket_address: { address: 0.0.0.0, port_value: 8001 } }
 #
+
+# Envoy routes all HTTP to client_drone0:8080,
+# but ROS2 container doesn’t expose an HTTP server on 8080 (your Python is a client + UDP listener).
+# Unless really have an HTTP server there, Envoy will 503.
 static_resources:
   listeners:
     - name: http
@@ -95,15 +99,14 @@ static_resources:
         endpoints:
           - lb_endpoints:
               - endpoint:
-                  address:
-                    {
-                      socket_address:
-                        { address: client_drone0, port_value: 8080 },
-                    }
+                  address: { socket_address:
+                        #{ address: client_drone0, port_value: 8080 },
+                        { address: backend, port_value: 8080 } }
     - name: opa_ext_authz
       connect_timeout: 1s
       type: STRICT_DNS
       lb_policy: ROUND_ROBIN
+      http2_protocol_options: {} # <-- required for gRPC Envoy (HTTP/2)— Otherwise ext_authz gRPC can fail to connect.
       load_assignment:
         cluster_name: opa_ext_authz
         endpoints:

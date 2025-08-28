@@ -14,13 +14,27 @@ udp_gcs_port_local=$((18570 + px4_instance))
 #
 ## in the px4 shell
 #mavlink stop-all
+# mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
+#
+# # command to forward from 14550 to 14551 outside ROS2 machine to client
+# mavlink start -u 14550 -o 14553 -t 192.168.132.1 -x -f
+#
+# # command to forward from 14560 outside to 14561 inside ROS2 machine
+# mavlink start -u 14560 -o 14561 -t 127.0.0.1 -x -f
+
+# 1) PX4 → GCS on same machine
 mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
+# PX4 binds local port 14551, sends to 127.0.0.1:14550 (QGC). Good.
 
-# command to forward from 14550 to 14551 outside ROS2 machine to client
+# TODO: Need to really check 2) forward from 14550 to 14553 outside ... to client”
 mavlink start -u 14550 -o 14553 -t 192.168.132.1 -x -f
+# This sends to 192.168.132.1:14550 (remote), not :14553. If you meant remote 14553,
+# swap the numbers: -u 14553 -o 14550 (or pick any free local -o port).
 
-# command to forward from 14560 outside to 14561 inside ROS2 machine
+# 3) forward from 14560 outside to 14561 inside ROS2 machine
 mavlink start -u 14560 -o 14561 -t 127.0.0.1 -x -f
+# This sends to 127.0.0.1:14560 (remote), while binding locally to 14561.
+# Your Python is listening on 14561, so PX4 must send TO 14561, not FROM 14561.
 
 mavlink start -x -u $udp_gcs_port_local -r 4000000 -f -p -n eth0
 mavlink stream -r 50 -s POSITION_TARGET_LOCAL_NED -u $udp_gcs_port_local

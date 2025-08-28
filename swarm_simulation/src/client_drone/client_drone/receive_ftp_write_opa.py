@@ -18,7 +18,11 @@ class MAVLinkFTPReceiver(Node):
         self.mav_send = mavutil.mavlink_connection("udpout:127.0.0.1:14550")
 
         # Define OPA server URL
-        self.opa_server = "http://localhost:8181/v1/policies/policy.rego"
+        self.opa_server = os.getenv(
+            "OPA_URL", "http://opa0:8181/v1/policies/policy.rego"
+        )
+
+        # self.opa_server = "http://localhost:8181/v1/policies/policy.rego"
 
         # Default path where PX4 stores received files
         self.uploaded_file_path = "/policy/policy.rego"
@@ -29,6 +33,7 @@ class MAVLinkFTPReceiver(Node):
 
     def receive_mavftp(self):
         msg = self.mav_conn.recv_match(type="FILE_TRANSFER_PROTOCOL", blocking=False)
+
         if msg:
             payload = msg.payload
             opcode = payload[0]  # Extract opcode
