@@ -10,13 +10,15 @@ networks:
 services:
   # === Drone 0 Service ===
   client_drone0:
-    image: hongtringuyen/ros2_humble_drone:latest
+    image: hongtringuyen/ros2_px4:latest
     container_name: client_drone0
     #network_mode: "host"
     networks: [minikube]
+    environment:
+      - OPA_URL=http://opa0:8181/v1/policies/policy.rego
     volumes:
       - ./image/:/root/drone/src/data/val_images
-      - ../../config/client_config.yaml:/root/drone/src/object_classification/client_drone/client_config.yaml
+      - ./config/client_config.yaml:/root/drone/src/object_classification/config/client_config.yaml
       - ./logs:/root/drone/logs
     entrypoint: /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
     command: ["drone_0", "drone_0=http://0.0.0.0:2380"]
@@ -24,12 +26,11 @@ services:
     tty: true
     ports:
       - "14560:14560/udp"
-      - "14551:14551/udp"
 
   envoy0:
     image: envoyproxy/envoy:v1.23-latest
     networks: [minikube] # <-- needed
-    volumes: ["../../config/uav_swarm_config_0.yaml:/etc/envoy/envoy.yaml:ro"]
+    volumes: ["./config/uav_swarm_config_0.yaml:/etc/envoy/envoy.yaml:ro"]
     ports:
       - "5200:8000" # external listener -> Envoy 8000
       - "127.0.0.1:5201:8001" # (safer) admin only on localhost
@@ -39,7 +40,7 @@ services:
   opa0:
     image: openpolicyagent/opa:latest-envoy
     networks: [minikube] # <-- needed
-    volumes: ["./opa/policy.rego:/policy/policy.rego:ro"]
+    volumes: ["./policy/policy.rego:/policy/policy.rego:ro"]
     command:
       [
         "run",
@@ -52,27 +53,34 @@ services:
       ]
     ports: ["8181:8181"] # host 8181 -> container 8181
 
+  backend:
+    image: hashicorp/http-echo:0.2.3
+    command: ["-listen=:8080", "-text=hello from backend"]
+    networks: [minikube]
+
   # === Drone 1 Service ===
   client_drone1:
-    image: hongtringuyen/ros2_humble_drone:latest
+    image: hongtringuyen/ros2_px4:latest
     container_name: client_drone1
     networks: [minikube]
+    environment:
+      - OPA_URL=http://opa1:8181/v1/policies/policy.rego
     volumes:
       - ./image/:/root/drone/src/data/val_images
-      - ../../config/client_config.yaml:/root/drone/src/object_classification/client_drone/client_config.yaml
+      - ./config/client_config.yaml:/root/drone/src/object_classification/config/client_config.yaml
       - ./logs:/root/drone/logs
     entrypoint: /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
     command: ["drone_1", "drone_1=http://0.0.0.0:2380"]
     stdin_open: true
     tty: true
     ports:
-      - "14561:14561/udp"
-      - "14570:14570/udp"
+      - "14561:14560/udp"
+      # - "14570:14570/udp"
 
   envoy1:
     image: envoyproxy/envoy:v1.23-latest
     networks: [minikube] # <-- needed
-    volumes: ["../../config/uav_swarm_config_1.yaml:/etc/envoy/envoy.yaml:ro"]
+    volumes: ["./config/uav_swarm_config_1.yaml:/etc/envoy/envoy.yaml:ro"]
     ports:
       - "5202:8000" # external listener -> Envoy 8000
       - "127.0.0.1:5203:8001" # (safer) admin only on localhost
@@ -81,7 +89,7 @@ services:
   opa1:
     image: openpolicyagent/opa:latest-envoy
     networks: [minikube] # <-- needed
-    volumes: ["./opa/policy.rego:/policy/policy.rego:ro"]
+    volumes: ["./policy/policy.rego:/policy/policy.rego:ro"]
     command:
       [
         "run",
@@ -96,25 +104,27 @@ services:
 
   # === Drone 2 Service ===
   client_drone2:
-    image: hongtringuyen/ros2_humble_drone:latest
+    image: hongtringuyen/ros2_px4:latest
     container_name: client_drone2
     networks: [minikube]
+    environment:
+      - OPA_URL=http://opa2:8181/v1/policies/policy.rego
     volumes:
       - ./image/:/root/drone/src/data/val_images
-      - ../../config/client_config.yaml:/root/drone/src/object_classification/client_drone/client_config.yaml
+      - ./config/client_config.yaml:/root/drone/src/object_classification/config/client_config.yaml
       - ./logs:/root/drone/logs
     entrypoint: /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
     command: ["drone_2", "drone_2=http://0.0.0.0:2380"]
     stdin_open: true
     tty: true
     ports:
-      - "14571:14571/udp"
-      - "14580:14580/udp"
+      - "14562:14560/udp"
+      # - "14580:14580/udp"
 
   envoy2:
     image: envoyproxy/envoy:v1.23-latest
     networks: [minikube] # <-- needed
-    volumes: ["../../config/uav_swarm_config_2.yaml:/etc/envoy/envoy.yaml:ro"]
+    volumes: ["./config/uav_swarm_config_2.yaml:/etc/envoy/envoy.yaml:ro"]
     ports:
       - "5204:8000" # external listener -> Envoy 8000
       - "127.0.0.1:5205:8001" # (safer) admin only on localhost
@@ -123,7 +133,7 @@ services:
   opa2:
     image: openpolicyagent/opa:latest-envoy
     networks: [minikube] # <-- needed
-    volumes: ["./opa/policy.rego:/policy/policy.rego:ro"]
+    volumes: ["./policy/policy.rego:/policy/policy.rego:ro"]
     command:
       [
         "run",
