@@ -1,7 +1,8 @@
 # from fastapi import FastAPI, HTTPException
 # import asyncio
 from typing import Optional
-import aiohttp
+
+# import aiohttp
 import duckdb
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -256,7 +257,7 @@ async def abnormal_detection(group_id: str, reason: str = "Abnormal event detect
     # Define the context payload for the planner
     anomaly_context = {
         "anomaly_type": "Abnormal Counter Behavior",
-        "source": f"context-management-service",
+        "source": "context-management-service",
         "details": {"group_id": group_id, "trigger_reason": reason},
     }
 
