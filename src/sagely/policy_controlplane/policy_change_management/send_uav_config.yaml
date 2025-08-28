@@ -1,0 +1,7 @@
+uavs:
+  - name: hp
+    uav: "udpout:192.168.49.3:14560"
+    local_port: "udp:0.0.0.0:14551"
+  - name: sim
+    uav: "udpout:127.0.0.1:14560"
+    local_port: "udp:0.0.0.0:14553"
