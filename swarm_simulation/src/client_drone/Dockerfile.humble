@@ -57,7 +57,6 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
   git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
   /bin/bash -c "source /opt/ros/humble/setup.bash && cd /root/ws_sensor_combined && colcon build"
 
-
 RUN mkdir -p /root/drone/src/data
 
 RUN mkdir -p /root/logs

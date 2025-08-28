@@ -1,6 +1,7 @@
 # Use the official ROS2 base image
 # ubuntu 24.04
-FROM osrf/ros:jazzy
+#FROM osrf/ros:jazzy
+FROM ros:jazzy-ros-base-noble
 
 # Install necessary packages
 RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -29,9 +30,13 @@ RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
   wget \
   curl \
   tmux \
-  ruby 
+  ruby \
+  tmuxinator
 
 WORKDIR /root
+
+# edit the script starting 
+COPY . /root
 
 # Install PX4
 RUN cd /root && \
@@ -97,8 +102,10 @@ RUN echo "source /root/ws_sensor_combined/install/setup.bash" >> /root/.bashrc &
 # setup tmuxinator
 RUN echo "export PATH=\$PATH:/root/.local/bin" >> /root/.bashrc
 
+RUN mkdir -p /root/.config/tmuxinator/
 # Copy tmuxinator configuration
 COPY tmuxinator_control.yml /root/.config/tmuxinator/tmuxinator_control.yml
 # Define entry point
-CMD ["tmuxinator", "start", "tmuxinator_control.yml"]
+CMD ["tmuxinator", "start", "ros2_px4_gazebo"]
+#CMD ["tmuxinator", "start", "tmuxinator_control.yml"]
 
