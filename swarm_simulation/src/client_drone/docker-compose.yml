@@ -20,6 +20,7 @@ services:
       - ./image/:/root/drone/src/data/val_images
       - ./config/client_config.yaml:/root/drone/src/object_classification/config/client_config.yaml
       - ./logs:/root/drone/logs
+      - ./config/:/root/.config/tmuxinator/ros2_px4_gazebo.yaml
     entrypoint: /root/drone/src/object_classification/scripts/entrypoint_etcd.sh
     command: ["drone_0", "drone_0=http://0.0.0.0:2380"]
     stdin_open: true
