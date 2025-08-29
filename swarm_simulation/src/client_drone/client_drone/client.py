@@ -70,11 +70,12 @@ def update_counter(node_id, group_id, stop_event):
     # Loop for the whole epoch; don't die just because the edge is down now
     while not stop_event.is_set():
         if get_current_leader(group_id) == node_id:
+            logger.info("update_counter epoch running as leader")
             # Start image sender exactly once per epoch
             if not _request_timer_started:
                 _request_timer_started = True
                 try:
-                    wait_edge_alive(EDGE_SERVER_GET_LEADER_URL)  # optional but nice
+                    wait_edge_alive(group_id)  # optional but nice
                     start_image_sender(EDGE_SERVER_SEND_IMG, RATE, DS_PATH)
                 except Exception as e:
                     logger.error(f"Failed to start image sender: {e}")
@@ -853,14 +854,20 @@ def send_request_loop(url: str, req_rate: float, jpeg_images_list, ds_path: str)
 #     timer.start()
 
 
-def wait_edge_alive(url):
+def wait_edge_alive(group_id: str):
     while True:
         try:
-            r = requests.get(url, timeout=(2, 5))
-            r.raise_for_status()
-            return
+            r = session.get(
+                EDGE_SERVER_GET_COUNTER_URL,
+                headers=HEADER,
+                params={"group_id": group_id},
+                timeout=(2, 5),
+            )
+            if 200 <= r.status_code < 300:
+                return
         except requests.RequestException:
-            time.sleep(2)
+            pass
+        time.sleep(2)
 
 
 def main(args=None):
