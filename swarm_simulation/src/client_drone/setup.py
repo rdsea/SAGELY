@@ -50,7 +50,8 @@ setup(
             "client = client_drone.client:main",
             # "drone_data_sender = client_drone.drone_data_sender:main",
             # "receive_ftp = client_drone.receive_ftp:main",
-            "receive_ftp_write_opa = client_drone.receive_ftp_write_opa:main",
+            # "receive_ftp_write_opa = client_drone.receive_ftp_write_opa:main",
+            "receive_ftp_write_opa = client_drone.receive_ftp:main",
         ],
     },
 )
