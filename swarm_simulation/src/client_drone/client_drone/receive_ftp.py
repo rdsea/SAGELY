@@ -18,7 +18,7 @@ class MAVLinkFTPReceiver(Node):
         self.publisher_ = self.create_publisher(String, "mavlink_ftp_data", 10)
         self.mav_conn = mavutil.mavlink_connection("udp:0.0.0.0:14561")
 
-        self.mav_send = mavutil.mavlink_connection("udpout:127.0.0.1:14550")
+        self.mav_send = mavutil.mavlink_connection("udpout:127.0.0.1:14570")
 
         # Define OPA server URL
         # self.opa_server = "http://localhost:8181/v1/policies/policy.rego"
@@ -40,9 +40,6 @@ class MAVLinkFTPReceiver(Node):
     def receive_mavftp(self):
         """Handles incoming MAVLink FTP messages"""
 
-        # self.get_logger().info(f" Initial connection")
-        # self.get_logger().info(f"Error transit {self.error_transit}")
-        # self.get_logger().info(f"Error OPA {self.error_opa}")
         msg = self.mav_conn.recv_match(type="FILE_TRANSFER_PROTOCOL", blocking=False)
         if msg:
             payload = msg.payload
