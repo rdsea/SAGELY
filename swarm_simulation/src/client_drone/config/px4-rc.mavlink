@@ -23,7 +23,7 @@ udp_gcs_port_local=$((18570 + px4_instance))
 # mavlink start -u 14560 -o 14561 -t 127.0.0.1 -x -f
 
 # 1) PX4 → GCS on same machine
-mavlink start -u 14550 -o 14551 -t 127.0.0.1 -x -f
+mavlink start -u 14570 -o 14551 -t 127.0.0.1 -x -f
 # PX4 binds local port 14551, sends to 127.0.0.1:14550 (QGC). Good.
 
 # TODO: Need to really check 2) forward from 14550 to 14553 outside ... to client”
