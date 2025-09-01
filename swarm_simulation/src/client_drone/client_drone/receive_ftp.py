@@ -68,7 +68,6 @@ class MAVLinkFTPReceiver(Node):
 
                 self.received_data = b""
 
-                self.send_notification_to_gcs("DONE")
                 # number = 1.32
                 # time_boot_ms = (
                 #     self.get_clock().now().nanoseconds // 1000000
@@ -91,10 +90,12 @@ class MAVLinkFTPReceiver(Node):
 
             if response.status_code == 200:
                 self.get_logger().info(" File sent to OPA successfully")
+                self.send_notification_to_gcs(response.status_code)
             else:
                 self.error_opa += 1
                 self.get_logger().error(f" OPA rejected file: {response.status_code}")
                 self.save_file_locally(policy_data)  # Save for debugging
+                self.send_notification_to_gcs(response.status_code)
 
         except Exception as e:
             self.get_logger().error(f" Error sending file to OPA: {str(e)}")
@@ -110,19 +111,87 @@ class MAVLinkFTPReceiver(Node):
         except Exception as e:
             self.get_logger().error(f" Failed to save file: {str(e)}")
 
-    #
     def send_notification_to_gcs(self, message):
-        """Sends a MAVLink STATUSTEXT message to notify the GCS."""
-        self.get_logger().info(f"Sending notification to GCS: {message}")
-        # self.mav_send.mav.statustext_send(
-        #     mavutil.mavlink.MAV_SEVERITY_INFO,  # Severity level
-        #     message.encode(),  # Convert message to bytes
-        # )
-        time_boot_ms = (self.get_clock().now().nanoseconds // 1000000) % 4294967296
-        named_value_float = mavlink2.MAVLink_named_value_float_message(
-            time_boot_ms=time_boot_ms, name=b"number", value=1
-        )
-        self.mav_send.mav.send(named_value_float)
+        """
+        Send a NAMED_VALUE_FLOAT as a short, robust notification.
+        - name: up to 10 bytes ASCII (we pad/truncate)
+        - value: float (we put HTTP status code as float when available, else 1.0 for OK)
+
+        Examples:
+        message = 200       -> name "OPA200" (bytes), value 200.0
+        message = "OK"      -> name "OK" (bytes), value 1.0
+        message = "ERR42"   -> name "ERR42", value 0.0
+        """
+        try:
+            self.get_logger().info(f"Sending notification to GCS: {message!r}")
+
+            # compute time_boot_ms
+            time_boot_ms = (self.get_clock().now().nanoseconds // 1000000) % 4294967296
+
+            # Normalize message -> short ASCII name and value
+            NAME_MAX = 10
+
+            # convert different message types to a short string
+            if isinstance(message, (bytes, bytearray)):
+                text = message.decode("utf-8", errors="replace")
+            elif isinstance(message, (set, list, tuple)):
+                # single-element set common mistake: {200}
+                if len(message) == 1:
+                    text = str(next(iter(message)))
+                else:
+                    text = ",".join(str(x) for x in message)
+            else:
+                text = str(message)
+
+            text = text.replace("\x00", "").strip()
+
+            # If the text is a pure integer (e.g. "200"), use OPA prefix for clarity
+            if text.isdigit():
+                name_field = f"OPA{text}"
+                value_float = float(int(text))
+            else:
+                # heuristics: if text contains "ok"/"success" -> value 1.0, else 0.0
+                lowered = text.lower()
+                if "ok" in lowered or "done" in lowered or "success" in lowered:
+                    value_float = 1.0
+                else:
+                    # default: 0.0 for non-success textual messages
+                    value_float = 0.0
+                # keep the name short
+                name_field = text
+
+            # encode to ASCII bytes (replace non-ascii), pad/truncate to NAME_MAX
+            name_bytes = name_field.encode("ascii", errors="replace")[:NAME_MAX]
+            if len(name_bytes) < NAME_MAX:
+                name_bytes = name_bytes.ljust(NAME_MAX, b"\x00")
+
+            # Send the named_value_float (name as bytes, value as float)
+            try:
+                self.mav_send.mav.named_value_float_send(
+                    time_boot_ms, name_bytes, float(value_float)
+                )
+                self.get_logger().info(
+                    f"NAMED_VALUE_FLOAT sent: name={name_bytes!r} value={value_float}"
+                )
+            except Exception as e:
+                # attempt the str variant if bytes variant fails on this pymavlink
+                try:
+                    name_str = name_bytes.rstrip(b"\x00").decode(
+                        "ascii", errors="replace"
+                    )
+                    self.mav_send.mav.named_value_float_send(
+                        time_boot_ms, name_str, float(value_float)
+                    )
+                    self.get_logger().info(
+                        f"NAMED_VALUE_FLOAT sent (str fallback): name={name_str!r} value={value_float}"
+                    )
+                except Exception as e2:
+                    self.get_logger().warn(
+                        f"named_value_float_send failed both bytes and str forms: {e} / {e2}"
+                    )
+
+        except Exception as e:
+            self.get_logger().error(f"Error sending notification: {e}")
 
 
 def main(args=None):
