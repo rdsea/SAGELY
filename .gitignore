@@ -45,4 +45,5 @@ drone/src/drone/scripts/etcdctl
 *.local.md
 *.log
 *.local.*
-outputs/*
+
+swarm_simulation/generation_drones/outputs/*
