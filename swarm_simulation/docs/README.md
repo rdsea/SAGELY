@@ -798,3 +798,42 @@ while True:
         else:
             print(f"Received MAVLink message: {msg_type}")
 ```
+
+
+
+# Policy debug with OPA
+
+- Drone site:
+Error when put a new policy to drones OPA
+```bash
+{
+  "code": "invalid_parameter",
+  "message": "error(s) occurred while compiling module(s)",
+  "errors": [
+    {
+      "code": "rego_type_error",
+      "message": "multiple default rules data.envoy.authz.allow found at policy.rego:3, policy_get_header:3",
+      "location": {
+        "file": "policy.rego",
+        "row": 1,
+        "col": 1
+      }
+    }
+  ]
+}
+```
+```bash
+# list all policy of the OPA 
+curl -sS http://<IP>:8181/v1/policies | jq
+
+# delete the policy file
+curl -X DELETE "http://<IP>:8181/v1/policies/<ID_Policy>"
+# E.g.,
+curl -X DELETE "http://192.168.49.1:8181/v1/policies/policy.rego"
+
+# Add the policy to the OPA
+curl -X PUT --data-binary @<Policy_Files> http://<IP>:8181/v1/policies/<ID_Policy>
+# E.g.,
+curl -X PUT --data-binary @policy_drone_decline.rego http://192.168.49.1:8181/v1/policies/policy.rego
+
+```

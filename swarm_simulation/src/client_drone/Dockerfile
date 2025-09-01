@@ -36,38 +36,7 @@ RUN  --mount=type=cache,target=/var/cache/apt,sharing=locked \
   ruby \
   tmuxinator
 
-#RUN apt-get update --fix-missing
-
-# Install uv (adds to ~/.local/bin)
-# --- Python toolchain + venv -------------------------------------------------
-# Install uv (fast pip)
-# RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-# ENV PATH="/root/.local/bin:$PATH"
-#
-# # Create dedicated venv and prefer it globally
-# RUN uv venv --python /usr/bin/python3 /opt/venv
-# ENV VIRTUAL_ENV=/opt/venv
-# ENV PATH="/opt/venv/bin:$PATH"
-# ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-# ENV PYTHONNOUSERSITE=1
-# # Force colcon's Python to the venv (makes console-script shebangs correct)
-# ENV COLCON_PYTHON_EXECUTABLE=/opt/venv/bin/python3
-
-
-# Install Python deps into the venv ONCE
-# RUN --mount=type=cache,target=/root/.cache/uv \
-#   uv pip install --upgrade pip setuptools wheel catkin_pkg empy && \
-#   uv pip install --no-cache-dir \
-#   requests \
-#   pymavlink \
-#   PyYAML \
-#   aiohttp \
-#   etcd3 \
-#   pydantic
-
 # ---------------- Python venv  -----------------
-# RUN pip3 install setuptools wheel catkin_pkg empy 
-# RUN pip3 install requests etcd3 pydantic
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 RUN pip install -U pip setuptools wheel colcon-common-extensions catkin_pkg empy \
@@ -79,14 +48,6 @@ WORKDIR /root
 COPY config/px4-rc.mavlink /tmp/px4-rc.mavlink
 
 # Install PX4
-# RUN PIP_BREAK_SYSTEM_PACKAGES=1 bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
-# RUN cd /root && \
-#   #git clone -b v1.15.4 --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
-#   git clone --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
-#   bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
-#   cp ./config/px4-rc.mavlink PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/ && \
-#   cd PX4-Autopilot && \
-#   PX4_GZ_STANDALONE=1 make px4_sitl
 
 RUN git clone --depth 1 https://github.com/PX4/PX4-Autopilot.git --recursive && \
   bash ./PX4-Autopilot/Tools/setup/ubuntu.sh && \
@@ -101,16 +62,6 @@ RUN git clone --depth 1 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && 
   cmake .. && make -j"$(nproc)" && make install && ldconfig /usr/local/lib/
 
 
-# # Setup Micro XRCE-DDS Agent & Client
-# RUN cd /root && \
-#   git clone --depth 1 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git && \
-#   cd Micro-XRCE-DDS-Agent && \
-#   mkdir build && \
-#   cd build && \
-#   cmake .. && \
-#   make && \
-#   make install && \
-#   ldconfig /usr/local/lib/
 
 # --- px4_ros_com workspace ---------------------------------------------------
 RUN mkdir -p /root/ws_sensor_combined/src && \
@@ -119,17 +70,8 @@ RUN mkdir -p /root/ws_sensor_combined/src && \
   git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
   /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd /root/ws_sensor_combined && colcon build"
 
-# source /opt/ros/jazzy/setup.bash && \
-# cd /root/ws_sensor_combined && colcon build --symlink-install
-
-# RUN mkdir -p /root/ws_sensor_combined/src && \
-#   cd /root/ws_sensor_combined/src && \
-#   git clone --depth 1 https://github.com/PX4/px4_msgs.git && \
-#   git clone --depth 1 https://github.com/PX4/px4_ros_com.git && \
-#   /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd /root/ws_sensor_combined && colcon build"
 
 # --- Your ROS2 workspace -----------------------------------------------------
-#RUN pip install requests etcd3 pydantic
 RUN mkdir -p /root/drone/src/object_classification
 
 COPY . /root/drone/src/object_classification

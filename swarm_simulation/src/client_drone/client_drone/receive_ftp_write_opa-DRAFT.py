@@ -19,7 +19,7 @@ class MAVLinkFTPReceiver(Node):
 
         # Define OPA server URL
         self.opa_server = os.getenv(
-            "OPA_URL", "http://opa0:8181/v1/policies/policy.rego"
+            "OPA_URL", "http://localhost:8181/v1/policies/policy.rego"
         )
 
         # self.opa_server = "http://localhost:8181/v1/policies/policy.rego"
@@ -34,6 +34,36 @@ class MAVLinkFTPReceiver(Node):
     def receive_mavftp(self):
         msg = self.mav_conn.recv_match(type="FILE_TRANSFER_PROTOCOL", blocking=False)
 
+        # if msg:
+        #     payload = bytearray(msg.payload)
+        #     opcode = payload[3]
+        #     size = payload[11]
+        #     data = bytes(payload[12 : 12 + size])
+        #
+        #     CMD_TERMINATE_SESSION = 1
+        #     CMD_WRITE_FILE = 7
+        #     CMD_OPEN_FILE_WO = 11
+        #
+        #     if opcode == CMD_OPEN_FILE_WO:
+        #         self.get_logger().info("File transfer started")
+        #         self.received_data = b""
+        #         self.transfer_active = True
+        #
+        #     elif opcode == CMD_WRITE_FILE and self.transfer_active:
+        #         self.received_data += data
+        #         self.get_logger().info(
+        #             f" Data received: {len(self.received_data)} bytes so far"
+        #         )
+        #
+        #     elif opcode == CMD_TERMINATE_SESSION and self.transfer_active:
+        #         self.get_logger().info(
+        #             f" File Transfer Completed! Total size: {len(self.received_data)} bytes"
+        #         )
+        #         self.transfer_active = False
+        #         # write and upload
+        #         self.write_file(self.uploaded_file_path, self.received_data)
+        #         self.send_file_to_opa(self.uploaded_file_path)
+        #
         if msg:
             payload = msg.payload
             opcode = payload[0]  # Extract opcode
@@ -45,24 +75,24 @@ class MAVLinkFTPReceiver(Node):
                 f" Received: Opcode {opcode}, Chunk Size: {len(data_chunk)} bytes"
             )
 
-            if opcode == 10:  # Start of file transfer
-                self.logger.info(" File Transfer Started")
+            if opcode == 11:  # Start of file transfer
+                self.get_logger().info(" File Transfer Started")
                 self.received_data = b""  # Reset buffer
                 self.transfer_active = True
 
-            elif opcode == 4 and self.transfer_active:  # Data chunk
+            elif opcode == 5 and self.transfer_active:  # Data chunk
                 self.received_data += data_chunk
                 self.get_logger().info(
                     f" Data received: {len(self.received_data)} bytes so far"
                 )
 
-            elif opcode == 5 and self.transfer_active:  # Transfer complete
+            elif opcode == 6 and self.transfer_active:  # Transfer complete
                 self.get_logger().info(
                     f" File Transfer Completed! Total size: {len(self.received_data)} bytes"
                 )
                 self.transfer_active = False
                 self.send_file_to_opa(self.received_data)
-            if opcode == 5:  # End of file transfer
+            if opcode == 6:  # End of file transfer
                 self.get_logger().info("File Transfer Completed Successfully!")
 
                 self.uploaded_file_path = "/policy/policy.rego"  # Define full file path

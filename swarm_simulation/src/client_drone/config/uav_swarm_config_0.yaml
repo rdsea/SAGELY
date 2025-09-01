@@ -1,66 +1,3 @@
-# static_resources:
-#   listeners:
-#     - name: http
-#       address: { socket_address: { address: 0.0.0.0, port_value: 8000 } }
-#       filter_chains:
-#         - filters:
-#             - name: envoy.filters.network.http_connection_manager
-#               typed_config:
-#                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-#                 route_config:
-#                   name: local_route
-#                   virtual_hosts:
-#                     - name: backend
-#                       domains: ["*"]
-#                       routes:
-#                         - match: { prefix: "/" }
-#                           route: { cluster: drone_backend }
-#                 http_filters:
-#                   - name: envoy.filters.http.ext_authz
-#                     typed_config:
-#                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-#                       grpc_service:
-#                         envoy_grpc: { cluster_name: opa_ext_authz }
-#                       transport_api_version: V3
-#                   - name: envoy.filters.http.router
-#
-#   clusters:
-#     - name: drone_backend
-#       connect_timeout: 2s
-#       type: STRICT_DNS
-#       lb_policy: ROUND_ROBIN
-#       load_assignment:
-#         cluster_name: drone_backend
-#         endpoints:
-#           - lb_endpoints:
-#               - endpoint:
-#                   address:
-#                     socket_address:
-#                       address: client_drone0 # <- change to client_drone1 / client_drone2
-#                       port_value: 8080 # <- your drone app port inside the container
-#
-#     - name: opa_ext_authz
-#       connect_timeout: 1s
-#       type: STRICT_DNS
-#       lb_policy: ROUND_ROBIN
-#       load_assignment:
-#         cluster_name: opa_ext_authz
-#         endpoints:
-#           - lb_endpoints:
-#               - endpoint:
-#                   address:
-#                     socket_address:
-#                       address: opa0 # <- change to opa1 / opa2
-#                       port_value: 9191 # <- OPA ext_authz gRPC inside the container
-#
-# admin:
-#   access_log_path: /tmp/admin_access.log
-#   address: { socket_address: { address: 0.0.0.0, port_value: 8001 } }
-#
-
-# Envoy routes all HTTP to client_drone0:8080,
-# but ROS2 container doesn’t expose an HTTP server on 8080 (your Python is a client + UDP listener).
-# Unless really have an HTTP server there, Envoy will 503.
 static_resources:
   listeners:
     - name: http
@@ -77,8 +14,8 @@ static_resources:
                     - name: backend
                       domains: ["*"]
                       routes:
-                        - match: { prefix: "/" }
-                          route: { cluster: drone_backend }
+                        - match: { prefix: "/" } #
+                          route: { cluster: drone_backend } # forward the accepted requests to
                 http_filters:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
@@ -101,7 +38,7 @@ static_resources:
               - endpoint:
                   address: { socket_address:
                         #{ address: client_drone0, port_value: 8080 },
-                        { address: backend, port_value: 8080 } }
+                        { address: 192.168.49.100, port_value: 8080 } }
     - name: opa_ext_authz
       connect_timeout: 1s
       type: STRICT_DNS
@@ -113,7 +50,10 @@ static_resources:
           - lb_endpoints:
               - endpoint:
                   address:
-                    { socket_address: { address: opa0, port_value: 9191 } }
+                    {
+                      socket_address:
+                        { address: 192.168.49.1, port_value: 9191 },
+                    }
 admin:
   access_log_path: /tmp/admin_access.log
   address: { socket_address: { address: 0.0.0.0, port_value: 8001 } }
