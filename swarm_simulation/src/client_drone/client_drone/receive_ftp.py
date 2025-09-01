@@ -4,7 +4,6 @@ from pymavlink import mavutil
 from std_msgs.msg import String
 import requests
 
-from pymavlink.dialects.v20 import common as mavlink2
 
 # import time
 import os
