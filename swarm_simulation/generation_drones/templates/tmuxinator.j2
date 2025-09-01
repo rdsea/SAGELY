@@ -1,0 +1,19 @@
+name: px4_ros2_gazebo
+root: /root
+
+windows:
+  - Micro_XRCE_Agent:
+      root: /root/Micro-XRCE-DDS-Agent
+      layout: even-vertical
+      panes:
+        - MicroXRCEAgent udp4 -p 8888
+  - PX4_Autopilot:
+      root: /root/PX4-Autopilot
+      layout: even-vertical
+      panes:
+        - sleep 3 && {{ px4_command }}
+  - Drone_Cluster:
+      root: /root/drone/src/object_classification/client_drone
+      panes:
+        - sleep 6 && /root/drone/src/object_classification/scripts/entrypoint_etcd.sh {{ drone_name }} '{{ drone_name }}=http://0.0.0.0:2380'
+
