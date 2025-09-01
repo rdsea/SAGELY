@@ -18,7 +18,7 @@ services:
         ipv4_address: 192.168.49.4
     environment:
       # TODO: will make a local network for sidecar container
-      - OPA_URL=http://192.168.49.1:8181/v1/policies/policy.rego
+      - OPA_URL=http://192.168.49.1:8181/v1/policies/policy/policy.rego
       #- OPA_URL=http://192.168.49.1:8181/v1/policies/policy
     volumes:
       - ./image/:/root/drone/src/data/val_images
