@@ -139,5 +139,8 @@ fi
 # 4) Print export lines (so caller can eval the result)
 echo "export SELECTED_NETWORK_NAME='${SELECTED_NETWORK}'"
 echo "export SELECTED_SUBNET='${SELECTED_SUBNET}'"
+export SELECTED_NETWORK_NAME=${SELECTED_NETWORK}
+export SELECTED_SUBNET=${SELECTED_SUBNET}
 echo "echo \"Using network: \${SELECTED_NETWORK_NAME} (subnet: \${SELECTED_SUBNET})\""
+
 exit 0
