@@ -14,8 +14,8 @@ static_resources:
                     - name: backend
                       domains: ["*"]
                       routes:
-                        - match: { prefix: "/" }
-                          route: { cluster: drone_backend }
+                        - match: { prefix: "/" } #
+                          route: { cluster: drone_backend } # forward the accepted requests to
                 http_filters:
                   - name: envoy.filters.http.ext_authz
                     typed_config:
@@ -38,7 +38,7 @@ static_resources:
               - endpoint:
                   address: { socket_address:
                         #{ address: client_drone0, port_value: 8080 },
-                        { address: backend, port_value: 8080 } }
+                        { address: 192.168.49.100, port_value: 8080 } }
     - name: opa_ext_authz
       connect_timeout: 1s
       type: STRICT_DNS
@@ -50,7 +50,10 @@ static_resources:
           - lb_endpoints:
               - endpoint:
                   address:
-                    { socket_address: { address: opa0, port_value: 9191 } }
+                    {
+                      socket_address:
+                        { address: 192.168.49.1, port_value: 9191 },
+                    }
 admin:
   access_log_path: /tmp/admin_access.log
   address: { socket_address: { address: 0.0.0.0, port_value: 8001 } }
