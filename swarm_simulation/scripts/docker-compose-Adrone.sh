@@ -3,6 +3,7 @@
 # Machine B (ROS 2 + Micro XRCE-DDS Agent) — this runs the agent, which connects the XRCE world (PX4) to the DDS world (ROS 2).
 #
 # Base details
+GZ_SIM=false # true
 GZ_PARTITION="relay"
 GZ_IP="192.168.132.1"
 DRONE_MODEL="gz_x500"
@@ -20,19 +21,56 @@ SWARM_CONTAINER=hello-world
 # application services
 ROS2_CONTAINER=ros:humble-ros-base-jammy
 
-NETWORK_NAME=swarm_net
-
 OPA_POLICY="./opa/policy.rego"
 
-#echo "networks:" >docker_net.yml
-# cat <<EOF >docker_net.yml
-# networks:
-#   ${NETWORK_NAME}:
-#     driver: bridge
-#     ipam:
-#       config:
-#         - subnet: 192.168.132.0/24
-# EOF
+#NETWORK_NAME=swarm_net
+#
+# #echo "networks:" >docker_net.yml
+# # cat <<EOF >docker_net.yml
+# # networks:
+# #   ${NETWORK_NAME}:
+# #     driver: bridge
+# #     ipam:
+# #       config:
+# #         - subnet: 192.168.132.0/24
+# # EOF
+#
+
+NETWORK_NAME="${NETWORK_NAME:-swarm_net}"
+BASE_PREFIX="${BASE_PREFIX:-192.168}" # will create 192.168.X.0/24
+# default start candidate (can be overridden). will be adjusted if minikube found.
+START_THIRD="${START_THIRD:-132}"
+
+# try to detect minikube IP (if minikube installed and running)
+MK_IP=""
+if command -v minikube >/dev/null 2>&1; then
+  MK_IP="$(minikube ip 2>/dev/null || true)"
+fi
+
+if [ -n "$MK_IP" ]; then
+  echo "Detected Minikube IP: $MK_IP"
+  MK_THIRD="$(echo "$MK_IP" | cut -d. -f3)"
+  # start one after minikube's third octet to avoid immediate overlap
+  START_THIRD=$(((MK_THIRD + 1) % 250))
+  [ "$START_THIRD" -lt 2 ] && START_THIRD=2
+fi
+
+# try sequential /24 subnets until docker accepts creation
+TRIES=200
+for offset in $(seq 0 $TRIES); do
+  THIRD=$(((START_THIRD + offset) % 250))
+  SUBNET="${BASE_PREFIX}.${THIRD}.0/24"
+  echo "Trying to create network '${NETWORK_NAME}' with subnet ${SUBNET}..."
+  if docker network create --driver bridge --subnet "${SUBNET}" "${NETWORK_NAME}" >/dev/null 2>&1; then
+    echo "Success: created ${NETWORK_NAME} -> ${SUBNET}"
+    exit 0
+  else
+    echo "Failed (probably address in use). Trying next..."
+  fi
+done
+
+echo "ERROR: could not create a non-overlapping /24 network after ${TRIES} tries" >&2
+exit 1
 
 echo "docker network create --driver bridge --subnet \"${BASE_IP}${SWARM_SUBNET}.0/24\" \"${NETWORK_NAME}\""
 
@@ -161,39 +199,46 @@ services:
     tty: true         # Equivalent to -t in docker run
     command: ["tmuxinator", "start", "px4_ros2_gazebo"]
 
-  ${SWARM_NAME}:
-    image: ${SWARM_CONTAINER} 
-    container_name: ${SWARM_NAME}
-    networks:
-      ${NETWORK_NAME}:
-        ipv4_address: ${SWARM_IP}
-    volumes:
-      - ./${CONFIG_FILE}:/root/.config/tmuxinator/px4_ros2_gazebo.yml
-    environment:
-      GZ_PARTITION: "${GZ_PARTITION}"
-      GZ_IP: "${GZ_IP}"
-      PX4_MODEL: "${DRONE_MODEL}"
-    #command: ["sleep", "infinity"]
-
-  ${ROS2_NAME}:
-    image: ${ROS2_CONTAINER} 
-    container_name: ${ROS2_NAME}
+  backend:
+    image: hashicorp/http-echo:0.2.3
+    command: ["-listen=:8080", "-text=hello from backend"]
     networks:
       ${DRONE_NAME}_net:
         ipv4_address: ${BASE_IP}${i}.4
-    volumes:
-      - ./${CONFIG_FILE}:/root/.config/tmuxinator/px4_ros2_gazebo.yml
-    # environment:
-    #   GZ_PARTITION: "${GZ_PARTITION}"
-    #   GZ_IP: "${GZ_IP}"
-    #   PX4_MODEL: "${DRONE_MODEL}"
-    command: ["tmuxinator", "start", "px4_ros2.yml"]
+
+  # ${SWARM_NAME}:
+  #   image: ${SWARM_CONTAINER} 
+  #   container_name: ${SWARM_NAME}
+  #   networks:
+  #     ${NETWORK_NAME}:
+  #       ipv4_address: ${SWARM_IP}
+  #   volumes:
+  #     - ./${CONFIG_FILE}:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+  #   environment:
+  #     GZ_PARTITION: "${GZ_PARTITION}"
+  #     GZ_IP: "${GZ_IP}"
+  #     PX4_MODEL: "${DRONE_MODEL}"
+  #   #command: ["sleep", "infinity"]
+  # ${ROS2_NAME}:
+  #   image: ${ROS2_CONTAINER} 
+  #   container_name: ${ROS2_NAME}
+  #   networks:
+  #     ${DRONE_NAME}_net:
+  #       ipv4_address: ${BASE_IP}${i}.4
+  #   volumes:
+  #     - ./${CONFIG_FILE}:/root/.config/tmuxinator/px4_ros2_gazebo.yml
+  #   # environment:
+  #   #   GZ_PARTITION: "${GZ_PARTITION}"
+  #   #   GZ_IP: "${GZ_IP}"
+  #   #   PX4_MODEL: "${DRONE_MODEL}"
+  #   command: ["tmuxinator", "start", "px4_ros2.yml"]
 
 EOF
 
   # Generate unique config files for each drone
   mkdir -p tmuxinator_config
-  cat <<EOF >${CONFIG_FILE}
+  # Header + first window(s)
+  cat >"$CONFIG_FILE" <<EOF
 name: px4_ros2_gazebo
 root: /root
 
@@ -202,22 +247,134 @@ windows:
       root: /root/Micro-XRCE-DDS-Agent
       layout: even-vertical
       panes:
-        - MicroXRCEAgent udp4 -p 8888 # add the ip of ROS2 as DDS agent
+        - MicroXRCEAgent udp4 -p 8888
+EOF
+
+  # PX4_Autopilot window (conditional on GZ_SIM)
+  if [[ "${GZ_SIM,,}" == "true" || "${GZ_SIM}" == "1" ]]; then
+    # Gazebo sim
+    cat >>"$CONFIG_FILE" <<EOF
   - PX4_Autopilot:
       root: /root/PX4-Autopilot
       layout: even-vertical
       panes:
-      - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="${PX4_GZ_MODEL_POSE}" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $((i - $START_IP))
+        - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="${PX4_GZ_MODEL_POSE}" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $((i - $START_IP))
+EOF
+  else
+    # Headless (no Gazebo)
+    cat >>"$CONFIG_FILE" <<EOF
+  - PX4_Autopilot:
+      root: /root/PX4-Autopilot
+      layout: even-vertical
+      panes:
+        - sleep 3 && HEADLESS=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $((i - $START_IP))
+EOF
+  fi
+
+  # Remaining windows
+  cat >>"$CONFIG_FILE" <<EOF
   - ROS_GZ_Image_Bridge:
       root: /root/ws_sensor_combined
       layout: even-vertical
       panes:
         - sleep 6 && ros2 run ros_gz_image image_bridge /camera
+  - Drone_Cluster:
+      root: /root/drone/src/object_classification/client_drone
+      layout: even-vertical
+      panes:
+        - sleep 6 && /root/drone/src/object_classification/scripts/entrypoint_etcd.sh ${DRONE_NAME} '${DRONE_NAME}=http://0.0.0.0:2380'
 EOF
 
+  #   cat <<EOF >${CONFIG_FILE}
+  # name: px4_ros2_gazebo
+  # root: /root
+  #
+  # windows:
+  #   - Micro_XRCE_Agent:
+  #       root: /root/Micro-XRCE-DDS-Agent
+  #       layout: even-vertical
+  #       panes:
+  #         - MicroXRCEAgent udp4 -p 8888 # add the ip of ROS2 as DDS agent
+  #   - PX4_Autopilot:
+  #       root: /root/PX4-Autopilot
+  #       layout: even-vertical
+  #       panes:
+  ##       - sleep 3 && GZ_PARTITION=${GZ_PARTITION} GZ_RELAY=${GZ_IP} GZ_IP=${DRONE_IP} PX4_GZ_MODEL_POSE="${PX4_GZ_MODEL_POSE}" PX4_GZ_STANDALONE=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $((i - $START_IP))
+  #       - sleep 3 && HEADLESS=1 PX4_SYS_AUTOSTART=4001 PX4_SIM_MODEL=${DRONE_MODEL} /root/PX4-Autopilot/build/px4_sitl_default/bin/px4 -i $((i - $START_IP))
+  #   - ROS_GZ_Image_Bridge:
+  #       root: /root/ws_sensor_combined
+  #       layout: even-vertical
+  #       panes:
+  #         - sleep 6 && ros2 run ros_gz_image image_bridge /camera
+  #   - Drone_Cluster:
+  #       root: /root/drone/src/object_classification/client_drone
+  #       layout: even-vertical
+  #       panes:
+  #         - sleep 6 && /root/drone/src/object_classification/scripts/entrypoint_etcd.sh ${DRONE_NAME} '${DRONE_NAME}=http://0.0.0.0:2380'
+  # EOF
+  #
   echo "Generated ${COMPOSE_FILE} and ${CONFIG_FILE}"
 
   mkdir -p envoy_config
+  cat <<EOF >${ENVOY_FILE}
+  static_resources:
+  listeners:
+    - name: http
+      address: { socket_address: { address: 0.0.0.0, port_value: 8000 } }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http # required
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: backend
+                      domains: ["*"]
+                      routes:
+                        - match: { prefix: "/" } #
+                          route: { cluster: drone_backend } # forward the accepted requests to
+                http_filters:
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      grpc_service:
+                        envoy_grpc: { cluster_name: opa_ext_authz }
+                      transport_api_version: V3
+                  - name: envoy.filters.http.router # <-- keep the name
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router # <-- add this
+  clusters:
+    - name: drone_backend
+      connect_timeout: 2s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: drone_backend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address: { socket_address:
+                        #{ address: client_drone0, port_value: 8080 },
+                        { address: backend, port_value: 8080 } }
+    - name: opa_ext_authz
+      connect_timeout: 1s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      http2_protocol_options: {} # <-- required for gRPC Envoy (HTTP/2)— Otherwise ext_authz gRPC can fail to connect.
+      load_assignment:
+        cluster_name: opa_ext_authz
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    { socket_address: { address: opa0, port_value: 9191 } }
+admin:
+  access_log_path: /tmp/admin_access.log
+  address: { socket_address: { address: 0.0.0.0, port_value: 8001 } }
+EOF
+
   cat <<EOF >${ENVOY_FILE}
 static_resources:
   listeners:
@@ -356,4 +513,4 @@ layered_runtime:
 EOF
 done
 
-echo "Generated all docker-compose files and configuration files in ./tmuxinator_config/"
+echo "Generated all docker-compose files and configuration files in ./config/"
