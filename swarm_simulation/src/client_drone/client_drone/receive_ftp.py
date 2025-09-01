@@ -4,8 +4,6 @@ from pymavlink import mavutil
 from std_msgs.msg import String
 import requests
 
-
-# import time
 import os
 
 TIMER_PERIOD = 0.1
@@ -60,25 +58,9 @@ class MAVLinkFTPReceiver(Node):
 
             elif opcode == 6:  # File transfer complete
                 self.get_logger().info("File Transfer Completed Successfully!")
-                # data_to_opa = (
-                #     self.received_data.encode()
-                # )  # Convert to bytes before sending
                 self.send_file_to_opa(self.received_data)
 
                 self.received_data = b""
-
-                # number = 1.32
-                # time_boot_ms = (
-                #     self.get_clock().now().nanoseconds // 1000000
-                # ) % 4294967296
-                # named_value_float = mavlink2.MAVLink_named_value_float_message(
-                #     time_boot_ms=time_boot_ms, name=b"number", value=number
-                # )
-                # try:
-                #     self.mav_send.mav.send(named_value_float)
-                #     self.get_logger().info(f"Sent number to PX4: {number}")
-                # except Exception as e:
-                #     self.get_logger().error(f"Failed to send number: {str(e)}")
 
     def send_file_to_opa(self, policy_data):
         """Sends policy data to OPA and saves it locally if rejected"""
