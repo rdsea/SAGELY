@@ -1,0 +1,25 @@
+gazebo:
+  gz_sim: false # true
+  gz_partition_name: relay
+  #gz_ip: 192.168.132.1
+  world_model: drones_world
+
+drone:
+  image: hongtringuyen/client_drone_ros2_px4
+  # TODO: Start only from 101 to 200 since the envoy IP is 101 + 100
+  start_ip: 101
+  end_ip: 104
+  #drone_ip: 192.168.132.101 - 192.168.132.104
+  drone_model: gz_x500
+  px4_gz_model_pose: "268.08,-128.22,3.86,0.00,0,-0.7"
+  opa_policy: "policy.rego"
+
+network:
+  base_ip: "192.168."
+  swarm_subnet: 132
+  target_base_name: swarm_net
+  prefer_minikube: true
+# envoy:
+#   listen_address:
+#   opa_address:
+#   opa_port: 9191
