@@ -45,3 +45,4 @@ drone/src/drone/scripts/etcdctl
 *.local.md
 *.log
 *.local.*
+outputs/*
