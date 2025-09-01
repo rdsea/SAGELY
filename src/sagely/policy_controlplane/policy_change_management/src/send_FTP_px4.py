@@ -20,7 +20,7 @@ except Exception:
 DEFAULT_LIST_UAV: List[Tuple[str, str, str]] = [
     ("hp", "udpout:192.168.49.3:14560", "udp:0.0.0.0:14551"),
 ]
-DEFAULT_FILE_POLICY = "./policy_get_header.rego"
+DEFAULT_FILE_POLICY = "./policy_drone_decline.rego"
 
 # Experiment Parameters (still configurable via CLI if needed)
 TIME_RUNS = 1
@@ -151,23 +151,50 @@ def send_file_to_uav(uav: UAV, file_policy: str, results_file: Path):
     while True:
         msg = noti_conn.recv_match(blocking=True, timeout=5)
         if msg:
-            if msg.get_type() == "NAMED_VALUE_FLOAT":
-                latency = time.time() - start_time
-                print(
-                    f"[{uav.uav_url}] Received Named Value Float: {msg.name} = {msg.value}"
-                )
-                print(f"[{uav.uav_url}] Time taken: {latency:.4f} sec")
+            mtype = msg.get_type()
+            # print(f"[{uav.uav_url}] DEBUG received message type: {mtype}")
 
+            if mtype == "NAMED_VALUE_FLOAT":
+                raw_name = getattr(msg, "name", b"")
+                # handle list/tuple returned in some pymavlink versions
+                if isinstance(raw_name, (list, tuple)):
+                    raw_name = bytes(raw_name)
+                if isinstance(raw_name, (bytes, bytearray)):
+                    name = raw_name.rstrip(b"\x00").decode("utf-8", errors="replace")
+                else:
+                    name = str(raw_name)
+
+                value = float(getattr(msg, "value", 0.0))
+
+                print(
+                    f"[{uav.uav_url}] NAMED_VALUE_FLOAT: {name} = {value}  latency={time.time() - start_time:.4f}"
+                )
+
+                # interpret: OPA200 -> parse status code
+                status_code = None
+                if name.upper().startswith("OPA") and name[3:].isdigit():
+                    status_code = int(name[3:])
+                else:
+                    # sometimes service encodes status in value
+                    if value.is_integer() and 100 <= int(value) <= 599:
+                        status_code = int(value)
+
+                # use status_code if you need to log whether success or failure
+                if status_code is not None:
+                    print(f"Received OPA status {status_code}")
+                else:
+                    print(f"Received token: {name}, value: {value}")
+
+                # record latency and exit as before
+                latency = time.time() - start_time
                 with csv_lock:
                     with results_file.open(mode="a", newline="") as f:
                         writer = csv.writer(f)
-                        if time.time() - start_time < AVERAGE:
-                            writer.writerow([uav.name, "inf"])
-                        else:
-                            writer.writerow([uav.name, latency])
+                        writer.writerow([uav.name, latency])
                 break
 
-        if time.time() - start_time > 30:  # Timeout case
+        if time.time() - start_time > 30:
+            # timeout
             with csv_lock:
                 with results_file.open(mode="a", newline="") as f:
                     writer = csv.writer(f)
