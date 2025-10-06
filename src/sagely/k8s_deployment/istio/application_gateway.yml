@@ -1,0 +1,91 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: object-classification-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+        #- "object-classification.test.com"
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: ingress-vs
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - object-classification-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /notify-leader
+        - uri:
+            prefix: /heartbeat
+      route:
+        - destination:
+            host: service-discovery-service.platform-context.svc.cluster.local
+            #host: service-discovery-service
+            port:
+              number: 1337
+    - match:
+        - uri:
+            prefix: /notify-context
+        - uri:
+            prefix: /update-counter
+        - uri:
+            prefix: /get-counter
+        - uri:
+            prefix: /get-leader
+        - uri:
+            prefix: /get-command
+        - uri:
+            prefix: /send-command/change-group-or-id
+        - uri:
+            prefix: /send-command/change-task-parameter
+        - uri:
+            #prefix: /get-command/{node_id}/{command_type} # delete command
+            regex: /get-command/.*/.*/ # regex since path parameters are used
+        # - uri:
+        #     prefix: /get-command/{node_id}/{command_type}
+      route:
+        - destination:
+            host: context-management-service.platform-context.svc.cluster.local
+            #host: context-management-service
+            port:
+              number: 1338
+    - match:
+        - uri: { exact: /preprocessing }
+        #- uri: { prefix: /preprocessing/ }
+      route:
+        - destination:
+            host: preprocessing-service.default.svc.cluster.local
+            port:
+              number: 5010
+    - match:
+        - uri:
+            prefix: /jaeger
+        - uri:
+            prefix: /api/traces
+      route:
+        - destination:
+            host: tracing.istio-system.svc.cluster.local
+            port:
+              number: 80
+            #subset: v1
+    # - match:
+    #     - uri:
+    #         prefix: /predict
+    #   route:
+    #     - destination:
+    #         host: ensemble-service
+    #         port:
+    #           number: 5011
+    #         subset: v2

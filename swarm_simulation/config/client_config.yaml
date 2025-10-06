@@ -1,0 +1,26 @@
+drone_101:
+  device_id: "drone_101"
+  group_id: "0"
+  server_url: "http://192.168.49.2:80"
+  ds_path: "/root/drone/src/data/val_images"
+  rate: 1
+  image_paths: "folder_0"
+  etcd_host: 0.0.0.0:2379
+
+drone_102:
+  device_id: "drone_102"
+  group_id: "1"
+  server_url: "http://192.168.49.2:80"
+  ds_path: "/root/drone/src/data/val_images"
+  rate: 1
+  image_paths: "folder_1"
+  etcd_host: 0.0.0.0:2379
+
+drone_103:
+  device_id: "drone_103"
+  group_id: "0"
+  server_url: "http://192.168.49.2:80"
+  ds_path: "/root/drone/src/data/val_images"
+  rate: 1
+  image_paths: "folder_2"
+  etcd_host: 0.0.0.0:2379

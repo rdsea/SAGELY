@@ -1,0 +1,24 @@
+[project]
+name = "drone"
+version = "0.1.0"
+description = "Add your description here"
+authors = [{ name = "hong3nguyen", email = "tringuyennht@gmail.com" }]
+dependencies = [
+  #   # "setuptools>=75.3.0",
+  # "empy==3.3.4",
+  # "lark>=1.2.2",
+  # "fastapi[standard]>=0.115.4",
+  # "requests>=2.32.3",
+  # "colcon-common-extensions>=0.3.0",
+  # "aiohttp>=3.11.12",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+virtual = true
+
+[tool.hatch.metadata]
+allow-direct-references = true

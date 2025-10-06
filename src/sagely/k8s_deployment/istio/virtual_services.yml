@@ -1,0 +1,110 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: gateway-vs
+spec:
+  hosts:
+    - gateway-service
+  http:
+    - route:
+        - destination:
+            host: gateway-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: preprocessing-vs
+spec:
+  hosts:
+    - preprocessing-service
+  http:
+    - route:
+        - destination:
+            host: preprocessing-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: mobilenetv2-vs
+spec:
+  hosts:
+    - mobilenetv2-service
+  http:
+    - route:
+        - destination:
+            host: mobilenetv2-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 5s
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: efficientnetb0-vs
+spec:
+  hosts:
+    - efficientnetb0-service
+  http:
+    - route:
+        - destination:
+            host: efficientnetb0-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 5s
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: ensemble-vs
+spec:
+  hosts:
+    - ensemble-service
+  http:
+    - route:
+        - destination:
+            host: ensemble-service
+            subset: v1
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+# apiVersion: networking.istio.io/v1alpha3
+# kind: VirtualService
+# metadata:
+#   name: service-a
+#   namespace: namespace-b # VirtualService can reside in the other namespace
+# spec:
+#   hosts:
+#     - service-a.namespace-a.svc.cluster.local
+#   http:
+#     - route:
+#         - destination:
+#             host: service-a.namespace-a.svc.cluster.local
+#             subset: v1
+# ---
+# apiVersion: networking.istio.io/v1alpha3
+# kind: DestinationRule
+# metadata:
+#   name: service-a
+#   namespace: namespace-a # Same namespace as the service
+# spec:
+#   host: service-a
+#   subsets:
+#     - name: v1
+#       labels:
+#         version: v1

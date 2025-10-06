@@ -1,0 +1,240 @@
+# SAGELY - SwArm-edGE PoLicY
+
+[IEEE ICWS 2025](https://research.aalto.fi/en/publications/sagely-context-aware-holistic-service-policy-enforcement-across-s)
+
+**Table of Contents**
+
+- [Repo structure](#repo-structure)
+  - [Creating the edge cluster](#creating-the-edge-cluster)
+  - [Creating swarm simulation](#creating-swarm-simulation)
+  - [SAGELY](#sagely-swarm-edge-policy)
+- [Example to reproduce the ICWS experiment](#reproduce-the-icws-experiment)
+  - [Start the experiment](#start-the-experiment)
+- [Citation](#citation)
+
+## Repo structure
+
+The repo contains 3 main parts:
+
+- [Swarm simulation](./swarm_simulation/) part using [Gazebo](https://github.com/gazebosim/gz-sim) and [PX4](https://github.com/PX4/PX4-Autopilot)
+- [SAGELY framework](./src/sagely/)
+- [Applications](./applications/object_classification) with [utility](./infrastructure/) to set up the edge cluster infrastructure
+
+## Creating an edge cluster
+### Minikube with Tiltfile
+
+1. Navigate to infrastructure/
+```bash
+tilt -f Tiltfile up
+```
+
+
+## Creating swarm simulation
+
+1. build docker-based container for ROS2-based drones o.w can use mine hongtringuyen/client_drone_ros2_px4
+  - to simulate or present a drone
+```bash
+docker build -t hongtringuyen/client_drone_ros2_px4 -f Dockerfile .
+```
+
+2. create service along with a drone
+
+  - **A drone with need service**
+    - envoy
+    - opa
+    - a backed service to check the usage of policy to protect this service
+
+```bash
+docker compose -f docker-compose-sample.yml up -d
+```
+
+  - **A network of drones via navigate to swarm_simulation/generation_drones**
+    - fill in configuration file, called swarm_simulation/generation_drones/input_config.yml
+```yaml
+# 
+gazebo:
+  gz_sim: false # true means use gazebo and false means use px4_headless no env simulation
+  gz_partition_name: relay
+  #gz_ip: 192.168.132.1 # if gz_sim is true
+  world_model: drones_world
+
+drone:
+  image: hongtringuyen/client_drone_ros2_px4
+  # TODO: Start only from 101 to 200 since the envoy IP is 101 + 100
+  start_ip: 101
+  end_ip: 104
+  #drone_ip: 192.168.132.101 - 192.168.132.104
+  drone_model: gz_x500
+  px4_gz_model_pose: "268.08,-128.22,3.86,0.00,0,-0.7"
+  opa_policy: "policy.rego"
+
+network:
+  base_ip: "192.168."
+  swarm_subnet: 132
+  target_base_name: swarm_net
+  prefer_minikube: true # means the network for cluster is 192.168.49.2 without this one the configuration network becomes 192.168.132.1
+```
+
+  - execute python script to generate a number of drones with pair of opas and envoys
+```bash
+python ./swarm_simulation/generation_drones/generation_drones.py
+
+```
+  - the set of docker-compose-based drones are in outputs/
+  - output/dockercompose_config/logs/ collects logs from drones
+  - to run those drones just run docker compose
+```bash
+docker compose -f ./swarm_simulation/generation_drones/outputs/dockercompose_config/docker-compose-drone_XXX.yml up -d # where XXX is the ID of the drones
+
+```
+- NOTE: the config/client_config.yaml need to be updated to be correct the ID or XXX from generation_drones/outputs/dockercompose_config/
+```yaml
+drone_XXX:
+  device_id: "drone_XXX"
+  group_id: "0"
+  server_url: "http://192.168.49.2:80"
+  ds_path: "/root/drone/src/data/val_images"
+  rate: 1
+  image_paths: "folder_0"
+  etcd_host: 0.0.0.0:2379
+```
+
+3. if you want to simulate gazebo env. This setting is based on [PX4-gazebo-models](https://github.com/PX4/PX4-gazebo-models)
+  - Run the simulation gazebo server:
+  - make sure the IP and --gz_partition_name 
+
+  ```bash
+python ./simulation-gazebo/script/simulation-gazebo --gz_partition relay --gz_ip 192.168.132.1 --world drones_world # with drones_words is a sdf file 
+  ```
+
+## SAGELY-SwArm-edGE PoLicY
+- Services:
+  - service discovery
+    - keep track heartbeat from all drones
+    - store all to context-management
+  - context-management
+    - database to interact continuously with drones
+  - policy_controlplane/
+    - Policy planner
+      - create policy to satisfy the change from context-management
+    - Policy Coordinator
+      - decides on devices/containers to change policies
+    - Policy change management
+      - send/apply policies to OPA 
+
+### Change policy for services in the cluster
+- navigate to src/sagely/policy_controlplane/policy_change_management/
+
+- Apply a new rego policy to the cluster 
+> apply_policy_cluster.py [-h] [--configmap CONFIGMAP] [--key KEY] rego_path 
+```bash
+python src/apply_policy_cluster.py policy/policy_cluster.rego
+# Example
+python apply_policy_cluster.py policy_cluster.rego
+```
+
+### Change policy for the drones
+- navigate to src/sagely/policy_controlplane/policy_change_management/
+- Apply a new rego policy to the drones 
+```bash
+python src/send_FTP_px4.py \
+  --file-policy <rego_policy_path>  \
+  --uav <UAV_name> udpout:<UAV_IP>:14560 udp:0.0.0.0:14551 \
+  --runs <Number_of_runs>
+
+# Example apply policy policy_drone_allow.rego on drone called hp with ip 192.168.49.101 and run 1 time
+python src/send_FTP_px4.py \
+  --file-policy policy/policy_drone_allow.rego  \
+  --uav hp udpout:192.168.49.101:14560 udp:0.0.0.0:14551 \
+  --runs 1
+# o.w can edit from a list in the src
+```
+
+## Reproduce the ICWS experiment
+
+### Start the experiment
+
+Navigate to the `experiments/ICWS` directory and run the experiment script with the desired policy and configuration.
+
+The policy files used in the experiment (e.g., `rego_3kb_1.rego`, `rego_30kb_1.rego`, `rego_300kb_1.rego`) are provided in the `policy` directory. You can also generate your own policy files using the [generate_policy.py](./experiments/ICWS/policy/generate_policy.py)
+
+For example, to run the experiment with a 3kb policy and 4 services:
+
+```bash
+cd experiments/ICWS
+python3 ./run_experiment.py ./policy/rego_3kb_1.rego ./policy/rego_3kb_2.rego 0.5 4 3
+```
+
+To run all experiments, you can use the provided shell script:
+
+```bash
+./run_all_experiment.sh
+```
+
+This will create a new directory named `resultX` (where X is a number) and store the CSV results of the experiment in it.
+### Creating the edge cluster
+
+#### Kind-based infrastructure
+1. Create a Kubernetes cluster using your chosen distribution, can be k3s, k8s, or kind for development like following:
+
+```bash
+kind create cluster --config ./infrastructure/kind-config.yaml
+```
+
+2. Deploy Istio and other necessary services:
+
+```bash
+./infrastructure/deploy_istio.sh
+```
+
+
+### Deploying the application
+
+Firstly you need to update the submodule first using
+
+```bash
+git submodule update --init --recursive
+```
+
+Deploy the object classification application
+
+```bash
+cd ./applications/object_classification/deployment/edge/
+./apply.sh
+```
+
+
+
+
+
+### Error:
+500 error codes are about the header lacking timestamps from application side
+- carefully check **HEADER of requests**
+
+403 error codes are about the authorization
+- check carefully the ID fits with rego policies since we dont have an authentication system
+
+
+## Reference
+
+```bibtex
+@inproceedings{nguyen_2025_sagely,
+title = "SAGELY - Context-aware Holistic Service Policy Enforcement across Swarm-Edge Continuum",
+keywords = "Continuum service-based application, Service-oriented computing, Policy-as-code, Policy enforcement, Swarm-edge-cloud computing",
+author = "Hong-Tri Nguyen and Liang Yuan and Anh-Dung Nguyen and M. Ali Babar and Linh Truong",
+booktitle = "IEEE International Conference on Web Services (ICWS 2025)",
+publisher = "IEEE",
+note = "IEEE International Conference on Web Services, ICWS ; Conference date: 07-07-2025 Through 12-07-2025",
+}
+```
+
+
+## Further developments
+### Drone
+- [ ] add the check from gazebo in usage or not
+- [ ] gazebo in usage testing 
+- [ ] create cluster container 
+	- [ ] create etcd container call ros2 from 
+		- to allow change consensus 
+### Cluster
+- [ ] connection among policy_controlplane services

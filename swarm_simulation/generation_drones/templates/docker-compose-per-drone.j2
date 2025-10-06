@@ -1,0 +1,72 @@
+{# templates/docker-compose-per-drone.j2 #}
+{% import "_macros.j2" as macros %}
+version: '3.8'
+networks:
+  {{ drone_name }}_net:
+    external: true
+  {{ network_name }}:
+    external: true
+
+services:
+  envoy_{{ i }}:
+    image: envoyproxy/envoy:v1.23-latest
+    container_name: envoy_{{ i }}
+    volumes:
+      - ../envoy_config/{{ drone_name }}.yml:/etc/envoy/envoy.yaml
+    networks:
+      {{ drone_name }}_net:
+        ipv4_address: {{ base_ip }}{{ i }}.2
+      {{ network_name }}:
+        ipv4_address: {{ envoy_ip }}
+
+  opa_{{ i }}:
+    image: openpolicyagent/opa:latest-envoy
+    container_name: opa_{{ i }}
+    volumes:
+      - ../../policy/{{ opa_policy }}:/policy/policy.rego
+    command:
+      - run
+      - --server
+      - --log-level=debug
+      - --log-format=json-pretty
+      - --addr=0.0.0.0:8181
+      - --set=plugins.envoy_ext_authz_grpc.addr=:9191
+      - --set=decision_logs.console=true
+      - --set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow
+      - /policy/policy.rego
+    networks:
+      {{ drone_name }}_net:
+        ipv4_address: {{ base_ip }}{{ i }}.3
+
+  {{ drone_name }}:
+    image: {{ image }}
+    container_name: {{ drone_name }}
+    networks:
+      {{ network_name }}:
+        ipv4_address: {{ drone_ip }}
+      {{ drone_name }}_net:
+        ipv4_address: {{ base_ip }}{{ i }}.{{ i }}
+    volumes:
+      - ../../../image/:/root/drone/src/data/val_images
+      - ../../../config/client_config.yaml:/root/drone/src/object_classification/config/client_config.yaml
+      - ./logs:/root/drone/logs
+      - ../tmuxinator_config/{{ drone_name }}.yml:/root/.config/tmuxinator/ros2_px4_gazebo.yaml
+    environment:
+      # TODO: will make a local network for sidecar container
+      - OPA_URL=http://{{ base_ip }}{{ i }}.3:8181/v1/policies/policy/policy.rego
+    stdin_open: true
+    tty: true
+    entrypoint: ["tmuxinator"]
+    command: ["start", "-p", "/root/.config/tmuxinator/ros2_px4_gazebo.yaml"]
+    # TODO: with the work based on Px4 relay, so the port forward is required
+    ports:
+      - "14560:14560/udp"  # PX4 UDP for MAVLink
+      - "14550:14550/udp"  # optional: for QGC
+
+  backend_{{ i }}:
+    image: hashicorp/http-echo:0.2.3
+    container_name: backend_{{ i }}
+    command: ["-listen=:8080", "-text=hello from backend"]
+    networks:
+      {{ drone_name }}_net:
+        ipv4_address: {{ base_ip }}{{ i }}.4

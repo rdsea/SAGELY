@@ -1,0 +1,7 @@
+
+setuptools>=75.3.0,
+empty==3.3.4,
+lark>=1.2.2,
+fastapi[standard]>=0.115.4,
+requests>=2.32.3,
+colcon-common-extensions>=0.3.0,

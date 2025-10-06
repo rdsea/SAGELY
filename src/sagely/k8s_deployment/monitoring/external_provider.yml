@@ -1,0 +1,35 @@
+# apiVersion: install.istio.io/v1alpha1
+# kind: IstioOperator
+# spec:
+#   meshConfig:
+#     enableTracing: true
+#     defaultConfig:
+#       tracing: {} # disable legacy MeshConfig tracing options
+#     extensionProviders:
+#       - name: jaeger
+#         opentelemetry:
+#           port: 4317
+#           service: jaeger-collector.istio-system.svc.cluster.local
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  meshConfig:
+    enableTracing: true
+    defaultConfig:
+      tracing: {} # disable legacy MeshConfig tracing options
+    # edit this one to capture all request o.w the tracing rate is 1%
+    # defaultProviders:
+    #   tracer:
+    #     zipkin: # Assuming you're using Zipkin for tracing
+    #       sampling: 100 # 100% sampling rate
+    extensionProviders:
+      - name: jaeger
+        opentelemetry:
+          port: 4317
+          service: jaeger-collector.istio-system.svc.cluster.local
+      # Add the OPA external authorization extension provider
+      - name: opa-ext-authz-grpc
+        envoyExtAuthzGrpc:
+          service: opa-ext-authz-grpc.local
+          port: 9191
+#istioctl install -f ./tracing.yml --skip-confirmation

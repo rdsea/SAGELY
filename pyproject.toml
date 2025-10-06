@@ -1,0 +1,29 @@
+[project]
+name = "sagely"
+version = "0.1.0"
+description = "SAGELY framework"
+authors = [{ name = "AaltoSEA team", email = "tringuyennht@gmail.com, anh-dung.nguyen@aalto.fi" }]
+dependencies = [
+    "pyyaml>=6.0.2",
+    "pymavlink>=2.4.42",
+    "jinja2>=3.1.6",
+    "pydantic>=2.11.9",
+]
+readme = "README.md"
+requires-python = ">= 3.9"
+
+[tool.rye]
+dev-dependencies = []
+managed = true
+virtual = true
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.rye.workspace]
+members = [
+  "src/sagely/*",
+  "src/sagely/policy_controlplane/*",
+  # "drone",
+
+]

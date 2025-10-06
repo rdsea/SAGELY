@@ -1,0 +1,8 @@
+{%- macro env_pair(key, val) -%}
+{% set safe_val = val %}
+{% if ',' in safe_val|string %}
+{{ key }}: "{{ safe_val }}"
+{% else %}
+{{ key }}: {{ safe_val }}
+{% endif %}
+{%- endmacro -%}

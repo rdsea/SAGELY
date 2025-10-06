@@ -1,0 +1,15 @@
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  tracing:
+    - providers:
+        - name: jaeger
+      # the below is the sample trace rate 100 and with foo and bar
+      customTags:
+        ExampleTag:
+          literal:
+            value: collectTrace
+      randomSamplingPercentage: 100

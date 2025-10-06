@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-discovery
+  namespace: platform-context
+  labels:
+    app: service-discovery
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-discovery
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: service-discovery
+        version: v1
+    spec:
+      containers:
+        - name: service-discovery
+          imagePullPolicy: "IfNotPresent"
+          image: hongtringuyen/service_discovery
+          ports:
+            - containerPort: 1337
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-discovery-service
+  namespace: platform-context
+spec:
+  ports:
+    - port: 1337
+      targetPort: 1337
+  selector:
+    app: service-discovery
