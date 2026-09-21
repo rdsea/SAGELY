@@ -137,11 +137,7 @@ def main():
     # Run the shell script
     script_dir = Path(__file__).resolve().parent
     network_setup = (
-        script_dir.parent
-        / "swarm_simulation"
-        / "generation_drones"
-        / "scripts"
-        / "network_setup.sh"
+        script_dir.parent / "generation_drones" / "scripts" / "network_setup.sh"
     )
     result = subprocess.run(
         ["bash", str(network_setup)],
