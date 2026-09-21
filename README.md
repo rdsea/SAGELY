@@ -140,7 +140,7 @@ This will create a new directory named `resultX` (where X is a number) and store
    If you want to simulate a Gazebo environment, run the following command:
 
    ```bash
-   python ./simulation-gazebo/script/simulation-gazebo --gz_partition relay --gz_ip 192.168.132.1 --world drones_world
+   python ./simulation-gazebo/scripts/simulation-gazebo --gz_partition relay --gz_ip 192.168.132.1 --world drones_world
    ```
 
 ### Policy Management
