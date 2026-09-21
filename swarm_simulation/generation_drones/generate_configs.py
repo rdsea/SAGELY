@@ -135,8 +135,10 @@ def compute_drone_context(cfg: InputConfig) -> List[Dict]:
 
 def main():
     # Run the shell script
+    script_dir = Path(__file__).resolve().parent
+    network_setup = script_dir.parent / "scripts" / "network_setup.sh"
     result = subprocess.run(
-        ["bash", "../scripts/network_setup.sh"],
+        ["bash", str(network_setup)],
         check=True,
         capture_output=True,
         text=True,
@@ -168,8 +170,10 @@ def main():
         ).split(".")[2]
     )
 
-    env = Environment(loader=FileSystemLoader("templates"), undefined=StrictUndefined)
-    out_dir = Path("outputs")
+    env = Environment(
+        loader=FileSystemLoader(script_dir / "templates"), undefined=StrictUndefined
+    )
+    out_dir = script_dir / "outputs"
     out_dir.mkdir(exist_ok=True)
     (out_dir / "tmuxinator_config").mkdir(exist_ok=True)
     (out_dir / "envoy_config").mkdir(exist_ok=True)
