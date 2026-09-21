@@ -117,7 +117,8 @@ This will create a new directory named `resultX` (where X is a number) and store
    - **Generate the drone configurations:**
 
      ```bash
-     python ./swarm_simulation/generation_drones/generation_drones.py input_config.yml
+     cd ./swarm_simulation/generation_drones/
+     python generation_drones.py input_config.yml
      ```
      The `outputs/` contains:
      - `dockercompose_config` folder in which contains the docker compose files for each drone 
