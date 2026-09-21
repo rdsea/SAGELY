@@ -2,8 +2,14 @@
 {% import "_macros.j2" as macros %}
 version: '3.8'
 networks:
+  # per-drone sidecar network: owned by this compose project, created on `up`
   {{ drone_name }}_net:
-    external: true
+    name: {{ drone_name }}_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: {{ base_ip }}{{ i }}.0/24
+  # shared swarm fabric: created by scripts/network_setup.sh
   {{ network_name }}:
     external: true
 
