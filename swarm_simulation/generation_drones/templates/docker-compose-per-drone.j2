@@ -64,10 +64,11 @@ services:
     tty: true
     entrypoint: ["tmuxinator"]
     command: ["start", "-p", "/root/.config/tmuxinator/ros2_px4_gazebo.yaml"]
-    # TODO: with the work based on Px4 relay, so the port forward is required
+    # host ports are offset per-drone to avoid collisions between sibling containers;
+    # container-internal ports stay fixed since that's what PX4 always listens on
     ports:
-      - "14560:14560/udp"  # PX4 UDP for MAVLink
-      - "14550:14550/udp"  # optional: for QGC
+      - "{{ 14560 + offset * 100 }}:14560/udp"  # PX4 UDP for MAVLink
+      - "{{ 14550 + offset * 100 }}:14550/udp"  # optional: for QGC
 
   backend_{{ i }}:
     image: hashicorp/http-echo:0.2.3
