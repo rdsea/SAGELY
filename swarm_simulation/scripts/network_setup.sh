@@ -67,6 +67,11 @@ if [ "${PREFER_MINIKUBE}" -ne 0 ]; then
   # C) if still not found, and minikube command exists, match networks by minikube ip -> subnet
   if [ -z "${SELECTED_NETWORK}" ] && minikube_exists; then
     MK_IP="$(minikube ip 2>/dev/null || true)"
+    # `minikube ip` prints its "profile not found" notice on stdout, so only
+    # keep the value when it really is an IPv4 address.
+    if ! echo "$MK_IP" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+      MK_IP=""
+    fi
     if [ -n "$MK_IP" ]; then
       MK_SUBNET_CAND="$(echo "$MK_IP" | awk -F. '{print $1"."$2"."$3".0/24"}')"
       for net in $(docker network ls --format '{{.Name}}'); do
