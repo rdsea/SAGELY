@@ -5,7 +5,8 @@ gazebo:
   world_model: drones_world
 
 drone:
-  image: hongtringuyen/client_drone_ros2_px4
+  #image: hongtringuyen/client_drone_ros2_px4
+  image: hongtringuyen/client_drone_ros2_px4:secassured_poc
   # TODO: Start only from 101 to 200 since the envoy IP is 101 + 100
   #drone_ip: 192.168.132.101 - 192.168.132.104
   start_ip: 101
