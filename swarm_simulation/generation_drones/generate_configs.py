@@ -96,7 +96,7 @@ def compute_drone_context(cfg: InputConfig) -> List[Dict]:
             px4_command = (
                 f"sleep 3 && "
                 f"GZ_PARTITION={cfg.gazebo.gz_partition_name} "
-                f"GZ_RELAY= {gz_ip}"  # {cfg.gazebo.gz_ip} "
+                f"GZ_RELAY={gz_ip} "
                 f"GZ_IP={drone_ip} "
                 f'PX4_GZ_MODEL_POSE="{px4_pose}" '
                 f"PX4_GZ_STANDALONE=1 "
@@ -115,6 +115,7 @@ def compute_drone_context(cfg: InputConfig) -> List[Dict]:
         drones.append(
             {
                 "i": i,
+                "offset": offset,
                 "drone_name": f"drone_{i}",
                 "image": cfg.drone.image,
                 "drone_ip": drone_ip,

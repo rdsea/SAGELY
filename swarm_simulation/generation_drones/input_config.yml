@@ -1,5 +1,5 @@
 gazebo:
-  gz_sim: false # OR true
+  gz_sim: true # OR true
   gz_partition_name: relay
   #gz_ip: 192.168.132.1
   world_model: drones_world
@@ -10,7 +10,7 @@ drone:
   # TODO: Start only from 101 to 200 since the envoy IP is 101 + 100
   #drone_ip: 192.168.132.101 - 192.168.132.104
   start_ip: 101
-  end_ip: 102
+  end_ip: 104
   drone_model: gz_x500
   px4_gz_model_pose: "268.08,-128.22,3.86,0.00,0,-0.7"
   opa_policy: "policy.rego"
