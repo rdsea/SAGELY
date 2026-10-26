@@ -161,7 +161,19 @@ def main():
     # Launch gazebo simulation
     print("> Launching gazebo simulation...")
     if not args.dryrun:
-        cmd = f"GZ_SIM_RESOURCE_PATH={args.model_store}/models "
+        # Workaround for Ubuntu 24.04 (noble) hosts running the jammy-built
+        # Gazebo stack: the jammy libraries were compiled against assimp 5.2,
+        # while noble ships assimp 5.3 under the same soname but with an
+        # incompatible ABI. That mismatch heap-corrupts the server/GUI while
+        # loading model meshes. Prepend a directory holding the compatible
+        # assimp 5.2 (and its libdraco 4 dependency) when it is present.
+        compat_lib = os.path.join(args.model_store, "lib")
+        compat_prefix = ""
+        if os.path.exists(os.path.join(compat_lib, "libassimp.so.5")):
+            existing_ld = os.environ.get("LD_LIBRARY_PATH", "")
+            ld_path = f"{compat_lib}:{existing_ld}" if existing_ld else compat_lib
+            compat_prefix = f"LD_LIBRARY_PATH={ld_path} "
+        cmd = f"{compat_prefix}GZ_SIM_RESOURCE_PATH={args.model_store}/models "
         # cmd += f'GZ_SIM_SYSTEM_PLUGIN_PATH={args.model_store}/plugins '
         cmd += f"GZ_SIM_SERVER_CONFIG_PATH={args.model_store}/server.config "
         cmd += f"gz sim --force-version 7.9.0 -r {args.model_store}/worlds/{args.world}.sdf"
